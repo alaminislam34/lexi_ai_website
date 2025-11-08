@@ -1,4 +1,5 @@
 import "../globals.css";
+import AuthProvider from "../providers/Auth_Providers/AuthProviders";
 
 export const metadata = {
   title: "Casezy",

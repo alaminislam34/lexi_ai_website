@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState } from "react";
+"use client";
+
+import { useRouter } from "next/navigation";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 // Create context
 export const AuthContext = createContext(null);
@@ -6,6 +9,13 @@ export const AuthContext = createContext(null);
 // Provider component
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    }
+  }, [user]);
 
   // login function
   const login = (userData) => {

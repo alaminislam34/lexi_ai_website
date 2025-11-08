@@ -1,5 +1,5 @@
 import AuthProvider from "../providers/Auth_Providers/AuthProviders";
-import "./globals.css";
+import "../globals.css";
 
 export const metadata = {
   title: "Casezy || Sign in",
