@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Lora";
+  src: url("/font/Lora-Regular.woff") format("woff");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Lora";
+  src: url("/font/Lora-SemiBold.woff") format("woff");
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: "Lora";
+  src: url("/font/Lora-Bold.woff") format("woff");
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: "Lora";
+  src: url("/font/Lora-ExtraBold.woff") format("woff");
+  font-weight: 800;
+}
+
 @theme {
   --color-primary: #3A86FF;
   --color-secondary: #292B2F;
@@ -7,4 +31,10 @@
   --color-gray: #B1B1B1;
   --color-element: #323439;
   --color-BG: #1D1D1D;
+
+  --font-lora: "Lora", serif;
+}
+
+button {
+  cursor: pointer;
 }
