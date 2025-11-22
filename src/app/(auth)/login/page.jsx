@@ -5,6 +5,7 @@ import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
+import ForgetPassword from "./components/ForgetPassword";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -209,6 +210,7 @@ export default function Login() {
             </div>
           </div>
         </div>
+        <ForgetPassword />
       </div>
     </div>
   );
