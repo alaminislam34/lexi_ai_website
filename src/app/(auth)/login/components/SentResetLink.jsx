@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-export default function ForgetPassword() {
+export default function SentResetLink({ setForgetForm }) {
   const [email, setEmail] = useState("");
   const SubmitEmail = (e) => {
     e.preventDefault();
@@ -11,6 +11,9 @@ export default function ForgetPassword() {
       toast.error("Please enter your email.");
     } else {
       toast.success("Reset link sent to your email.");
+      setTimeout(() => {
+        setForgetForm(true);
+      }, 2000);
     }
   };
 

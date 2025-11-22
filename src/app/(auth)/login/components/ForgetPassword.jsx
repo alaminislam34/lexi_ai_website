@@ -4,7 +4,7 @@ import { EyeOff, Eye } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 
-export default function SetPassword() {
+export default function ForgetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

@@ -5,7 +5,8 @@ import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
-import ForgetPassword from "./components/SentResetLink";
+import SentResetLink from "./components/SentResetLink";
+import ForgetPassword from "./components/ForgetPassword";
 
 export default function Login() {
   const [forget, setForget] = useState(false);
@@ -14,6 +15,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [forgetForm, setForgetForm] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -212,8 +214,10 @@ export default function Login() {
               </div>
             </div>
           </div>
-        ) : (
+        ) : forgetForm ? (
           <ForgetPassword />
+        ) : (
+          <SentResetLink setForgetForm={setForgetForm} />
         )}
       </div>
     </div>
