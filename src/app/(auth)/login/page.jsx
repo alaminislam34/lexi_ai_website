@@ -1,16 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  Check,
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
-import { FcGoogle } from "react-icons/fc"; // Using react-icons for Google icon for fidelity
+import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
 
