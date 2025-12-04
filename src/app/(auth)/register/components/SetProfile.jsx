@@ -16,7 +16,7 @@ export default function SetProfile({
       toast.error("Please enter both location and preferred legal area.");
       return false;
     } else {
-      setStep(3);
+      setStep(4);
     }
   };
   return (

@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-export default function SentResetLink({ setForgetForm }) {
+export default function SentResetLink({ setForget }) {
   const [email, setEmail] = useState("");
+  const router = useRouter();
   const SubmitEmail = (e) => {
     e.preventDefault();
     if (!email) {
@@ -12,7 +14,8 @@ export default function SentResetLink({ setForgetForm }) {
     } else {
       toast.success("Reset link sent to your email.");
       setTimeout(() => {
-        setForgetForm(true);
+        setForget(false);
+        router.push("/login");
       }, 2000);
     }
   };

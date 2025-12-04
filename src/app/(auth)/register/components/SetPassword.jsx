@@ -54,7 +54,7 @@ export default function SetPassword({
               htmlFor="password"
               className="block text-sm font-medium mb-2 text-text_color"
             >
-              Password
+              Confirm Password
             </label>
             <input
               type={showPassword ? "text" : "password"}
@@ -70,6 +70,13 @@ export default function SetPassword({
               className="absolute right-3 top-[53px] transform -translate-y-1/2 w-5 h-5 cursor-pointer text-gray"
             />
           </div>
+          <label className="flex flex-row items-center gap-2 py-2">
+            <input type="checkbox" name="" id="" />
+            <p className="text-white">
+              I agree to the <a href="#" className="text-primary">Terms of Service</a> and
+              <a href="#" className="text-primary">Privacy Policy</a>
+            </p>
+          </label>
 
           {/* Login Button */}
           <button

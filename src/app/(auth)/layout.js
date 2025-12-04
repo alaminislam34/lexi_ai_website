@@ -1,6 +1,7 @@
 import AuthProvider from "../providers/Auth_Providers/AuthProviders";
 import "../globals.css";
 import { ToastContainer } from "react-toastify";
+import StateProvider from "../providers/StateProvider";
 
 export const metadata = {
   title: "Casezy || Sign in",
@@ -12,9 +13,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="light">
       <body>
-        <AuthProvider>{children}
-          <ToastContainer autoClose={1500} position="top-center"/>
-        </AuthProvider> 
+        <AuthProvider>
+          <StateProvider>
+            {children}
+            <ToastContainer autoClose={1500} position="top-center" />
+          </StateProvider>
+        </AuthProvider>
       </body>
     </html>
   );
