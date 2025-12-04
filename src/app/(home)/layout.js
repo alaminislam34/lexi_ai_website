@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <Navbar />
-          <section className="pt-20 lg:pt-24 min-h-[80vh]">{children}</section>
+          <section className="min-h-[80vh]">{children}</section>
           <Footer/>
         </AuthProvider>
       </body>

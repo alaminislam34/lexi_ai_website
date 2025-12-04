@@ -32,7 +32,7 @@ export default function Navbar() {
 
   return (
     <div
-      className={`py-4 fixed top-0 left-0 w-full ${
+      className={`py-4 fixed top-0 left-0 w-full duration-300 ${
         scroll ? "bg-[#1d1d1d]" : "bg-transparent"
       }`}
     >
@@ -42,7 +42,7 @@ export default function Navbar() {
             Casezys
           </h1>
         </div>
-        <ul className="lg:flex flex-row items-center justify-center gap-6 hidden">
+        <ul className="lg:flex flex-row items-center justify-center gap-14 hidden">
           {navlinks.map((nav, i) => (
             <li
               key={i}
@@ -58,7 +58,7 @@ export default function Navbar() {
             width={300}
             height={300}
             alt="Profile image"
-            className="w-12 h-12 rounded-full bg-cover bg-center border border-gray-500 p-2"
+            className="w-12 h-12 rounded-full bg-cover bg-center border border-gray-500 p-2 cursor-pointer"
           />
         </div>
       </nav>
