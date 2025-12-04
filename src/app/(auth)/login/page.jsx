@@ -6,44 +6,52 @@ import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
 import SentResetLink from "./components/SentResetLink";
-import ForgetPassword from "./components/ForgetPassword";
+import Cookies from "js-cookie";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [forget, setForget] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("alamin@gmail.com");
+  const [password, setPassword] = useState("alamin.bd");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [forgetForm, setForgetForm] = useState(false);
+  const router = useRouter()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    // --- Best Practice: Client-side validation ---
     if (!email || !password) {
       setError("Please enter both email and password.");
       setLoading(false);
       return;
     }
 
-    // --- Best Practice: API Call Simulation ---
     try {
-      // Replace with actual API call (e.g., fetch('/api/login', {...}))
+      console.log("Attempting login...");
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Check credentials (Simulated)
-      if (email === "example@gmail.com" && password === "password123") {
-        // Successful login logic (e.g., redirect, store token)
-        console.log("Login successful!");
+      if (email === "alamin@gmail.com" && password === "alamin.bd") {
+        const apiResponse = {
+          accessToken: "actual_jwt_token_from_server",
+          user: { email: email, role: "client" },
+        };
+
+        Cookies.set("accessToken", apiResponse.accessToken, { expires: 7 });
+        localStorage.setItem("user", JSON.stringify(apiResponse.user));
+        toast.success("Logged in successful! Redirecting...");
+        router.push("/client")
       } else {
-        // API response error
         setError("Invalid credentials. Please try again.");
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please check your connection.");
+      console.error(err);
+      setError(
+        "An unexpected network error occurred. Please check your connection."
+      );
     } finally {
       setLoading(false);
     }
@@ -119,6 +127,7 @@ export default function Login() {
                     type="email"
                     id="email"
                     placeholder="example@gmail.com"
+                    defaultValue={"alamin@gmail.com"} //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
@@ -139,6 +148,7 @@ export default function Login() {
                     id="password"
                     placeholder="********"
                     value={password}
+                    defaultValue={"alamin.bd"} //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
                     required
