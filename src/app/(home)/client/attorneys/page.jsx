@@ -1,9 +1,11 @@
 "use client";
 
+import { Search } from "lucide-react";
 import Image from "next/image";
 
 export const attorneys = [
   {
+    image: "/images/user.jpg",
     name: "Jane Doe, Esq.",
     score: 3.7,
     title: "Describe your issue",
@@ -11,6 +13,7 @@ export const attorneys = [
     description: "Answer a few guided questions. No sensitive info required.",
   },
   {
+    image: "/images/user.jpg",
     name: "Jane Doe, Esq.",
     score: 4.7,
     title: "Get general information",
@@ -18,6 +21,7 @@ export const attorneys = [
     description: "We cite official sources and explain options clearly.",
   },
   {
+    image: "/images/user.jpg",
     name: "Jane Doe, Esq.",
     score: 5.0,
     title: "Connect to an attorney",
@@ -29,9 +33,28 @@ export const attorneys = [
 export default function How_it_works() {
   return (
     <div className="max-w-[1440px] mx-auto w-11/12 pt-14 md:pt-24 lg:pt-28">
-      <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold  leading-[26px] py-4 lg:py-6">
-        How it works
-      </h1>
+      <div className="flex justify-between">
+        <header className="mb-6 space-y-1">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white leading-tight">
+            Attorneys
+          </h1>
+
+          <p className="text-base text-gray">
+            Filtered by: Family Law (Divorce, Custody)
+          </p>
+        </header>
+        <div>
+          <label className="relative">
+            <Search className="absolute top-1/2 left-4 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search Attorneys"
+              className="py-4 pl-14 pr-6 border border-gray rounded-2xl"
+            />
+          </label>
+        </div>
+      </div>
+
       <br />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {attorneys.map((attorney, i) => (
@@ -39,7 +62,7 @@ export default function How_it_works() {
             <div className="flex items-start justify-between">
               <div>
                 <Image
-                  src={"/images/user.jpg"}
+                  src={attorney.image}
                   height={200}
                   width={200}
                   alt="User image"
