@@ -32,7 +32,7 @@ export default function Navbar() {
 
   return (
     <div
-      className={`py-4 fixed top-0 left-0 w-full duration-300 ${
+      className={`py-4 z-50 fixed top-0 left-0 w-full duration-150 ${
         scroll ? "bg-[#1d1d1d]" : "bg-transparent"
       }`}
     >

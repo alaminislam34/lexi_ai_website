@@ -4,7 +4,7 @@ import React from "react";
 
 export default function Banner() {
   return (
-    <div className="pt-20 lg:pt-24 max-w-[1440px] mx-auto w-11/12 min-h-screen flex items-center">
+    <div className=" max-w-[1440px] mx-auto w-11/12 min-h-screen flex items-center">
       <div className="space-y-6">
         <h1 className="font-lora text-3xl md:text-5xl lg:text-[56px] font-medium max-w-[850px] leading-normal">
           Smart legal help for everyone. Elite tools for attorneys.
