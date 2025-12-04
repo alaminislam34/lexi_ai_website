@@ -31,7 +31,7 @@ export default function Footer() {
     // Outer container: Full width, dark background (bg-gray-900 or similar dark color)
 
     <footer>
-      <div className="max-w-[1440px] mx-auto w-11/12 py-10 md:py-16 lg:py-24 mt-12">
+      <div className="max-w-[1440px] mx-auto w-11/12 py-10 md:py-16 lg:py-24 mt-6">
         {/* Grid Container: Changes layout based on screen size */}
         <div className="flex justify-between items-start gap-8">
           {/* 1. Casezy Info Column */}
