@@ -33,7 +33,7 @@ export default function Footer() {
     <footer>
       <div className="max-w-[1440px] mx-auto w-11/12 py-10 md:py-16 lg:py-24 mt-6">
         {/* Grid Container: Changes layout based on screen size */}
-        <div className="flex justify-between items-start gap-8">
+        <div className="flex flex-wrap justify-between items-start gap-8">
           {/* 1. Casezy Info Column */}
           <div className="space-y-4">
             <h2 className="text-3xl font-bold text-primary font-lora">

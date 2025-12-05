@@ -18,7 +18,7 @@ export default function Step_1() {
           </h1>
 
           <Image
-            src={"/images/log_in.jpg"}
+            src={"./images/log_in.jpg"}
             height={465}
             width={500}
             alt="Avatar image"

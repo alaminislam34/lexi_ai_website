@@ -1,5 +1,6 @@
 "use client";
 
+import { Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,6 +13,7 @@ export const navlinks = [
 ];
 export default function Navbar() {
   const path = usePathname();
+  const [showMenu, setShowMenu] = useState(false);
   const [scroll, setScroll] = useState(false);
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function Navbar() {
       <nav className="max-w-[1440px] mx-auto w-11/12 flex items-center justify-between">
         <div>
           <h1 className="text-2xl lg:text-3xl font-semibold text-primary font-lora">
-            Casezys
+            <Link href={"/client"}>Casezys</Link>
           </h1>
         </div>
         <ul className="lg:flex flex-row items-center justify-center gap-14 hidden">
@@ -52,7 +54,8 @@ export default function Navbar() {
             </li>
           ))}
         </ul>
-        <div>
+        
+        <div className="flex items-center gap-4">
           <Image
             src={"/images/user.jpg"}
             width={300}
@@ -60,6 +63,12 @@ export default function Navbar() {
             alt="Profile image"
             className="w-12 h-12 rounded-full bg-cover bg-center border border-gray-500 p-2 cursor-pointer"
           />
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="cursor-pointer hover:text-primary active:text-primary p-2.5 hover:bg-BG rounded-xl bg-transparent border border-gray"
+          >
+            <Menu size={26} />
+          </button>
         </div>
       </nav>
     </div>
