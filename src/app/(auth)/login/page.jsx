@@ -6,64 +6,26 @@ import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
 import SentResetLink from "./components/SentResetLink";
-import Cookies from "js-cookie";
-import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 
 export default function Login() {
   const [forget, setForget] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("alamin@gmail.com");
-  const [password, setPassword] = useState("alamin.bd");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter()
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    if (!email || !password) {
-      setError("Please enter both email and password.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      console.log("Attempting login...");
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      if (email === "alamin@gmail.com" && password === "alamin.bd") {
-        const apiResponse = {
-          accessToken: "actual_jwt_token_from_server",
-          user: { email: email, role: "client" },
-        };
-
-        Cookies.set("accessToken", apiResponse.accessToken, { expires: 7 });
-        localStorage.setItem("user", JSON.stringify(apiResponse.user));
-        toast.success("Logged in successful! Redirecting...");
-        router.push("/client")
-      } else {
-        setError("Invalid credentials. Please try again.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError(
-        "An unexpected network error occurred. Please check your connection."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    handleSubmit,
+    error,
+    loading,
+    setEmail,
+    setPassword,
+    email,
+    password,
+  } = useAuth();
 
   const PasswordToggleIcon = showPassword ? EyeOff : Eye;
 
   return (
-    // Main container with full screen height and theme background
     <div className="min-h-screen flex items-center justify-center bg-BG">
       <div className="max-w-[1440px] w-11/12 mx-auto flex flex-col lg:flex-row justify-center items-center gap-12 min-h-screen lg:min-h-[700px]">
-        {/* Left Side: Illustration */}
         <div className="w-1/2 flex flex-col gap-6 justify-center items-center">
           <h1 className="text-2xl md:text-3xl lg:text-[40px] font-semibold text-primary font-lora mt-10">
             Casezys
@@ -77,7 +39,6 @@ export default function Login() {
           />
         </div>
 
-        {/* Right Side: Login Form */}
         {!forget ? (
           <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
             <div className="w-full max-w-xl">
@@ -90,7 +51,6 @@ export default function Login() {
                 </p>
               </header>
 
-              {/* Google Login Button */}
               <button
                 onClick={() => console.log("Continue with Google")}
                 className="w-full flex items-center justify-center p-3 rounded-xl transition duration-200 border text-base font-medium bg-secondary border-element text-text_color"
@@ -99,14 +59,12 @@ export default function Login() {
                 Continue with Google
               </button>
 
-              {/* OR Separator */}
               <div className="flex max-w-32 mx-auto items-center justify-center my-6">
                 <div className="grow border-t border-element"></div>
                 <span className="mx-4 text-gray">or</span>
                 <div className="grow border-t border-element"></div>
               </div>
 
-              {/* Error Message Display */}
               {error && (
                 <div className="flex items-center p-3 mb-4 rounded-xl text-sm font-medium bg-[#FF573330] text-[#FF5733]">
                   <AlertCircle className="w-4 h-4 mr-2" />
@@ -115,7 +73,6 @@ export default function Login() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Email Field */}
                 <div>
                   <label
                     htmlFor="email"
@@ -135,7 +92,6 @@ export default function Login() {
                   />
                 </div>
 
-                {/* Password Field */}
                 <div className="relative">
                   <label
                     htmlFor="password"
@@ -159,7 +115,6 @@ export default function Login() {
                   />
                 </div>
 
-                {/* Remember Me and Forgot Password */}
                 <div className="flex items-center justify-between mt-4">
                   <div className="flex items-center">
                     <input
@@ -184,7 +139,6 @@ export default function Login() {
                   </button>
                 </div>
 
-                {/* Login Button */}
                 <button
                   type="submit"
                   disabled={loading}
@@ -201,7 +155,6 @@ export default function Login() {
                 </button>
               </form>
 
-              {/* Sign Up Link and Legal */}
               <div className="mt-8 text-center text-sm text-gray">
                 Don't have an account?{" "}
                 <Link
