@@ -1,379 +1,191 @@
+// src/components/AttorneyList/Attorneys.jsx
 "use client";
 
-import { ChevronDown, Loader2, Search, X } from "lucide-react";
-import Image from "next/image";
-import { useState } from "react";
+import { Search, ChevronDown, Loader2, X } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import AttorneyCard from "./components/AttorneyCard";
+import { AttorneyProfileModal, RequestConsultModal } from "./components/Modals";
 
-// অ্যাটর্নির ডেটা টাইপ ডিফাইন করা হয়েছে (যদিও এটি একটি জাভাস্ক্রিপ্ট ফাইল,
-// পরিষ্কারের জন্য এটি রাখা হয়েছে)
+// --- Data & Constants ---
+
 /**
- * @typedef {object} Attorney
- * @property {string} image
- * @property {string} name
- * @property {number} score
- * @property {string} title
- * @property {string[]} practice_area
- * @property {string} description
+ * Generates a list of dummy attorneys for demonstration purposes.
+ * @param {number} count - The total number of attorneys to generate.
+ * @returns {Attorney[]}
  */
+const generateAttorneys = (count) => {
+  const baseAttorneys = [
+    {
+      image: "/images/user.jpg",
+      name: "Jane Doe, Esq.",
+      score: 3.7,
+      title: "Criminal Defense Expert",
+      practice_area: ["Criminal Defense", "DUI/OWI", "Expungement"],
+      description: [
+        "Responds in ~2 hrs",
+        "Languages: English, Spanish",
+        "Experience: 8+ years",
+        "Answer a few guided questions. No sensitive info required.",
+      ],
+    },
+    {
+      image: "/images/user.jpg",
+      name: "John Smith, Esq.",
+      score: 4.7,
+      title: "Civil Litigation Specialist",
+      practice_area: ["Family Law", "Real Estate", "Civil Litigation"],
+      description: [
+        "Responds in ~2 hrs",
+        "Languages: English, Spanish",
+        "Experience: 8+ years",
+        "We cite official sources and explain options clearly.",
+      ],
+    },
+    {
+      image: "/images/user.jpg",
+      name: "Alice Johnson, Esq.",
+      score: 5.0,
+      title: "Real Estate & Property Law",
+      practice_area: ["Estate Planning", "Real Estate", "Business Law"],
+      description: [
+        "Responds in ~2 hrs",
+        "Languages: English, Spanish",
+        "Experience: 8+ years",
+        "Match with verified lawyers by practice area and ZIP.",
+      ],
+    },
+  ];
 
-export const attorneys = [
-  {
-    image: "/images/user.jpg",
-    name: "Jane Doe, Esq.",
-    score: 3.7,
-    title: "Describe your issue",
-    practice_area: ["Criminal Defense", "DUI/OWI", "Expungement"],
-    description: "Answer a few guided questions. No sensitive info required.",
-  },
-  {
-    image: "/images/user.jpg",
-    name: "John Smith, Esq.", // নাম পরিবর্তন করা হয়েছে
-    score: 4.7,
-    title: "Get general information",
-    practice_area: ["Family Law", "Real Estate", "Civil Litigation"],
-    description: "We cite official sources and explain options clearly.",
-  },
-  {
-    image: "/images/user.jpg",
-    name: "Jane Doe, Esq.",
-    score: 5.0,
-    title: "Connect to an attorney",
-    practice_area: ["Criminal Defense", "DUI/OWI", "Expungement"],
-    description: "Match with verified lawyers by practice area and ZIP.",
-  },
-];
-
-// প্রয়োজনীয় ক্লাসের ডেফিনেশন (আগের কোড থেকে নেওয়া হয়েছে)
-const inputClasses =
-  "w-full p-4 border-none rounded-lg text-white text-base focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-gray-500 appearance-none shadow-inner bg-[#12151B]";
-
-const SelectWrapper = ({ children }) => (
-  <div className="relative">
-    <select className={`${inputClasses} appearance-none cursor-pointer pr-10`}>
-      {children}
-    </select>
-    <ChevronDown className="absolute z-0 right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-  </div>
-);
-
-export const AttorneyProfileModal = ({ attorney, closeModal }) => {
-  const profileData = {
-    name: attorney.name,
-    firm: "Doe Law PLLC",
-    location: "Detroit, MI",
-    score: 4.5,
-    response_time: "~2 hrs",
-    languages: ["English", "Spanish"],
-    experience: "8+ years",
-    practice_area: attorney.practice_area,
-    image: attorney.image,
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-[#1D1F23] rounded-2xl shadow-2xl max-w-xl w-full relative overflow-hidden">
-        <button
-          onClick={closeModal}
-          className="absolute top-4 left-4 z-10 text-white hover:text-gray-300 transition"
-          aria-label="Close Modal"
-        >
-          <X className="w-6 h-6" />
-        </button>
-
-        <div className="p-8 space-y-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-4">
-              <Image
-                src={profileData.image}
-                height={80}
-                width={80}
-                alt={profileData.name}
-                className="w-20 h-20 rounded-full object-cover border-2 border-primary"
-              />
-              <div className="flex flex-col">
-                <h2 className="text-xl font-bold text-white">
-                  {profileData.name}
-                </h2>
-                <p className="text-sm text-gray-400">
-                  {profileData.firm} • {profileData.location}
-                </p>
-              </div>
-            </div>
-            <div>
-              <span className=" text-gray bg-element py-1 px-2 rounded-lg">
-                {attorney.score.toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          <button className="w-full py-3 rounded-lg text-white font-medium transition duration-300 hover:opacity-90 bg-primary">
-            Request Consult
-          </button>
-
-          <div className="space-y-2 pt-2">
-            <p className="text-sm font-semibold text-gray-300">Area of law:</p>
-            <div className="flex flex-wrap items-center gap-2">
-              {profileData.practice_area.map((area, i) => (
-                <span
-                  key={i}
-                  className="py-1 px-3 rounded-md bg-[#33363D] text-sm text-white font-medium"
-                >
-                  {area}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3 pt-3">
-            <p className="text-base font-bold text-white">About</p>
-            <ul className="list-disc list-inside space-y-2 text-sm text-gray-400">
-              <li>**Responds in**: {profileData.response_time}</li>
-              <li>**Languages**: {profileData.languages.join(", ")}</li>
-              <li>**Experience**: {profileData.experience}</li>
-              <li className="list-none pt-2 text-gray-500 italic">
-                {attorney.description}
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return Array.from({ length: count }, (_, i) => {
+    const base = baseAttorneys[i % baseAttorneys.length];
+    return {
+      ...base,
+      name: `${base.name.split(",")[0].replace(/\d+/g, "")} ${i + 1}, Esq.`,
+      score: (base.score + i * 0.1) % 5.0,
+    };
+  });
 };
 
+const ALL_ATTORNEYS = generateAttorneys(30);
+const INITIAL_LOAD_COUNT = 6;
+const LOAD_MORE_COUNT = 6;
+
+// --- Main Component ---
+
 export default function Attorneys() {
-  // Request Consult Modal এর জন্য স্টেট
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false);
-
-  // View Profile Modal এর জন্য স্টেট এবং কোন অ্যাটর্নি নির্বাচিত হয়েছে তার জন্য স্টেট
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  /** @type {[Attorney | null, function]} */
   const [selectedAttorney, setSelectedAttorney] = useState(null);
+  const [displayedCount, setDisplayedCount] = useState(INITIAL_LOAD_COUNT);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Consult Modal এর জন্য ফাংশন
-  const openConsultModal = () => setIsConsultModalOpen(true);
-  const closeConsultModal = () => setIsConsultModalOpen(false);
+  const openConsultModal = useCallback(() => setIsConsultModalOpen(true), []);
+  const closeConsultModal = useCallback(() => setIsConsultModalOpen(false), []);
 
-  // Profile Modal এর জন্য ফাংশন
-  /**
-   * @param {Attorney} attorney
-   */
-  const openProfileModal = (attorney) => {
+  const openProfileModal = useCallback((attorney) => {
     setSelectedAttorney(attorney);
     setIsProfileModalOpen(true);
-  };
-  const closeProfileModal = () => {
+  }, []);
+  const closeProfileModal = useCallback(() => {
     setIsProfileModalOpen(false);
     setSelectedAttorney(null);
+  }, []);
+
+  const handleShowMore = useCallback(() => {
+    // If there are more attorneys to show, load more. Otherwise, reset to initial count (Show Less).
+    if (displayedCount < filteredAttorneys.length) {
+      setDisplayedCount((prevCount) => prevCount + LOAD_MORE_COUNT);
+    } else {
+      setDisplayedCount(INITIAL_LOAD_COUNT);
+    }
+  }, [displayedCount]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setDisplayedCount(INITIAL_LOAD_COUNT); // Reset pagination on new search
   };
+
+  const filteredAttorneys = useMemo(() => {
+    if (!searchTerm) return ALL_ATTORNEYS;
+    const lowerCaseSearch = searchTerm.toLowerCase();
+    return ALL_ATTORNEYS.filter(
+      (attorney) =>
+        attorney.name.toLowerCase().includes(lowerCaseSearch) ||
+        attorney.practice_area.some((area) =>
+          area.toLowerCase().includes(lowerCaseSearch)
+        )
+    );
+  }, [searchTerm]);
+
+  const attorneysToDisplay = filteredAttorneys.slice(0, displayedCount);
+  const hasMore = displayedCount < filteredAttorneys.length;
 
   return (
     <>
-      <div className="max-w-[1440px] mx-auto w-11/12 min-h-screen flex items-center">
-        <section>
-          <div className="flex justify-between">
-            <header className="mb-6 space-y-1">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white leading-tight">
+      <div className="max-w-[1440px] mx-auto w-11/12 min-h-screen flex flex-col pt-28 pb-12">
+        <section className="w-full">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
+            <header className="mb-6 md:mb-0 space-y-1">
+              <h1 className="text-xl md:text-2xl lg:text-4xl font-semibold text-white leading-tight">
                 Attorneys
               </h1>
-
-              <p className="text-base text-gray">
+              <p className="text-sm md:text-base text-gray-400">
                 Filtered by: Family Law (Divorce, Custody)
               </p>
             </header>
-            <div>
-              <label className="relative">
-                <Search className="absolute top-1/2 left-4 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search Attorneys"
-                  className="py-4 pl-14 pr-6 border border-gray rounded-2xl"
-                />
-              </label>
+            <div className="relative w-full md:w-auto">
+              <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-500 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search Attorneys"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="py-2.5 pl-12 pr-6 border w-full md:w-[300px] border-gray-700 rounded-2xl bg-[#12151B] text-white focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              />
             </div>
           </div>
 
-          <br />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {attorneys.map((attorney, i) => (
-              <div key={i} className="p-6 rounded-2xl bg-secondary space-y-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <Image
-                      src={attorney.image}
-                      height={200}
-                      width={200}
-                      alt="User image"
-                      className="w-16 h-16 p-2 border rounded-full"
-                    />
-                  </div>
-                  <div className="text-left">
-                    <h2 className="font-semibold leading-[26px] text-text_color">
-                      {attorney.name}
-                    </h2>
-                    <p className="text-gray leading-normal">{attorney.title}</p>
-                  </div>
-                  <div>
-                    <span className="p-2 bg-element text-gray">
-                      {attorney.score.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex flex-wrap items-center gap-4 text-gray">
-                    {attorney.practice_area.map((a, i) => (
-                      <span key={i} className="py-1 px-2 rounded-lg bg-element">
-                        {a}
-                      </span>
-                    ))}
-                  </div>
-                  <ul className="">
-                    {attorney.practice_area.map((a, i) => (
-                      <li key={i} className="text-gray">
-                        {a}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="flex space-x-4 pt-4">
-                    <button
-                      onClick={openConsultModal} // Request Consult বাটনের ক্লিক হ্যান্ডলার
-                      className="py-3 w-full rounded-lg text-white text-sm font-medium transition duration-300 hover:opacity-90 bg-primary"
-                    >
-                      Request Consult
-                    </button>
-                    <button
-                      onClick={() => openProfileModal(attorney)} // View Profile বাটনের ক্লিক হ্যান্ডলার
-                      className="py-3 w-full rounded-lg text-white text-sm font-medium border border-gray transition duration-300 hover:bg-gray-700"
-                    >
-                      View Profile
-                    </button>
-                  </div>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {attorneysToDisplay.map((attorney, i) => (
+              <AttorneyCard
+                key={i}
+                attorney={attorney}
+                openConsultModal={openConsultModal}
+                openProfileModal={openProfileModal}
+              />
             ))}
           </div>
-          {isConsultModalOpen && (
-            <RequestConsultModal closeModal={closeConsultModal} />
-          )}
 
-          {isProfileModalOpen && selectedAttorney && (
-            <AttorneyProfileModal
-              attorney={selectedAttorney}
-              closeModal={closeProfileModal}
-            />
+          <div className="text-center mt-10">
+            {filteredAttorneys.length > 0 && (
+              <button
+                onClick={handleShowMore}
+                className="px-8 py-3 rounded-lg text-white font-medium border border-gray-700 transition duration-300 hover:bg-gray-700"
+              >
+                {!hasMore ? "Show Less" : "Show More Attorneys"}
+              </button>
+            )}
+          </div>
+
+          {filteredAttorneys.length === 0 && searchTerm && (
+            <p className="text-center text-gray-400 text-lg mt-10">
+              No attorneys found matching "{searchTerm}".
+            </p>
           )}
         </section>
       </div>
+
+      {isConsultModalOpen && (
+        <RequestConsultModal closeModal={closeConsultModal} />
+      )}
+
+      {isProfileModalOpen && selectedAttorney && (
+        <AttorneyProfileModal
+          attorney={selectedAttorney}
+          closeModal={closeProfileModal}
+          openConsultModal={openConsultModal}
+        />
+      )}
     </>
   );
 }
-
-export const RequestConsultModal = ({ closeModal }) => {
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      alert("Consultation request analyzed and ready to chat!");
-      closeModal();
-    }, 2000);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 bg-opacity-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-secondary p-8 rounded-xl shadow-2xl max-w-5xl w-full relative">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">
-            Request Consultation
-          </h2>
-          <button
-            onClick={closeModal}
-            className="text-gray-400 hover:text-white transition"
-            aria-label="Close Modal"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label
-              htmlFor="state"
-              className="block text-sm font-semibold mb-2 text-gray-300"
-            >
-              State
-            </label>
-            <SelectWrapper>
-              <option value="Michigan">Michigan</option>
-              <option value="California">California</option>
-              <option value="New York">New York</option>
-              <option value="Texas">Texas</option>
-            </SelectWrapper>
-          </div>
-
-          <div>
-            <label
-              htmlFor="zip"
-              className="block text-sm font-semibold mb-2 text-gray-300"
-            >
-              ZIP (Optional)
-            </label>
-            <input
-              type="text"
-              id="zip"
-              className={inputClasses}
-              placeholder="e.g., 48226"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="practiceArea"
-              className="block text-sm font-semibold mb-2 text-gray-300"
-            >
-              Practice area
-            </label>
-            <SelectWrapper>
-              <option value="Criminal">Criminal</option>
-              <option value="Family">Family Law</option>
-              <option value="RealEstate">Real Estate</option>
-              <option value="Civil">Civil Litigation</option>
-            </SelectWrapper>
-          </div>
-
-          <div>
-            <label
-              htmlFor="description"
-              className="block text-sm font-semibold mb-2 text-gray-300"
-            >
-              What happened?
-            </label>
-            <textarea
-              id="description"
-              className={`${inputClasses} resize-none h-32`}
-              placeholder="Briefly describe your situation (no sensitive details)"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center p-4 rounded-lg text-white bg-primary text-lg font-bold transition duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-8 shadow-lg shadow-blue-500/30"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              "Analyze & Start Chat"
-            )}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};

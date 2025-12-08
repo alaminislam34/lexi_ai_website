@@ -10,6 +10,7 @@ export const navlinks = [
   { name: "Home", link: "/client" },
   { name: "Ask Casezy", link: "/client/ask_casezy" },
   { name: "Attorney", link: "/client/attorneys" },
+  { name: "Message", link: "/client/message" },
   { name: "Dashboard", link: "/client/dashboard" },
 ];
 export default function Navbar() {
@@ -22,7 +23,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 10) {
+      if (window.scrollY > 50) {
         setScroll(true);
       } else {
         setScroll(false);
@@ -39,7 +40,7 @@ export default function Navbar() {
   return (
     <div
       className={`py-4 z-50 fixed top-0 left-0 w-full duration-150 ${
-        scroll ? "bg-[#1d1d1d]" : "bg-transparent"
+        scroll ? "bg-[#1d1d1d]" : "bg-transparent backdrop-blur-2xl"
       }`}
     >
       <nav className="max-w-[1440px] mx-auto w-11/12 flex items-center justify-between">
@@ -137,6 +138,12 @@ export default function Navbar() {
                 <ul className="flex flex-col justify-center gap-2">
                   {navlinks.map((nav, i) => (
                     <li
+                      onClick={() => {
+                        if (showUserModal || showMenu) {
+                          setShowUserModal(false);
+                          setShowMenu(false);
+                        }
+                      }}
                       key={i}
                       className={` ${
                         path === nav.link ? "text-primary" : "text-white"
