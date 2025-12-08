@@ -93,7 +93,7 @@ const MessageItem = ({ message }) => (
 
 const QuoteCard = ({ quote }) => (
   <div
-    className={`p-4 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
+    className={`p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
   >
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center space-x-3">
@@ -137,9 +137,9 @@ export default function MessageAndReceived() {
 
   return (
     <div className={`min-h-screen text-white`}>
-      <div className="max-w-4xl mx-auto space-y-12">
-        <div className={`rounded-xl overflow-hidden bg-secondary p-6`}>
-          <div className="flex items-center p-5 border-b border-gray-700/50">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className={`rounded-xl overflow-hidden bg-secondary p-4`}>
+          <div className="flex items-center p-4 border-b border-gray-700/50">
             <BiMessageAltDetail className="w-6 h-6 mr-3 text-blue-500" />
             <h2 className="text-xl font-bold">Messages</h2>
           </div>
@@ -167,12 +167,12 @@ export default function MessageAndReceived() {
           </div>
         </div>
 
-        <div className="bg-secondary p-6 rounded-xl">
+        <div className="bg-secondary p-4 rounded-xl">
           <h2 className="text-2xl font-bold text-white mb-6">
             Received Quotes
           </h2>
 
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
             {MOCK_QUOTES.map((quote) => (
               <QuoteCard key={quote.id} quote={quote} />
             ))}

@@ -60,19 +60,17 @@ const MOCK_EVENTS = [
 const DayCell = ({ dayData }) => {
   const { day, isCurrentMonth, isSelected } = dayData;
 
-  let cellClasses = `p-2.5 text-sm md:text-base lg:text-lg rounded-lg transition duration-150 cursor-pointer 
-                       hover:bg-primary/40 h-full flex items-center`;
-
+  let cellClasses = `p-2.5 text-sm md:text-base lg:text-lg rounded-lg transition duration-150 cursor-pointer hover:bg-primary/40 h-full flex items-center`;
   if (isSelected) {
     cellClasses = `p-2.5 bg-primary text-sm md:text-base lg:text-lg rounded-lg transition duration-150 cursor-pointer h-full flex items-center`;
   } else if (isCurrentMonth) {
-    cellClasses += ` ${TEXT_ELEMENT_BG} text-white`;
+    cellClasses += ` bg-BG text-white`;
   } else {
-    cellClasses += ` bg-[#111827] hover:${TEXT_ELEMENT_BG}`;
+    cellClasses += ` bg-[#111827] text-gray/20 hover:text-white hover:${TEXT_ELEMENT_BG}`;
   }
 
   return (
-    <div className="aspect-square">
+    <div className="aspect-video">
       <div className={cellClasses}>
         <span className="font-semibold">{day}</span>
       </div>
@@ -106,8 +104,9 @@ export default function Calendar() {
   const dayLabels = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
   return (
-    <div className={`min-h-screen bg-secondary p-6`}>
+    <div className={` bg-secondary p-6`}>
       <div className={`max-w-5xl mx-auto`}>
+        
         <div className="flex items-center justify-between py-4">
           <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white">
             {currentMonth}
@@ -138,18 +137,18 @@ export default function Calendar() {
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-1.5">
           {dayLabels.map((day) => (
             <div key={day} className="text-center font-medium text-gray p-2">
               {day}
             </div>
           ))}
-
           {MOCK_CALENDAR_DAYS.map((dayData, index) => (
             <DayCell key={index} dayData={dayData} />
           ))}
         </div>
       </div>
+      <br />
 
       <div className="max-w-4xl mx-auto mt-12">
         <h2 className="text-2xl font-bold text-white mb-4">Upcoming Events</h2>
