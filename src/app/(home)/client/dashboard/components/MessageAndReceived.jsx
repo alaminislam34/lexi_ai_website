@@ -59,7 +59,7 @@ const MOCK_QUOTES = [
 const MessageItem = ({ message }) => (
   <div
     className={`flex items-center p-4 shadow-[1px_1px_5px_0px_rgb(0,0,0,0.3)] hover:shadow-[1px_1px_5px_0px_rgb(0,0,0,0.6)] hover:bg-element transition duration-200 cursor-pointer ${
-      message.unread ? '' : `hover:${TEXT_ELEMENT_BG}`
+      message.unread ? "" : `hover:${TEXT_ELEMENT_BG}`
     }`}
   >
     {message.unread && (
@@ -92,7 +92,9 @@ const MessageItem = ({ message }) => (
 );
 
 const QuoteCard = ({ quote }) => (
-  <div className={`p-4 rounded-xl shadow-md ${SECONDARY_BG_COLOR}`}>
+  <div
+    className={`p-4 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
+  >
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center space-x-3">
         <Image
@@ -112,12 +114,11 @@ const QuoteCard = ({ quote }) => (
         </div>
       </div>
 
-      {/* Budget Tag */}
       <div
-        className={`px-4 py-2 rounded-lg ${TEXT_ELEMENT_BG} text-white font-medium text-sm border border-gray-700/50`}
+        className={`px-4 py-2 rounded-lg text-gray text-sm border border-gray-700/50`}
       >
         Budget
-        <span className="block text-center font-bold text-blue-400 mt-0.5">
+        <span className="block text-center mt-0.5">
           {quote.budget}
         </span>
       </div>
@@ -166,12 +167,12 @@ export default function MessageAndReceived() {
           </div>
         </div>
 
-        <div>
+        <div className="bg-secondary p-6 rounded-xl">
           <h2 className="text-2xl font-bold text-white mb-6">
             Received Quotes
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-6">
             {MOCK_QUOTES.map((quote) => (
               <QuoteCard key={quote.id} quote={quote} />
             ))}
