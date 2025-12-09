@@ -86,6 +86,7 @@ export default function Attorneys() {
     setSelectedAttorney(attorney);
     setIsProfileModalOpen(true);
   }, []);
+  
   const closeProfileModal = useCallback(() => {
     setIsProfileModalOpen(false);
     setSelectedAttorney(null);

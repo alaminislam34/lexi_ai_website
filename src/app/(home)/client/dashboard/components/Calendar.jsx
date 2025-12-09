@@ -98,7 +98,7 @@ const EventCard = ({ event }) => (
   </div>
 );
 
-export default function Calendar() {
+export default function Calendar({ setShowModal }) {
   const currentMonth = "November 2025";
 
   const dayLabels = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
@@ -106,7 +106,6 @@ export default function Calendar() {
   return (
     <div className={` bg-secondary p-6`}>
       <div className={`max-w-5xl mx-auto`}>
-        
         <div className="flex items-center justify-between py-4">
           <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white">
             {currentMonth}
@@ -114,6 +113,7 @@ export default function Calendar() {
 
           <div className="flex items-center space-x-4">
             <button
+              onClick={() => setShowModal(true)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold bg-BG border-2 border-element text-xs truncate`}
             >
               Add Event
