@@ -10,7 +10,7 @@ export const navlinks = [
   { name: "Home", link: "/" },
   { name: "Ask Casezy", link: "/ask_casezy" },
   { name: "Attorney", link: "/attorneys" },
-  { name: "Message", link: "/message" },
+  // { name: "Message", link: "/message" },
   { name: "Dashboard", link: "/dashboard" },
 ];
 export default function Navbar() {

@@ -10,6 +10,7 @@ import {
   User,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useRef, useEffect } from "react"; // Added hooks
 
 // --- Design Constants (Matching Previous Components) ---
@@ -220,12 +221,13 @@ export default function MessageBoard() {
           className={`w-1/4 min-w-[300px] border-r border-gray-700/50 flex flex-col`}
         >
           <div className="flex items-center justify-start p-4 border-b border-gray-700/50">
-            <button
+            <Link
+              href={"/"}
               className={`p-2 rounded-full text-gray-400 hover:text-white transition `}
               aria-label="Go back"
             >
               <ArrowLeft className="w-5 h-5" />
-            </button>
+            </Link>
             <button
               className={`flex items-center ml-4 px-4 py-2 rounded-lg text-white font-semibold ${PRIMARY_COLOR_CLASSES}`}
             >
@@ -239,7 +241,7 @@ export default function MessageBoard() {
                 key={thread.id}
                 thread={thread}
                 isSelected={thread.id === currentThreadId}
-                onSelect={setCurrentThreadId} 
+                onSelect={setCurrentThreadId}
               />
             ))}
           </div>

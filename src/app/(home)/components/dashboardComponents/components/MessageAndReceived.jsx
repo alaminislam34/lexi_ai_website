@@ -6,6 +6,7 @@ import Image from "next/image";
 import { MoreVertical } from "lucide-react";
 import { BiMessageAltDetail } from "react-icons/bi";
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
+import Link from "next/link";
 
 const PRIMARY_COLOR_CLASSES = "bg-blue-600 hover:bg-blue-700";
 const TEXT_ELEMENT_BG = "bg-[#33363D]";
@@ -132,11 +133,12 @@ export default function MessageAndReceived() {
           </div>
 
           <div className="mt-6 w-full border-t border-gray-700/50">
-            <button
-              className={`w-full py-2 rounded-lg text-white text-sm sm:text-base md:text-lg transition duration-300 bg-primary hover:bg-dark-primary`}
+            <Link
+              href={"/message"}
+              className={`w-full py-2 inline-block text-center rounded-lg text-white text-sm sm:text-base md:text-lg transition duration-300 bg-primary hover:bg-dark-primary`}
             >
               View Messages
-            </button>
+            </Link>
           </div>
         </div>
 
