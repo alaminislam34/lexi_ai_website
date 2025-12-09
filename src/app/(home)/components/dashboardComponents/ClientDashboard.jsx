@@ -15,13 +15,13 @@ export default function ClientDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <div className="lg:col-span-3">
             <Calendar />
+            <CasezyAssistant />
           </div>
 
           <div className="lg:col-span-2">
             <MessageAndReceived />
           </div>
         </div>
-        <CasezyAssistant />
         {showModal && <QoutesDetails />}
       </div>
     </div>

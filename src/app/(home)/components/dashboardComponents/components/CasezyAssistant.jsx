@@ -2,13 +2,16 @@
 
 import React from "react";
 import { Send } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const PRIMARY_COLOR_CLASSES = "bg-blue-600 hover:bg-blue-700";
-const CARD_BG = "bg-[#1D1F23]";
 const TEXT_ELEMENT_BG = "bg-[#33363D]";
-const APP_BG = "bg-[#12151B]";
 
 export default function CasezyAssistant() {
+  const router = useRouter()
+  const handlerSendMessage = () => {
+    router.push("/casezy-assistant")
+  }
   return (
     <div className={`py-12 text-white`}>
       <div
@@ -33,10 +36,9 @@ export default function CasezyAssistant() {
           />
 
           <button
+          onClick={() =>handlerSendMessage()}
             className={`p-3 rounded-lg text-white transition duration-300 ${PRIMARY_COLOR_CLASSES}`}
             aria-label="Send message"
-            // For a production app, you'd add:
-            // onClick={handleSend}
           >
             <Send className="w-5 h-5" />
           </button>
