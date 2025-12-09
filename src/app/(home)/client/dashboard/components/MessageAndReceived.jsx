@@ -91,7 +91,7 @@ const MessageItem = ({ message }) => (
   </div>
 );
 
-const QuoteCard = ({ quote }) => (
+const QuoteCard = ({ quote, setShowModal }) => (
   <div
     className={`p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
   >
@@ -118,13 +118,12 @@ const QuoteCard = ({ quote }) => (
         className={`px-4 py-2 rounded-lg text-gray text-sm border border-gray-700/50`}
       >
         Budget
-        <span className="block text-center mt-0.5">
-          {quote.budget}
-        </span>
+        <span className="block text-center mt-0.5">{quote.budget}</span>
       </div>
     </div>
 
     <button
+      onClick={() => setShowModal(true)}
       className={`w-full py-2 rounded-lg text-white font-semibold transition duration-300 ${PRIMARY_COLOR_CLASSES}`}
     >
       View Details
@@ -132,7 +131,7 @@ const QuoteCard = ({ quote }) => (
   </div>
 );
 
-export default function MessageAndReceived() {
+export default function MessageAndReceived({ setShowModal }) {
   const totalUnread = MOCK_MESSAGES.filter((m) => m.unread).length;
 
   return (
@@ -174,7 +173,11 @@ export default function MessageAndReceived() {
 
           <div className="flex flex-col gap-2">
             {MOCK_QUOTES.map((quote) => (
-              <QuoteCard key={quote.id} quote={quote} />
+              <QuoteCard
+                key={quote.id}
+                quote={quote}
+                setShowModal={setShowModal}
+              />
             ))}
           </div>
         </div>

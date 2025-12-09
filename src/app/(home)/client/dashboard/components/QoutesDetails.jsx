@@ -103,11 +103,13 @@ const EventModal = ({ setShowModal }) => {
 
           <div className="flex flex-row gap-4 items-center">
             <button
+              onClick={() => setShowModal(false)}
               className={`w-full flex items-center justify-center p-4 rounded-lg text-white transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-8 bg-primary`}
             >
               Accept
             </button>
             <button
+              onClick={() => setShowModal(false)}
               className={`w-full flex items-center justify-center p-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-8 bg-red-800/10 text-red-500 border border-red-800`}
             >
               Reject
