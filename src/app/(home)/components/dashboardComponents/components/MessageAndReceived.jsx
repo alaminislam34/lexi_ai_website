@@ -71,22 +71,26 @@ const MessageItem = ({ message }) => (
       height={40}
       width={40}
       alt={message.name}
-      className="w-10 h-10 rounded-full object-cover mr-3"
+      className="md:w-10 w-8 md:h-10 h-8 rounded-full object-cover mr-3"
     />
 
     <div className="flex-1 min-w-0">
-      <p className="text-white font-medium truncate">{message.name}</p>
-      <p className="text-sm text-gray-400 truncate">{message.lastMessage}</p>
+      <p className="text-white text-sm md:text-base font-medium truncate">
+        {message.name}
+      </p>
+      <p className="text-xs md:text-sm text-gray-400 truncate">
+        {message.lastMessage}
+      </p>
     </div>
 
     <div className="flex items-center space-x-2 shrink-0 ml-2">
       <span className="text-sm text-gray-500">{message.time}</span>
-      <button
+      {/* <button
         className="p-1 rounded-full text-gray-500 hover:text-white hover:bg-gray-700/50"
         aria-label="Options"
       >
         <MoreVertical className="w-4 h-4" />
-      </button>
+      </button> */}
     </div>
   </div>
 );
@@ -106,17 +110,19 @@ export default function MessageAndReceived() {
     <div className={`min-h-screen text-white`}>
       <div className="max-w-4xl mx-auto space-y-6">
         <div className={`rounded-xl overflow-hidden bg-secondary p-4`}>
-          <div className="flex items-center p-4 border-b border-gray-700/50">
+          <div className="flex items-center py-4 border-b border-gray-700/50">
             <BiMessageAltDetail className="w-6 h-6 mr-3 text-blue-500" />
-            <h2 className="text-xl font-bold">Messages</h2>
+            <h2 className="text-xl font-semibold">Messages</h2>
           </div>
 
-          <div className="p-4 font-medium">
-            You have
-            <span className="font-bold  bg-red-500 text-white py-1 px-3 mx-1 rounded-full">
-              {totalUnread}
-            </span>
-            unread messages.
+          <div className="py-4">
+            <p className="text-sm sm:text-base">
+              You have
+              <span className="text-xs sm:text-sm bg-red-500 text-white py-0.5 px-2 mx-1 rounded-full">
+                {totalUnread}
+              </span>
+              unread messages.
+            </p>
           </div>
 
           <div className="divide-y divide-gray-700/50">
@@ -127,7 +133,7 @@ export default function MessageAndReceived() {
 
           <div className="mt-6 w-full border-t border-gray-700/50">
             <button
-              className={`w-full py-3 rounded-lg text-white font-semibold text-lg transition duration-300 ${PRIMARY_COLOR_CLASSES}`}
+              className={`w-full py-2 rounded-lg text-white text-sm sm:text-base md:text-lg transition duration-300 bg-primary hover:bg-dark-primary`}
             >
               View Messages
             </button>
@@ -135,7 +141,7 @@ export default function MessageAndReceived() {
         </div>
 
         <div className="bg-secondary p-4 rounded-xl">
-          <h2 className="text-2xl font-bold text-white mb-6">
+          <h2 className="text-xl font-semibold text-white mb-6">
             Received Quotes
           </h2>
 
@@ -152,20 +158,20 @@ export default function MessageAndReceived() {
                       height={50}
                       width={50}
                       alt={quote.lawyerName}
-                      className="w-[50px] h-[50px] rounded-full object-cover"
+                      className="w-10 md:w-12 h-10 md:h-12 rounded-full object-cover"
                     />
                     <div className="min-w-0">
-                      <p className="text-white font-semibold text-lg truncate">
+                      <p className="text-white font-medium text-sm md:text-lg truncate">
                         {quote.lawyerName}
                       </p>
-                      <p className="text-sm text-gray-400 truncate">
+                      <p className="text-xs sm:text-sm text-gray-400 truncate">
                         {quote.firm} &bull; {quote.location}
                       </p>
                     </div>
                   </div>
 
                   <div
-                    className={`px-4 py-2 rounded-lg text-gray text-sm border border-gray-700/50`}
+                    className={`px-4 py-2  rounded-lg text-gray text-xs sm:text-sm border border-gray-700/50`}
                   >
                     Budget
                     <span className="block text-center mt-0.5">
@@ -175,9 +181,8 @@ export default function MessageAndReceived() {
                 </div>
 
                 <button
-                  // FIX: Changed from onClick={handleModal(true)} to onClick={() => handleModal(true)}
                   onClick={() => handleModal(true)}
-                  className={`w-full py-2 rounded-lg text-white font-semibold transition duration-300 ${PRIMARY_COLOR_CLASSES}`}
+                  className={`w-full py-2 rounded-lg text-white transition duration-300 bg-primary hover:bg-dark-primary`}
                 >
                   View Details
                 </button>
