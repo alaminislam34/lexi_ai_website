@@ -6,11 +6,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
-export const navlinks = [
+export const navlinksClient = [
   { name: "Home", link: "/" },
   { name: "Ask Casezy", link: "/ask_casezy" },
   { name: "Attorney", link: "/attorneys" },
-  // { name: "Message", link: "/message" },
+  { name: "Dashboard", link: "/dashboard" },
+];
+export const navlinksAttorney = [
+  { name: "Home", link: "/" },
+  { name: "Ask Casezy", link: "/ask_casezy" },
+  { name: "For Attorney", link: "/for_attorney" },
   { name: "Dashboard", link: "/dashboard" },
 ];
 export default function Navbar() {
@@ -50,14 +55,20 @@ export default function Navbar() {
           </h1>
         </div>
         <ul className="lg:flex flex-row items-center justify-center gap-14 hidden">
-          {navlinks.map((nav, i) => (
-            <li
-              key={i}
-              className={`${path === nav.link ? "text-primary" : "text-white hover:text-primary duration-300"}`}
-            >
-              <Link href={nav.link}>{nav.name}</Link>
-            </li>
-          ))}
+          {(user?.role === "client" ? navlinksClient : navlinksAttorney).map(
+            (nav, i) => (
+              <li
+                key={i}
+                className={`${
+                  path === nav.link
+                    ? "text-primary"
+                    : "text-white hover:text-primary duration-300"
+                }`}
+              >
+                <Link href={nav.link}>{nav.name}</Link>
+              </li>
+            )
+          )}
         </ul>
 
         <div className="flex items-center gap-4 relative">
@@ -105,7 +116,13 @@ export default function Navbar() {
                   </p>
                 </div>
               </div>
-              <Link href={'/profile'} onClick={() => setShowUserModal(false)} className="py-2 mt-2 inline-block hover:bg-gray/50 duration-300 rounded-xl px-4 w-full">Profile Details</Link>
+              <Link
+                href={"/profile"}
+                onClick={() => setShowUserModal(false)}
+                className="py-2 mt-2 inline-block hover:bg-gray/50 duration-300 rounded-xl px-4 w-full"
+              >
+                Profile Details
+              </Link>
 
               <div className="pt-6">
                 <button
@@ -137,7 +154,10 @@ export default function Navbar() {
                 </h1>
                 <br />
                 <ul className="flex flex-col justify-center gap-2">
-                  {navlinks.map((nav, i) => (
+                  {(user?.role === "client"
+                    ? navlinksClient
+                    : navlinksAttorney
+                  ).map((nav, i) => (
                     <li
                       onClick={() => {
                         if (showUserModal || showMenu) {

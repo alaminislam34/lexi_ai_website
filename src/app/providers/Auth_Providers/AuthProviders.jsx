@@ -42,7 +42,7 @@ export default function AuthProvider({ children }) {
       if (email === "alamin@gmail.com" && password === "alamin.bd") {
         const apiResponse = {
           accessToken: "actual_jwt_token_from_server",
-          user: { name: "Al Amin Islam", email: email, role: "client" },
+          user: { name: "Al Amin Islam", email: email, role: "attorney" },
         };
 
         localStorage.setItem("user", JSON.stringify(apiResponse.user));

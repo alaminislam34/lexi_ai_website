@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <Navbar />
-          <section className="min-h-[80vh]">{children}</section>
+          <section className="min-h-[80vh] h-full">{children}</section>
           <Footer />
           <ToastContainer position="bottom-center" autoClose={1500} />
         </AuthProvider>

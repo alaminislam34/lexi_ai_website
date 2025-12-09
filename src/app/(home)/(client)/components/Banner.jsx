@@ -1,8 +1,10 @@
+import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 import { TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
 export default function Banner() {
+  const { user } = useAuth();
   return (
     <div className=" max-w-[1440px] mx-auto w-11/12 min-h-[95vh] flex items-center">
       <div className="space-y-6">
@@ -21,12 +23,14 @@ export default function Banner() {
           >
             Ask Casezy
           </Link>
-          <Link
-            href={"/attorneys"}
-            className="py-4 md:py-6 px-8 md:px-14 lg:px-16 rounded-2xl text-white border border-white md:text-lg hover:border-primary duration-300 hover:text-primary"
-          >
-            Attorney
-          </Link>
+          {user?.role === "client" && (
+            <Link
+              href={"/attorneys"}
+              className="py-4 md:py-6 px-8 md:px-14 lg:px-16 rounded-2xl text-white border border-white md:text-lg hover:border-primary duration-300 hover:text-primary"
+            >
+              Attorney
+            </Link>
+          )}
         </div>
         <p className="flex items-center gap-2 text-sm">
           <TriangleAlert className="text-amber-500" /> Casezy provides general

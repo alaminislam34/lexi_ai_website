@@ -1,11 +1,9 @@
 "use client";
-// components/Footer.jsx
 
 import Link from "next/link";
 import React from "react";
 
 export default function Footer() {
-  // Array for cleaner rendering of link sections
   const footerLinks = [
     {
       title: "Quick Links",
@@ -28,13 +26,9 @@ export default function Footer() {
   ];
 
   return (
-    // Outer container: Full width, dark background (bg-gray-900 or similar dark color)
-
     <footer>
       <div className="max-w-[1440px] mx-auto w-11/12 py-10 md:py-16 lg:py-24 mt-6">
-        {/* Grid Container: Changes layout based on screen size */}
         <div className="flex flex-wrap justify-between items-start gap-8">
-          {/* 1. Casezy Info Column */}
           <div className="space-y-4">
             <h2 className="text-3xl font-bold text-primary font-lora">
               Casezy
@@ -46,7 +40,6 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* 2. Quick Links Column */}
           <div className="space-y-4 md:col-span-1">
             <h3 className="text-lg font-semibold text-white">
               {footerLinks[0].title}
@@ -65,7 +58,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* 3. Support Column */}
           <div className="space-y-4 md:col-span-1">
             <h3 className="text-lg font-semibold text-white">
               {footerLinks[1].title}

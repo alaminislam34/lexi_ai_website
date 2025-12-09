@@ -1,17 +1,9 @@
-// src/components/MessageBoard.jsx
 "use client";
 
-import {
-  ArrowLeft,
-  MessageSquare,
-  MoreVertical,
-  ChevronDown,
-  Send,
-  User,
-} from "lucide-react";
+import { ArrowLeft, MessageSquare, MoreVertical, Send } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react"; // Added hooks
+import { useState, useRef, useEffect, useCallback } from "react";
 
 // --- Design Constants (Matching Previous Components) ---
 const PRIMARY_COLOR_CLASSES = "bg-blue-500 hover:bg-blue-600"; // For the Send button
@@ -54,7 +46,7 @@ const MOCK_MESSAGES = [
     id: 5,
     sender: "AI Junaid",
     type: "received",
-    text: "Hi! I can summarize filings or suggest next steps (general info). What would you like to do?",
+    text: "I've processed the information. The key filing was the 'Motion for Summary Judgment' on Monday.",
     time: "12:40 PM",
   },
 ];
@@ -62,30 +54,79 @@ const MOCK_MESSAGES = [
 const MOCK_THREADS = [
   {
     id: "thread-1",
-    name: "Jane Doe",
-    lastMessage: "something day ha...",
+    name: "Jane Doe (Client)",
+    lastMessage: "Need a quick update on the Johnson case...",
     time: "12:36 PM",
     image: "/images/user.jpg",
     messages: [
-      // Example for Jane Doe's thread
       {
         id: 101,
         sender: "You",
         type: "sent",
-        text: "Hello Jane!",
+        text: "Hello Jane, I'll get that update for you shortly.",
         time: "10:00 AM",
+      },
+      {
+        id: 102,
+        sender: "Jane Doe",
+        type: "received",
+        text: "Thanks!",
+        time: "10:05 AM",
       },
     ],
   },
   {
     id: "thread-2",
-    name: "AI Junaid",
-    lastMessage: "something day ha...",
-    time: "12:36 PM",
+    name: "AI Junaid (Assistant)",
+    lastMessage: MOCK_MESSAGES[MOCK_MESSAGES.length - 1].text,
+    time: "12:40 PM",
     image: "/images/user.jpg",
     messages: MOCK_MESSAGES, // Use the existing messages for the selected thread
   },
+  {
+    id: "thread-3",
+    name: "Partner Review",
+    lastMessage: "Finalizing the draft today.",
+    time: "12:00 PM",
+    image: "/images/user.jpg",
+    messages: [
+      {
+        id: 201,
+        sender: "Partner",
+        type: "received",
+        text: "Please send the final brief by 4 PM.",
+        time: "11:55 AM",
+      },
+    ],
+  },
 ];
+
+// --- Custom Hooks ---
+
+// Auto-resizes the textarea based on content up to a max height
+const useAutoResizeTextarea = (value) => {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.style.height = "auto";
+      const minHeight = 42; // Approx 1 row height
+      const maxHeight = 5 * 24; // Limit to 5 rows (approx 24px per row height)
+
+      let newHeight = ref.current.scrollHeight;
+
+      if (newHeight > maxHeight) {
+        newHeight = maxHeight;
+      }
+
+      ref.current.style.height = `${Math.max(minHeight, newHeight)}px`;
+    }
+  }, [value]);
+
+  return ref;
+};
+
+// --- Child Components (Unchanged logic, just used in main component) ---
 
 const MessageBubble = ({ message }) => {
   const isSent = message.type === "sent";
@@ -97,7 +138,9 @@ const MessageBubble = ({ message }) => {
     <div
       className={`flex flex-col p-6 ${isSent ? "items-end" : "items-start"}`}
     >
-      <div className={`p-3 rounded-xl shadow-md ${bubbleClasses}`}>
+      <div
+        className={`p-3 rounded-xl shadow-md max-w-xs md:max-w-md ${bubbleClasses}`}
+      >
         <p className="text-sm">{message.text}</p>
       </div>
       <span className="text-xs text-gray-500 mt-1 mr-1 mb-2">
@@ -129,59 +172,41 @@ const ThreadItem = ({ thread, isSelected, onSelect }) => (
   </div>
 );
 
-const useAutoResizeTextarea = (value) => {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (ref.current) {
-      // Reset height to calculate new height properly
-      ref.current.style.height = "auto";
-      // 42px is approximately 1 row height (p-3)
-      const minHeight = 42;
-      const maxHeight = 5 * 24; // Limit to 5 rows (approx 24px per row height)
-
-      let newHeight = ref.current.scrollHeight;
-
-      // Limit the height
-      if (newHeight > maxHeight) {
-        newHeight = maxHeight;
-      }
-
-      // Set the new height
-      ref.current.style.height = `${Math.max(minHeight, newHeight)}px`;
-    }
-  }, [value]);
-
-  return ref;
-};
+// --- Main Component ---
 
 export default function MessageBoard() {
-  // 1. State for Chat Management
-  const [currentThreadId, setCurrentThreadId] = useState(MOCK_THREADS[1].id); // Start with 'AI Junaid'
+  const [currentThreadId, setCurrentThreadId] = useState(MOCK_THREADS[1].id);
   const [inputMessage, setInputMessage] = useState("");
+  const [isThreadListVisible, setIsThreadListVisible] = useState(true); // New state for responsiveness
   const messagesEndRef = useRef(null);
 
-  // Auto-resize textarea hook
   const textareaRef = useAutoResizeTextarea(inputMessage);
 
-  // Helper to find the currently selected thread data
   const currentThread = MOCK_THREADS.find((t) => t.id === currentThreadId);
+  // Ensure currentMessages is an array even if currentThread is null
   const currentMessages = currentThread ? currentThread.messages : [];
 
-  // 2. Scroll to Bottom of Messages on Load and New Message
+  // Handlers for responsiveness
+  const handleSelectThread = useCallback((id) => {
+    setCurrentThreadId(id);
+    setIsThreadListVisible(false); // Hide list, show chat on small screens
+  }, []);
+
+  const handleGoBack = useCallback(() => {
+    setIsThreadListVisible(true); // Show list on small screens
+  }, []);
+
+  // Scroll to Bottom of Messages on Load and New Message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [currentMessages]); // Scroll whenever messages change
-
-  // 3. Handlers for Interaction
+  }, [currentMessages]);
 
   /**
    * Handle the "Send" button click or Enter key press.
-   * This is where your API call logic will go later.
    */
   const handleSendMessage = () => {
     const text = inputMessage.trim();
@@ -203,6 +228,9 @@ export default function MessageBoard() {
 
     console.log("Simulating sending message:", newMessage);
 
+    // In a real app, you would dispatch this message to update the MOCK_THREADS array
+    // Since MOCK_THREADS is constant, we only simulate the send for now.
+
     setInputMessage("");
     setTimeout(scrollToBottom, 0);
   };
@@ -215,21 +243,26 @@ export default function MessageBoard() {
   };
 
   return (
-    <section className="max-w-[1440px] mx-auto w-11/12 pt-28 overflow-hidden">
-      <div className={`flex h-[80vh] w-full text-white`}>
+    <section className="max-w-[1440px] mx-auto w-full md:w-11/12 overflow-hidden pt-28">
+      <div
+        className={`flex h-[calc(100vh-64px)] md:h-[80vh] w-full text-white ${SECONDARY_BG_COLOR} rounded-xl shadow-2xl`}
+      >
         <div
-          className={`w-1/4 min-w-[300px] border-r border-gray-700/50 flex flex-col`}
+          className={`absolute inset-0 md:relative md:w-1/4 md:min-w-[300px] border-r border-gray-700/50 flex flex-col z-10 
+                      ${SECONDARY_BG_COLOR}
+                      ${isThreadListVisible ? "block" : "hidden md:block"}`}
         >
           <div className="flex items-center justify-start p-4 border-b border-gray-700/50">
             <Link
               href={"/"}
-              className={`p-2 rounded-full text-gray-400 hover:text-white transition `}
-              aria-label="Go back"
+              className={`p-2 rounded-full text-gray-400 hover:text-white transition hidden md:block`}
+              aria-label="Go back to dashboard"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
+
             <button
-              className={`flex items-center ml-4 px-4 py-2 rounded-lg text-white font-semibold ${PRIMARY_COLOR_CLASSES}`}
+              className={`flex items-center ml-0 md:ml-4 px-4 py-2 rounded-lg text-white font-semibold ${PRIMARY_COLOR_CLASSES}`}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
               Messages
@@ -241,17 +274,28 @@ export default function MessageBoard() {
                 key={thread.id}
                 thread={thread}
                 isSelected={thread.id === currentThreadId}
-                onSelect={setCurrentThreadId}
+                onSelect={handleSelectThread}
               />
             ))}
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div
+          className={`absolute inset-0 md:relative flex-1 flex flex-col overflow-hidden 
+                      ${isThreadListVisible ? "hidden md:flex" : "flex"}`}
+        >
           <div
             className={`flex items-center justify-between p-4 border-b border-gray-700/50 ${SECONDARY_BG_COLOR}`}
           >
             <div className="flex items-center space-x-3">
+              <button
+                onClick={handleGoBack}
+                className={`p-2 rounded-full text-gray-400 hover:text-white transition md:hidden`}
+                aria-label="Back to threads"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+
               <Image
                 src={currentThread?.image || "/images/user.jpg"}
                 height={40}
@@ -263,24 +307,27 @@ export default function MessageBoard() {
                 {currentThread?.name || "Select a Thread"}
               </h2>
             </div>
-            <button
-              className={`p-2 rounded-full text-gray-400 hover:text-white transition hover:${TEXT_ELEMENT_BG}`}
-              aria-label="Options"
-            >
-              <MoreVertical className="w-5 h-5" />
-            </button>
+            <div>
+              <button
+                className={`p-2 rounded-full text-gray-400 hover:text-white transition hover:${TEXT_ELEMENT_BG}`}
+                aria-label="Options"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <div
-            className={`flex-1 w-full overflow-y-auto p-6 flex flex-col ${APP_BG}`}
+            className={`flex-1 w-full overflow-y-auto p-2 md:p-6 flex flex-col ${APP_BG}`}
           >
             {currentMessages.map((message) => (
               <MessageBubble key={message.id} message={message} />
             ))}
+            <div ref={messagesEndRef} />
           </div>
 
           <div
-            className={`p-4 border-t border-gray-700/50 ${SECONDARY_BG_COLOR}`}
+            className={`p-3 md:p-4 border-t border-gray-700/50 ${SECONDARY_BG_COLOR}`}
           >
             <div className="flex items-end space-x-3">
               <textarea
