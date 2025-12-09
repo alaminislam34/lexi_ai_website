@@ -4,7 +4,7 @@ import React from "react";
 
 export default function Banner() {
   return (
-    <div className=" max-w-[1440px] mx-auto w-11/12 min-h-[80vh] flex items-center">
+    <div className=" max-w-[1440px] mx-auto w-11/12 min-h-[95vh] flex items-center">
       <div className="space-y-6">
         <h1 className="font-lora text-3xl md:text-5xl lg:text-[56px] font-medium max-w-[850px] leading-normal">
           Smart legal help for everyone. Elite tools for attorneys.
@@ -16,13 +16,13 @@ export default function Banner() {
         </p>
         <div className="flex flex-row gap-6 items-center">
           <Link
-            href={"/client/ask_casezy"}
+            href={"/ask_casezy"}
             className="py-4 md:py-6 px-8 md:px-14 lg:px-16 rounded-2xl bg-primary text-white md:text-lg hover:bg-[#0c68fe] border border-primary duration-300"
           >
             Ask Casezy
           </Link>
           <Link
-            href={"/client/attorney"}
+            href={"/attorneys"}
             className="py-4 md:py-6 px-8 md:px-14 lg:px-16 rounded-2xl text-white border border-white md:text-lg hover:border-primary duration-300 hover:text-primary"
           >
             Attorney

@@ -83,8 +83,6 @@ export default function Login() {
                   <input
                     type="email"
                     id="email"
-                    placeholder="example@gmail.com"
-                    defaultValue={"alamin@gmail.com"} //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
@@ -102,9 +100,7 @@ export default function Login() {
                   <input
                     type={showPassword ? "text" : "password"}
                     id="password"
-                    placeholder="********"
                     value={password}
-                    defaultValue={"alamin.bd"} //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
                     required

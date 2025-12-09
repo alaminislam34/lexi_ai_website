@@ -1,8 +1,8 @@
+import { ToastContainer } from "react-toastify";
 import "../globals.css";
 import AuthProvider from "../providers/Auth_Providers/AuthProviders";
-import Footer from "./components/Footer";
-import Navbar from "./components/Navbar";
-
+import Navbar from "./components/Shared/Navbar";
+import Footer from "./components/Shared/Footer";
 export const metadata = {
   title: "Casezy",
   description: "Smart legal help for everyone. Elite tools for attorneys.",
@@ -15,7 +15,8 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <Navbar />
           <section className="min-h-[80vh]">{children}</section>
-          <Footer/>
+          <Footer />
+          <ToastContainer position="bottom-center" autoClose={1500} />
         </AuthProvider>
       </body>
     </html>

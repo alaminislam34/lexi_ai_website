@@ -7,11 +7,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 export const navlinks = [
-  { name: "Home", link: "/client" },
-  { name: "Ask Casezy", link: "/client/ask_casezy" },
-  { name: "Attorney", link: "/client/attorneys" },
-  { name: "Message", link: "/client/message" },
-  { name: "Dashboard", link: "/client/dashboard" },
+  { name: "Home", link: "/" },
+  { name: "Ask Casezy", link: "/ask_casezy" },
+  { name: "Attorney", link: "/attorneys" },
+  { name: "Message", link: "/message" },
+  { name: "Dashboard", link: "/dashboard" },
 ];
 export default function Navbar() {
   const path = usePathname();
@@ -46,7 +46,7 @@ export default function Navbar() {
       <nav className="max-w-[1440px] mx-auto w-11/12 flex items-center justify-between">
         <div>
           <h1 className="text-2xl lg:text-3xl font-semibold text-primary font-lora">
-            <Link href={"/client"}>Casezys</Link>
+            <Link href={"/"}>Casezys</Link>
           </h1>
         </div>
         <ul className="lg:flex flex-row items-center justify-center gap-14 hidden">

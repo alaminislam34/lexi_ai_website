@@ -1,21 +1,25 @@
+"use client";
+
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 import { MapPin, X } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { toast } from "react-toastify";
 
-const EventModal = ({ setShowModal }) => {
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+export default function QoutesDetails() {
+  const { setShowModal } = useAuth();
+  const handleQoutes = (v) => {
+    try {
+      if (v === "accept") {
+        toast.success("Your appointment has been confirmed successfully.");
+      } else if (v === "reject") {
+        toast.error("Reject the attorney offer!");
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
       setShowModal(false);
-    }, 2000);
+    }
   };
-
   return (
     <div className="fixed inset-0 z-50 bg-opacity-50 bg-black/70 flex items-center justify-center p-4 overflow-y-auto">
       <div
@@ -46,7 +50,7 @@ const EventModal = ({ setShowModal }) => {
         </div>
         <div className="my-4 h-0 border-b w-full border-gray/20"></div>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="space-y-6">
           <div>
             <label
               htmlFor="state"
@@ -103,22 +107,20 @@ const EventModal = ({ setShowModal }) => {
 
           <div className="flex flex-row gap-4 items-center">
             <button
-              onClick={() => setShowModal(false)}
+              onClick={() => handleQoutes("accept")}
               className={`w-full flex items-center justify-center p-4 rounded-lg text-white transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-8 bg-primary`}
             >
               Accept
             </button>
             <button
-              onClick={() => setShowModal(false)}
+              onClick={() => handleQoutes("reject")}
               className={`w-full flex items-center justify-center p-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-8 bg-red-800/10 text-red-500 border border-red-800`}
             >
               Reject
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
-};
-
-export default EventModal;
+}

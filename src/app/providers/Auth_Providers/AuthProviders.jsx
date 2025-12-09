@@ -14,6 +14,7 @@ export default function AuthProvider({ children }) {
   const [error, setError] = useState("");
   const [email, setEmail] = useState("alamin@gmail.com");
   const [password, setPassword] = useState("alamin.bd");
+  const [showModal, setShowModal] = useState(false);
   const router = useRouter();
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -46,7 +47,7 @@ export default function AuthProvider({ children }) {
 
         localStorage.setItem("user", JSON.stringify(apiResponse.user));
         toast.success("Logged in successful! Redirecting...");
-        router.push("/client");
+        router.push("/");
       } else {
         setError("Invalid credentials. Please try again.");
       }
@@ -80,6 +81,8 @@ export default function AuthProvider({ children }) {
     setPassword,
     email,
     password,
+    showModal,
+    setShowModal,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

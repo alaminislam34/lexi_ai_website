@@ -46,3 +46,43 @@ body {
   background-color: #1d1d1d;
   color: white;
 }
+
+
+/* Dark theme for react-datepicker */
+.react-datepicker {
+  background-color: #27272A;
+  /* match your input bg */
+  color: #fff;
+  border: 1px solid #3F3F46;
+  border-radius: 0.75rem;
+  /* match input rounded-lg */
+  padding: 0.5rem;
+}
+
+.react-datepicker__header {
+  background-color: #1A1A1A;
+  border-bottom: 1px solid #3F3F46;
+}
+
+.react-datepicker__day-name,
+.react-datepicker__day,
+.react-datepicker__time-name {
+  color: #fff;
+}
+
+.react-datepicker__day:hover,
+.react-datepicker__time-name:hover {
+  background-color: #3B82F6;
+  /* blue hover */
+  color: #fff;
+  border-radius: 0.375rem;
+}
+
+.react-datepicker__current-month {
+  color: #fff;
+}
+
+.react-datepicker__triangle {
+  display: none;
+  /* optional: hide triangle */
+}

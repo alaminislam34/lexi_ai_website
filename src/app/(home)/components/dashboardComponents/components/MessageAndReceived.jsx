@@ -5,9 +5,9 @@ import React from "react";
 import Image from "next/image";
 import { MoreVertical } from "lucide-react";
 import { BiMessageAltDetail } from "react-icons/bi";
+import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 
 const PRIMARY_COLOR_CLASSES = "bg-blue-600 hover:bg-blue-700";
-const SECONDARY_BG_COLOR = "bg-[#1D1F23]";
 const TEXT_ELEMENT_BG = "bg-[#33363D]";
 
 const MOCK_MESSAGES = [
@@ -16,7 +16,7 @@ const MOCK_MESSAGES = [
     name: "Al Junaid",
     lastMessage: "something...",
     time: "12:36 PM",
-    image: "/images/user.jpg", // Replace with actual path
+    image: "/images/user.jpg",
     unread: true,
   },
   {
@@ -24,7 +24,7 @@ const MOCK_MESSAGES = [
     name: "Eleena",
     lastMessage: "something...",
     time: "12:36 PM",
-    image: "/images/user.jpg", // Replace with actual path
+    image: "/images/user.jpg",
     unread: true,
   },
 ];
@@ -91,47 +91,15 @@ const MessageItem = ({ message }) => (
   </div>
 );
 
-const QuoteCard = ({ quote, setShowModal }) => (
-  <div
-    className={`p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
-  >
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <Image
-          src={quote.image}
-          height={50}
-          width={50}
-          alt={quote.lawyerName}
-          className="w-[50px] h-[50px] rounded-full object-cover"
-        />
-        <div className="min-w-0">
-          <p className="text-white font-semibold text-lg truncate">
-            {quote.lawyerName}
-          </p>
-          <p className="text-sm text-gray-400 truncate">
-            {quote.firm} &bull; {quote.location}
-          </p>
-        </div>
-      </div>
+export default function MessageAndReceived() {
+  const { setShowModal, showModal } = useAuth();
 
-      <div
-        className={`px-4 py-2 rounded-lg text-gray text-sm border border-gray-700/50`}
-      >
-        Budget
-        <span className="block text-center mt-0.5">{quote.budget}</span>
-      </div>
-    </div>
+  // The state setter is correctly wrapped in a function definition
+  const handleModal = (v) => {
+    setShowModal(v);
+  };
 
-    <button
-      onClick={() => setShowModal(true)}
-      className={`w-full py-2 rounded-lg text-white font-semibold transition duration-300 ${PRIMARY_COLOR_CLASSES}`}
-    >
-      View Details
-    </button>
-  </div>
-);
-
-export default function MessageAndReceived({ setShowModal }) {
+  console.log(showModal);
   const totalUnread = MOCK_MESSAGES.filter((m) => m.unread).length;
 
   return (
@@ -144,10 +112,10 @@ export default function MessageAndReceived({ setShowModal }) {
           </div>
 
           <div className="p-4 font-medium">
-            You have{" "}
-            <span className="font-bold  bg-red-500 text-white py-1 px-3 mx-1 rounded-full">
+            You have
+            <span className="font-bold  bg-red-500 text-white py-1 px-3 mx-1 rounded-full">
               {totalUnread}
-            </span>{" "}
+            </span>
             unread messages.
           </div>
 
@@ -172,12 +140,48 @@ export default function MessageAndReceived({ setShowModal }) {
           </h2>
 
           <div className="flex flex-col gap-2">
-            {MOCK_QUOTES.map((quote) => (
-              <QuoteCard
-                key={quote.id}
-                quote={quote}
-                setShowModal={setShowModal}
-              />
+            {MOCK_QUOTES.map((quote, i) => (
+              <div
+                key={i}
+                className={`p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <Image
+                      src={quote.image}
+                      height={50}
+                      width={50}
+                      alt={quote.lawyerName}
+                      className="w-[50px] h-[50px] rounded-full object-cover"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-white font-semibold text-lg truncate">
+                        {quote.lawyerName}
+                      </p>
+                      <p className="text-sm text-gray-400 truncate">
+                        {quote.firm} &bull; {quote.location}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`px-4 py-2 rounded-lg text-gray text-sm border border-gray-700/50`}
+                  >
+                    Budget
+                    <span className="block text-center mt-0.5">
+                      {quote.budget}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  // FIX: Changed from onClick={handleModal(true)} to onClick={() => handleModal(true)}
+                  onClick={() => handleModal(true)}
+                  className={`w-full py-2 rounded-lg text-white font-semibold transition duration-300 ${PRIMARY_COLOR_CLASSES}`}
+                >
+                  View Details
+                </button>
+              </div>
             ))}
           </div>
         </div>

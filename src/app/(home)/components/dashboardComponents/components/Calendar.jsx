@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Clock, Plus } from "lucide-react";
+import AddEventModal from "./AddEventModal";
 
 const CARD_BG = "bg-[#1D1F23]";
 const TEXT_ELEMENT_BG = "bg-[#33363D]";
@@ -60,9 +61,9 @@ const MOCK_EVENTS = [
 const DayCell = ({ dayData }) => {
   const { day, isCurrentMonth, isSelected } = dayData;
 
-  let cellClasses = `p-2.5 text-sm md:text-base lg:text-lg rounded-lg transition duration-150 cursor-pointer hover:bg-primary/40 h-full flex items-center`;
+  let cellClasses = `p-2.5 text-xs sm:text-sm md:text-base lg:text-lg rounded-md transition duration-150 cursor-pointer hover:bg-primary/40 h-full flex items-center`;
   if (isSelected) {
-    cellClasses = `p-2.5 bg-primary text-sm md:text-base lg:text-lg rounded-lg transition duration-150 cursor-pointer h-full flex items-center`;
+    cellClasses = `p-2.5 bg-primary text-xs sm:text-sm md:text-base lg:text-lg rounded-md transition duration-150 cursor-pointer h-full flex items-center`;
   } else if (isCurrentMonth) {
     cellClasses += ` bg-BG text-white`;
   } else {
@@ -99,6 +100,7 @@ const EventCard = ({ event }) => (
 );
 
 export default function Calendar() {
+  const [showModal, setShowModal] = useState(false);
   const currentMonth = "November 2025";
 
   const dayLabels = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
@@ -113,6 +115,7 @@ export default function Calendar() {
 
           <div className="flex items-center space-x-4">
             <button
+              onClick={() => setShowModal(true)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold bg-BG border-2 border-element text-xs truncate`}
             >
               Add Event
@@ -160,6 +163,7 @@ export default function Calendar() {
           ))}
         </div>
       </div>
+      {showModal && <AddEventModal setShowModal={setShowModal} />}
     </div>
   );
 }
