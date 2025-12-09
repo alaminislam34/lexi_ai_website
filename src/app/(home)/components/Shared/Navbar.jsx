@@ -72,7 +72,7 @@ export default function Navbar() {
             width={300}
             height={300}
             alt="Profile image"
-            className="w-12 h-12 rounded-full bg-cover bg-center border border-gray-500 p-2 cursor-pointer"
+            className="md:w-12 w-9 md:h-12 h-9 rounded-full bg-cover bg-center border border-gray-500 p-2 cursor-pointer"
           />
           {showUserModal && (
             <div className="absolute top-14 right-2 z-40 max-w-sm min-w-[280px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl ring-1 ring-gray-100 dark:ring-gray-700 p-5 transition-all duration-300 ease-in-out">
@@ -125,9 +125,9 @@ export default function Navbar() {
                   setShowUserModal(false);
                 }
               }}
-              className="block lg:hidden cursor-pointer hover:text-primary active:text-primary p-2.5 hover:bg-BG rounded-xl bg-transparent border border-gray"
+              className="block lg:hidden cursor-pointer hover:text-white active:bg-primary hover:bg-primary p-2 duration-300 hover:border-primary active:scale-95 rounded-xl bg-transparent border border-gray"
             >
-              <Menu size={26} />
+              <Menu size={18} />
             </button>
             {showMenu && (
               <div className="absolute top-14 right-2 z-40 max-w-sm min-w-[280px] rounded-2xl shadow-2xl bg-element p-6 transition-all duration-300 ease-in-out">
