@@ -86,14 +86,6 @@ const MOCK_THREADS = [
   },
 ];
 
-const MOCK_CASE_DETAILS = [
-  { label: "Client", value: "Jane Doe" },
-  { label: "Case ID", value: "2024-C-4981" },
-  { label: "Practice Area", value: "Family Law" },
-  { label: "Date Filed", value: "05/15/2024" },
-  { label: "Status", value: "Active" },
-];
-
 const MessageBubble = ({ message }) => {
   const isSent = message.type === "sent";
   const bubbleClasses = isSent

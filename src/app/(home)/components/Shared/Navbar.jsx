@@ -53,7 +53,7 @@ export default function Navbar() {
           {navlinks.map((nav, i) => (
             <li
               key={i}
-              className={`${path === nav.link ? "text-primary" : "text-white"}`}
+              className={`${path === nav.link ? "text-primary" : "text-white hover:text-primary duration-300"}`}
             >
               <Link href={nav.link}>{nav.name}</Link>
             </li>
@@ -105,6 +105,7 @@ export default function Navbar() {
                   </p>
                 </div>
               </div>
+              <Link href={'/profile'} onClick={() => setShowUserModal(false)} className="py-2 mt-2 inline-block hover:bg-gray/50 duration-300 rounded-xl px-4 w-full">Profile Details</Link>
 
               <div className="pt-6">
                 <button

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
+import Link from "next/link";
 // Custom styled select wrapper
 const SelectWrapper = ({ value, onChange, children, inputClasses }) => (
   <div className="relative">
@@ -16,7 +17,6 @@ const SelectWrapper = ({ value, onChange, children, inputClasses }) => (
   </div>
 );
 
-// The initial form component
 const AskCasezyForm = ({
   state,
   setState,
@@ -32,7 +32,6 @@ const AskCasezyForm = ({
   inputClasses,
 }) => (
   <div className="w-full max-w-5xl mx-auto md:mx-0">
-    {/* Header Section */}
     <header className="mb-8 md:mb-12 space-y-2">
       <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
         Ask Casezy
@@ -42,7 +41,6 @@ const AskCasezyForm = ({
       </p>
     </header>
 
-    {/* Form Card */}
     <div className={`rounded-xl bg-secondary p-6 md:p-8`}>
       {error && (
         <div className="bg-red-900/30 border border-red-700 text-red-300 p-3 rounded-lg mb-6 text-sm">
@@ -70,7 +68,6 @@ const AskCasezyForm = ({
           </SelectWrapper>
         </div>
 
-        {/* ZIP (Optional) Input */}
         <div>
           <label
             htmlFor="zip"
@@ -88,13 +85,12 @@ const AskCasezyForm = ({
           />
         </div>
 
-        {/* Practice Area Selection */}
         <div>
           <label
             htmlFor="practiceArea"
             className="block text-sm font-semibold mb-2 text-gray-300"
           >
-            Practice area
+            Case type
           </label>
           <SelectWrapper
             value={practiceArea}
@@ -108,7 +104,6 @@ const AskCasezyForm = ({
           </SelectWrapper>
         </div>
 
-        {/* What Happened? Textarea */}
         <div>
           <label
             htmlFor="description"
@@ -126,7 +121,6 @@ const AskCasezyForm = ({
           />
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
@@ -146,14 +140,11 @@ const AskCasezyForm = ({
   </div>
 );
 
-// The Chat Interface component based on the uploaded image
 const CasezyChatInterface = ({ state, practiceArea }) => {
-  // Mock data for the chat session context
   const sessionDetail = `${state} - ${practiceArea}${
     practiceArea === "Family" ? " (Divorce, Custody)" : ""
   }`;
 
-  // Mock messages based on the image's structure
   const mockMessages = [
     {
       text: "Not legal advice. I can share general information and next steps.",
@@ -170,7 +161,6 @@ const CasezyChatInterface = ({ state, practiceArea }) => {
 
   return (
     <div className="w-full">
-      {/* Chat Header */}
       <header className="mb-6 space-y-1">
         <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white leading-tight">
           Casezy Chat
@@ -179,9 +169,7 @@ const CasezyChatInterface = ({ state, practiceArea }) => {
         <p className="text-base text-gray">Session · {sessionDetail}</p>
       </header>
 
-      {/* Main Chat Container */}
       <div className={`space-y-8 bg-secondary rounded-2xl p-6 lg:p-8`}>
-        {/* Messages Display Area */}
         <div className="space-y-4 bg-[#1B1D22] p-6 rounded-2xl">
           {mockMessages.map((msg, index) => (
             <div key={index} className={``}>
@@ -193,7 +181,6 @@ const CasezyChatInterface = ({ state, practiceArea }) => {
           ))}
         </div>
 
-        {/* Input and Send Button */}
         <div className="flex space-x-4 pt-4">
           <input
             type="text"
@@ -205,11 +192,13 @@ const CasezyChatInterface = ({ state, practiceArea }) => {
           </button>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex space-x-4 pt-4">
-          <button className="py-3 px-5 rounded-lg text-white text-sm font-medium transition duration-300 hover:opacity-90 bg-primary">
+          <Link
+            href={"/attorneys"}
+            className="py-3 px-5 rounded-lg text-white text-sm font-medium transition duration-300 hover:opacity-90 bg-primary"
+          >
             Browse attorneys
-          </button>
+          </Link>
           <button className="py-3 px-5 rounded-lg text-white text-sm font-medium border border-gray transition duration-300 hover:bg-gray-700">
             View Sources
           </button>
@@ -219,19 +208,15 @@ const CasezyChatInterface = ({ state, practiceArea }) => {
   );
 };
 
-// --- Main Application Component ---
-
 export default function CasezyApp() {
-  // State for the form inputs
   const [state, setState] = useState("Michigan");
   const [zip, setZip] = useState("48226");
-  const [practiceArea, setPracticeArea] = useState("Family"); // Default to Family to match the chat image context
+  const [practiceArea, setPracticeArea] = useState("Family");
   const [description, setDescription] = useState("");
 
-  // State for UI control
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [chatInitiated, setChatInitiated] = useState(false); // New state to control view
+  const [chatInitiated, setChatInitiated] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -245,24 +230,19 @@ export default function CasezyApp() {
     setLoading(true);
     setError(null);
 
-    // Simulated API call for analysis
     console.log({ state, zip, practiceArea, description });
 
-    // Simulate API delay and set chatInitiated to true upon success
     setTimeout(() => {
       setLoading(false);
-      // NOTE: Replacing alert() with state update to transition to chat
       setChatInitiated(true);
     }, 2000);
   };
 
-  // Common Tailwind classes for inputs
   const inputClasses =
     "w-full p-4 border-none rounded-lg text-white text-base focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-gray-500 appearance-none shadow-inner bg-[#12151B]";
 
   return (
-    // Outer container: Full viewport height, custom dark background, centered, fluid padding
-    <div className="min-h-screen pt-24 lg:pt-32 max-w-[1440px] mx-auto w-11/12 text-white flex justify-center">
+    <div className="min-h-screen pt-24 lg:pt-28 max-w-[1440px] mx-auto w-11/12 text-white flex justify-center">
       <div className="w-full">
         {chatInitiated ? (
           <CasezyChatInterface state={state} practiceArea={practiceArea} />
