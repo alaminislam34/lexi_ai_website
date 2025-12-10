@@ -1,5 +1,10 @@
 "use client";
+
+import { useState } from "react";
+import { UpdatePaymentModal } from "./components/Modal";
+
 export default function For_Attorney() {
+  const [showModal, setShowModal] = useState(false);
   return (
     <div className="max-w-[1440px] mx-auto w-11/12 pt-28 h-[80vh]">
       <div className="flex items-center justify-center h-full ">
@@ -17,7 +22,10 @@ export default function For_Attorney() {
               <span className="text-3xl font-semibold">$199/</span>month
             </p>
             <div className="py-2">
-              <button className="py-2 px-6 rounded-lg bg-primary text-white md:text-lg hover:bg-[#0c68fe] border border-primary duration-300">
+              <button
+                onClick={() => setShowModal(true)}
+                className="py-2 px-6 rounded-lg bg-primary text-white md:text-lg hover:bg-[#0c68fe] border border-primary duration-300"
+              >
                 Start 14-day trial
               </button>
             </div>
@@ -29,6 +37,7 @@ export default function For_Attorney() {
           </div>
         </div>
       </div>
+      {showModal && <UpdatePaymentModal setShowModal={setShowModal} />}
     </div>
   );
 }
