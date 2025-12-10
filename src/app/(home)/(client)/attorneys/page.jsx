@@ -86,25 +86,10 @@ export default function Attorneys() {
     setSelectedAttorney(attorney);
     setIsProfileModalOpen(true);
   }, []);
-  
   const closeProfileModal = useCallback(() => {
     setIsProfileModalOpen(false);
     setSelectedAttorney(null);
   }, []);
-
-  const handleShowMore = useCallback(() => {
-    // If there are more attorneys to show, load more. Otherwise, reset to initial count (Show Less).
-    if (displayedCount < filteredAttorneys.length) {
-      setDisplayedCount((prevCount) => prevCount + LOAD_MORE_COUNT);
-    } else {
-      setDisplayedCount(INITIAL_LOAD_COUNT);
-    }
-  }, [displayedCount]);
-
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setDisplayedCount(INITIAL_LOAD_COUNT); // Reset pagination on new search
-  };
 
   const filteredAttorneys = useMemo(() => {
     if (!searchTerm) return ALL_ATTORNEYS;
@@ -116,26 +101,51 @@ export default function Attorneys() {
           area.toLowerCase().includes(lowerCaseSearch)
         )
     );
-  }, [searchTerm]);
+  }, [searchTerm]); // FIX 1: Added filteredAttorneys to the dependency array.
+
+  const handleShowMore = useCallback(() => {
+    // If there are more attorneys to show, load more. Otherwise, reset to initial count (Show Less).
+    if (displayedCount < filteredAttorneys.length) {
+      setDisplayedCount((prevCount) => prevCount + LOAD_MORE_COUNT);
+    } else {
+      setDisplayedCount(INITIAL_LOAD_COUNT);
+    }
+  }, [displayedCount, filteredAttorneys]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setDisplayedCount(INITIAL_LOAD_COUNT);
+  }; // This block was moved up for use in handleShowMore, but it was already correctly using useMemo // const filteredAttorneys = useMemo(() => { //   if (!searchTerm) return ALL_ATTORNEYS; //   const lowerCaseSearch = searchTerm.toLowerCase(); //   return ALL_ATTORNEYS.filter( //     (attorney) => //       attorney.name.toLowerCase().includes(lowerCaseSearch) || //       attorney.practice_area.some((area) => //         area.toLowerCase().includes(lowerCaseSearch) //       ) //   ); // }, [searchTerm]);
 
   const attorneysToDisplay = filteredAttorneys.slice(0, displayedCount);
   const hasMore = displayedCount < filteredAttorneys.length;
 
   return (
     <>
+           {" "}
       <div className="max-w-[1440px] mx-auto w-11/12 min-h-screen flex flex-col pt-28 pb-12">
+               {" "}
         <section className="w-full">
+                   {" "}
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
+                       {" "}
             <header className="mb-6 md:mb-0 space-y-1">
+                           {" "}
               <h1 className="text-xl md:text-2xl lg:text-4xl font-semibold text-white leading-tight">
-                Attorneys
+                                Attorneys              {" "}
               </h1>
+                           {" "}
               <p className="text-sm md:text-base text-gray-400">
-                Filtered by: Family Law (Divorce, Custody)
+                                Filtered by: Family Law (Divorce, Custody)      
+                       {" "}
               </p>
+                         {" "}
             </header>
+                       {" "}
             <div className="relative w-full md:w-auto">
+                           {" "}
               <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                           {" "}
               <input
                 type="text"
                 placeholder="Search Attorneys"
@@ -143,10 +153,13 @@ export default function Attorneys() {
                 onChange={handleSearchChange}
                 className="py-2.5 pl-12 pr-6 border w-full md:w-[300px] border-gray-700 rounded-2xl bg-[#12151B] text-white focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
+                         {" "}
             </div>
+                     {" "}
           </div>
-
+                   {" "}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                       {" "}
             {attorneysToDisplay.map((attorney, i) => (
               <AttorneyCard
                 key={i}
@@ -155,31 +168,38 @@ export default function Attorneys() {
                 openProfileModal={openProfileModal}
               />
             ))}
+                     {" "}
           </div>
-
+                   {" "}
           <div className="text-center mt-10">
+                       {" "}
             {filteredAttorneys.length > 0 && (
               <button
                 onClick={handleShowMore}
                 className="px-8 py-3 rounded-lg text-white font-medium border border-gray-700 transition duration-300 hover:bg-gray-700"
               >
-                {!hasMore ? "Show Less" : "Show More Attorneys"}
+                                {!hasMore ? "Show Less" : "Show More Attorneys"}
+                             {" "}
               </button>
             )}
+                     {" "}
           </div>
-
+                    {/* FIX 2: Replaced " with &quot; */}         {" "}
           {filteredAttorneys.length === 0 && searchTerm && (
             <p className="text-center text-gray-400 text-lg mt-10">
-              No attorneys found matching "{searchTerm}".
+                            No attorneys found matching &quot;{searchTerm}
+              &quot;.            {" "}
             </p>
           )}
+                 {" "}
         </section>
+             {" "}
       </div>
-
+           {" "}
       {isConsultModalOpen && (
         <RequestConsultModal closeModal={closeConsultModal} />
       )}
-
+           {" "}
       {isProfileModalOpen && selectedAttorney && (
         <AttorneyProfileModal
           attorney={selectedAttorney}
@@ -187,6 +207,7 @@ export default function Attorneys() {
           openConsultModal={openConsultModal}
         />
       )}
+         {" "}
     </>
   );
 }

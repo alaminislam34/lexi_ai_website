@@ -5,13 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
 
-// --- Design Constants (Matching Previous Components) ---
-const PRIMARY_COLOR_CLASSES = "bg-blue-500 hover:bg-blue-600"; // For the Send button
-const SECONDARY_BG_COLOR = "bg-[#1D1F23]"; // Main panel background (used for headers and sidebars)
-const TEXT_ELEMENT_BG = "bg-[#33363D]"; // Input field background, hover states
-const APP_BG = "bg-[#12151B]"; // Overall page background (used for the chat history)
-
-// --- Mock Data ---
+const PRIMARY_COLOR_CLASSES = "bg-blue-500 hover:bg-blue-600";
+const SECONDARY_BG_COLOR = "bg-[#1D1F23]";
+const TEXT_ELEMENT_BG = "bg-[#33363D]";
+const APP_BG = "bg-[#12151B]";
 
 const MOCK_MESSAGES = [
   {
@@ -101,9 +98,6 @@ const MOCK_THREADS = [
   },
 ];
 
-// --- Custom Hooks ---
-
-// Auto-resizes the textarea based on content up to a max height
 const useAutoResizeTextarea = (value) => {
   const ref = useRef(null);
 
@@ -125,8 +119,6 @@ const useAutoResizeTextarea = (value) => {
 
   return ref;
 };
-
-// --- Child Components (Unchanged logic, just used in main component) ---
 
 const MessageBubble = ({ message }) => {
   const isSent = message.type === "sent";
@@ -172,31 +164,26 @@ const ThreadItem = ({ thread, isSelected, onSelect }) => (
   </div>
 );
 
-// --- Main Component ---
-
 export default function MessageBoard() {
   const [currentThreadId, setCurrentThreadId] = useState(MOCK_THREADS[1].id);
   const [inputMessage, setInputMessage] = useState("");
-  const [isThreadListVisible, setIsThreadListVisible] = useState(true); // New state for responsiveness
+  const [isThreadListVisible, setIsThreadListVisible] = useState(true);
   const messagesEndRef = useRef(null);
 
   const textareaRef = useAutoResizeTextarea(inputMessage);
 
   const currentThread = MOCK_THREADS.find((t) => t.id === currentThreadId);
-  // Ensure currentMessages is an array even if currentThread is null
   const currentMessages = currentThread ? currentThread.messages : [];
 
-  // Handlers for responsiveness
   const handleSelectThread = useCallback((id) => {
     setCurrentThreadId(id);
-    setIsThreadListVisible(false); // Hide list, show chat on small screens
+    setIsThreadListVisible(false);
   }, []);
 
   const handleGoBack = useCallback(() => {
-    setIsThreadListVisible(true); // Show list on small screens
+    setIsThreadListVisible(true);
   }, []);
 
-  // Scroll to Bottom of Messages on Load and New Message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -205,18 +192,14 @@ export default function MessageBoard() {
     scrollToBottom();
   }, [currentMessages]);
 
-  /**
-   * Handle the "Send" button click or Enter key press.
-   */
   const handleSendMessage = () => {
     const text = inputMessage.trim();
     if (text === "") {
       return;
     }
 
-    // --- TEMPORARY MOCK LOGIC (REPLACE WITH API CALL) ---
     const newMessage = {
-      id: Date.now(), // Unique ID
+      id: Date.now(),
       sender: "You",
       type: "sent",
       text: text,
@@ -227,9 +210,6 @@ export default function MessageBoard() {
     };
 
     console.log("Simulating sending message:", newMessage);
-
-    // In a real app, you would dispatch this message to update the MOCK_THREADS array
-    // Since MOCK_THREADS is constant, we only simulate the send for now.
 
     setInputMessage("");
     setTimeout(scrollToBottom, 0);
