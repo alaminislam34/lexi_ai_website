@@ -87,3 +87,7 @@ body {
   display: none;
   /* optional: hide triangle */
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

@@ -1,9 +1,11 @@
 "use client";
 
-import { ArrowLeft, MessageSquare, MoreVertical, Send } from "lucide-react";
+import { ArrowLeft, MessageSquare, MoreVertical, Send, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { RiStarFill, RiStarLine } from "react-icons/ri";
+import Rating from "react-rating";
 
 const PRIMARY_COLOR_CLASSES = "bg-blue-500 hover:bg-blue-600";
 const SECONDARY_BG_COLOR = "bg-[#1D1F23]";
@@ -78,7 +80,7 @@ const MOCK_THREADS = [
     lastMessage: MOCK_MESSAGES[MOCK_MESSAGES.length - 1].text,
     time: "12:40 PM",
     image: "/images/user.jpg",
-    messages: MOCK_MESSAGES, // Use the existing messages for the selected thread
+    messages: MOCK_MESSAGES,
   },
   {
     id: "thread-3",
@@ -104,14 +106,12 @@ const useAutoResizeTextarea = (value) => {
   useEffect(() => {
     if (ref.current) {
       ref.current.style.height = "auto";
-      const minHeight = 42; // Approx 1 row height
-      const maxHeight = 5 * 24; // Limit to 5 rows (approx 24px per row height)
+
+      const minHeight = 42;
+      const maxHeight = 5 * 24;
 
       let newHeight = ref.current.scrollHeight;
-
-      if (newHeight > maxHeight) {
-        newHeight = maxHeight;
-      }
+      if (newHeight > maxHeight) newHeight = maxHeight;
 
       ref.current.style.height = `${Math.max(minHeight, newHeight)}px`;
     }
@@ -122,6 +122,7 @@ const useAutoResizeTextarea = (value) => {
 
 const MessageBubble = ({ message }) => {
   const isSent = message.type === "sent";
+
   const bubbleClasses = isSent
     ? "bg-blue-600 text-white self-end rounded-br-none"
     : `${SECONDARY_BG_COLOR} text-gray-300 self-start rounded-tl-none`;
@@ -147,7 +148,7 @@ const ThreadItem = ({ thread, isSelected, onSelect }) => (
     className={`flex items-center p-3 cursor-pointer transition duration-200 hover:${TEXT_ELEMENT_BG} border-l-4 ${
       isSelected ? "border-blue-500 bg-[#1A1C20]" : "border-transparent"
     }`}
-    onClick={() => onSelect(thread.id)} // Handler to select this thread
+    onClick={() => onSelect(thread.id)}
   >
     <Image
       src={thread.image}
@@ -168,9 +169,12 @@ export default function MessageBoard() {
   const [currentThreadId, setCurrentThreadId] = useState(MOCK_THREADS[1].id);
   const [inputMessage, setInputMessage] = useState("");
   const [isThreadListVisible, setIsThreadListVisible] = useState(true);
-  const messagesEndRef = useRef(null);
+  const [showRate, setShowRate] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
 
   const textareaRef = useAutoResizeTextarea(inputMessage);
+
+  const messagesContainerRef = useRef(null);
 
   const currentThread = MOCK_THREADS.find((t) => t.id === currentThreadId);
   const currentMessages = currentThread ? currentThread.messages : [];
@@ -185,7 +189,10 @@ export default function MessageBoard() {
   }, []);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -194,9 +201,7 @@ export default function MessageBoard() {
 
   const handleSendMessage = () => {
     const text = inputMessage.trim();
-    if (text === "") {
-      return;
-    }
+    if (text === "") return;
 
     const newMessage = {
       id: Date.now(),
@@ -210,8 +215,8 @@ export default function MessageBoard() {
     };
 
     console.log("Simulating sending message:", newMessage);
-
     setInputMessage("");
+
     setTimeout(scrollToBottom, 0);
   };
 
@@ -225,11 +230,11 @@ export default function MessageBoard() {
   return (
     <section className="max-w-[1440px] mx-auto w-full md:w-11/12 overflow-hidden pt-28">
       <div
-        className={`flex h-[calc(100vh-64px)] md:h-[80vh] w-full text-white ${SECONDARY_BG_COLOR} rounded-xl shadow-2xl`}
+        className={`flex h-[calc(100vh-64px)] md:h-[80vh] w-full text-white ${SECONDARY_BG_COLOR} rounded-xl shadow-2xl relative`}
       >
         <div
           className={`absolute inset-0 md:relative md:w-1/4 md:min-w-[300px] border-r border-gray-700/50 flex flex-col z-10 
-                      ${SECONDARY_BG_COLOR}
+                   bg-secondary
                       ${isThreadListVisible ? "block" : "hidden md:block"}`}
         >
           <div className="flex items-center justify-start p-4 border-b border-gray-700/50">
@@ -248,6 +253,7 @@ export default function MessageBoard() {
               Messages
             </button>
           </div>
+
           <div className="overflow-y-auto flex-1">
             {MOCK_THREADS.map((thread) => (
               <ThreadItem
@@ -261,8 +267,16 @@ export default function MessageBoard() {
         </div>
 
         <div
-          className={`absolute inset-0 md:relative flex-1 flex flex-col overflow-hidden 
-                      ${isThreadListVisible ? "hidden md:flex" : "flex"}`}
+          className={`
+            flex-1 flex flex-col overflow-hidden 
+            md:relative 
+            ${
+              isThreadListVisible
+                ? "hidden md:flex"
+                : "fixed inset-0 z-50 flex bg-black"
+            }
+            ${APP_BG}
+          `}
         >
           <div
             className={`flex items-center justify-between p-4 border-b border-gray-700/50 ${SECONDARY_BG_COLOR}`}
@@ -271,9 +285,9 @@ export default function MessageBoard() {
               <button
                 onClick={handleGoBack}
                 className={`p-2 rounded-full text-gray-400 hover:text-white transition md:hidden`}
-                aria-label="Back to threads"
+                aria-label="Close chat"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
 
               <Image
@@ -287,27 +301,42 @@ export default function MessageBoard() {
                 {currentThread?.name || "Select a Thread"}
               </h2>
             </div>
-            <div>
+
+            <div className="relative">
               <button
+                onClick={() => setShowRate(!showRate)}
                 className={`p-2 rounded-full text-gray-400 hover:text-white transition hover:${TEXT_ELEMENT_BG}`}
                 aria-label="Options"
               >
                 <MoreVertical className="w-5 h-5" />
               </button>
+
+              {showRate && (
+                <div className="absolute top-10 right-4 rounded-xl bg-secondary p-4 max-w-xs z-20">
+                  <button
+                    onClick={() => setShowRatingModal(true)}
+                    className="flex flex-row items-center truncate gap-2 py-2 px-6 bg-gray/10 w-full text-white text-sm"
+                  >
+                    <RiStarLine className="text-2xl text-primary" /> Rate the
+                    Attorney
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
           <div
-            className={`flex-1 w-full overflow-y-auto p-2 md:p-6 flex flex-col ${APP_BG}`}
+            ref={messagesContainerRef}
+            className={`flex-1 w-full overflow-y-auto p-2 md:p-6 flex flex-col bg-BG`}
+            style={{ maxHeight: "100%", overflowY: "auto" }}
           >
             {currentMessages.map((message) => (
               <MessageBubble key={message.id} message={message} />
             ))}
-            <div ref={messagesEndRef} />
           </div>
 
           <div
-            className={`p-3 md:p-4 border-t border-gray-700/50 ${SECONDARY_BG_COLOR}`}
+            className={`p-3 md:p-4 border-t border-gray-700/50 bg-secondary`}
           >
             <div className="flex items-end space-x-3">
               <textarea
@@ -316,14 +345,14 @@ export default function MessageBoard() {
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask the assistant...."
-                className={`flex-1 p-3 rounded-lg resize-none text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none ${TEXT_ELEMENT_BG}`}
+                className={`flex-1 p-3 rounded-lg resize-none text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-BG`}
                 rows={1}
                 style={{ overflowY: "hidden" }}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={inputMessage.trim() === ""}
-                className={`p-3 rounded-lg text-white transition duration-300 ${PRIMARY_COLOR_CLASSES} ${
+                className={`p-3 rounded-lg text-white transition duration-300 bg-primary ${
                   inputMessage.trim() === ""
                     ? "opacity-50 cursor-not-allowed"
                     : ""
@@ -335,6 +364,35 @@ export default function MessageBoard() {
             </div>
           </div>
         </div>
+        {showRatingModal && (
+          <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <div className="max-w-md mx-auto min-h-[300px] rounded-2xl bg-secondary border border-gray p-6 md:p-8 text-center">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowRatingModal(false)}
+                  className="p-2 rounded-full bg-element hover:bg-secondary flex items-center justify-center"
+                >
+                  <X />
+                </button>
+              </div>
+              <div className=" space-y-6">
+                <h1 className="text-2xl md:text-3xl text-text_color">
+                  How many stars would you give to him?
+                </h1>
+                <p className="text-text_color">
+                  After your consultation, please take a moment to rate your
+                  experience to help us maintain the highest standards of
+                  service.
+                </p>
+                <Rating
+                  className="space-x-3"
+                  emptySymbol={<RiStarLine className="text-4xl text-primary" />}
+                  fullSymbol={<RiStarFill className="text-4xl text-primary" />}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

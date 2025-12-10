@@ -3,10 +3,10 @@
 
 import React from "react";
 import Image from "next/image";
-import { MoreVertical } from "lucide-react";
 import { BiMessageAltDetail } from "react-icons/bi";
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 import Link from "next/link";
+import { RiStarFill, RiStarLine } from "react-icons/ri";
 
 const PRIMARY_COLOR_CLASSES = "bg-blue-600 hover:bg-blue-700";
 const TEXT_ELEMENT_BG = "bg-[#33363D]";
@@ -90,7 +90,7 @@ const MessageItem = ({ message }) => (
   </div>
 );
 
-export default function MessageAndReceived() {
+export default function ConsultRequest() {
   const { setShowModal, showModal } = useAuth();
   const handleModal = (v) => {
     setShowModal(v);
@@ -102,6 +102,68 @@ export default function MessageAndReceived() {
   return (
     <div className={`min-h-screen text-white`}>
       <div className="max-w-4xl mx-auto space-y-6">
+        <div className="bg-secondary p-4 rounded-xl">
+          <h2 className="text-xl font-semibold text-white mb-6">
+            Clients Requests
+          </h2>
+
+          <div className="flex flex-col gap-2">
+            {MOCK_QUOTES.map((quote, i) => (
+              <div
+                key={i}
+                className={`p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <Image
+                      src={quote.image}
+                      height={50}
+                      width={50}
+                      alt={quote.lawyerName}
+                      className="w-10 md:w-12 h-10 md:h-12 rounded-full object-cover"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-white font-medium text-sm md:text-lg truncate">
+                        {quote.lawyerName}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-400 truncate">
+                        {quote.firm} &bull; {quote.location}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <button
+                    onClick={() => handleModal(true)}
+                    className={`w-full py-2 rounded-lg text-white transition duration-300 border border-element hover:bg-element`}
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => handleModal(true)}
+                    className={`w-full py-2 rounded-lg text-white transition duration-300 bg-primary hover:bg-dark-primary`}
+                  >
+                    Send Quote
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* score section */}
+        <div className="p-6 bg-secondary rounded-2xl flex flex-col gap-2">
+          <h1 className="text-grayF md:text-xl font-medium">Score</h1>
+          <div className="flex flex-row gap-4 items-center">
+            <RiStarFill className="text-3xl text-primary" />
+            <RiStarFill className="text-3xl text-primary" />
+            <RiStarFill className="text-3xl text-primary" />
+            <RiStarFill className="text-3xl text-primary" />
+            <RiStarLine className="text-3xl text-primary" />
+            <p className="text-2xl">4</p>
+          </div>
+        </div>
         <div className={`rounded-xl overflow-hidden bg-secondary p-4`}>
           <div className="flex items-center py-4 border-b border-gray-700/50">
             <BiMessageAltDetail className="w-6 h-6 mr-3 text-blue-500" />
@@ -131,57 +193,6 @@ export default function MessageAndReceived() {
             >
               View Messages
             </Link>
-          </div>
-        </div>
-
-        <div className="bg-secondary p-4 rounded-xl">
-          <h2 className="text-xl font-semibold text-white mb-6">
-            Received Quotes
-          </h2>
-
-          <div className="flex flex-col gap-2">
-            {MOCK_QUOTES.map((quote, i) => (
-              <div
-                key={i}
-                className={`p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <Image
-                      src={quote.image}
-                      height={50}
-                      width={50}
-                      alt={quote.lawyerName}
-                      className="w-10 md:w-12 h-10 md:h-12 rounded-full object-cover"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-white font-medium text-sm md:text-lg truncate">
-                        {quote.lawyerName}
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-400 truncate">
-                        {quote.firm} &bull; {quote.location}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`px-4 py-2  rounded-lg text-gray text-xs sm:text-sm border border-gray-700/50`}
-                  >
-                    Budget
-                    <span className="block text-center mt-0.5">
-                      {quote.budget}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleModal(true)}
-                  className={`w-full py-2 rounded-lg text-white transition duration-300 bg-primary hover:bg-dark-primary`}
-                >
-                  View Details
-                </button>
-              </div>
-            ))}
           </div>
         </div>
       </div>
