@@ -4,7 +4,7 @@ import AuthProvider from "../providers/Auth_Providers/AuthProviders";
 import Navbar from "./components/Shared/Navbar";
 import Footer from "./components/Shared/Footer";
 export const metadata = {
-  title: "Casezy",
+  title: "Casezys",
   description: "Smart legal help for everyone. Elite tools for attorneys.",
 };
 

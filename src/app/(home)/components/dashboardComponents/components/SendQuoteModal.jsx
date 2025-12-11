@@ -5,14 +5,14 @@ import { MapPin, X } from "lucide-react";
 import Image from "next/image";
 import { toast } from "react-toastify";
 
-export default function QoutesDetails() {
-  const { setShowModal } = useAuth();
+export default function SendQuoteModal() {
+  const { setShowModal, showModal } = useAuth();
   const handleQoutes = (v) => {
     try {
       if (v === "accept") {
-        toast.success("Your appointment has been confirmed successfully.");
+        toast.success("Appointment successfully confirmed.");
       } else if (v === "reject") {
-        toast.error("Reject the attorney offer!");
+        toast.error("Reject the client offer!");
       }
     } catch (error) {
       console.log(error);
@@ -34,6 +34,7 @@ export default function QoutesDetails() {
             <X className="w-6 h-6" />
           </button>
         </div>
+        <p>{showModal ? "Show modal" : "close"}</p>
         <div className="flex flex-row items-center gap-4">
           <Image
             src={"/images/user.jpg"}
@@ -57,65 +58,81 @@ export default function QoutesDetails() {
             >
               Case Details
             </label>
-            <div className="bg-BG w-full p-4 outline-none rounded-lg">
-              <p className="text-gray overflow-y-auto max-h-[150px]">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nam
-                provident cupiditate perferendis, exercitationem corporis ex
-                commodi iusto voluptas enim quia excepturi eius a aperiam rem
-                eveniet hic neque doloremque nemo!Lorem ipsum dolor sit amet,
-                consectetur adipisicing elit. Nam provident cupiditate
-                perferendis, exercitationem corporis ex commodi iusto voluptas
-                enim quia excepturi eius a aperiam rem eveniet hic neque
-                doloremque nemo!Lorem ipsum dolor sit amet, consectetur
-                adipisicing elit. Nam provident cupiditate perferendis,
-                exercitationem corporis ex commodi iusto voluptas enim quia
-                excepturi eius a aperiam rem eveniet hic neque doloremque nemo!
-              </p>
-            </div>
+            <textarea
+              rows={3}
+              placeholder="Enter case details....."
+              className="bg-BG w-full p-4 outline-none rounded-lg"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-BG p-4 outline-none rounded-lg text-primary">
-              <label className="block text-xs font-semibold mb-2 text-gray">
+              <label
+                htmlFor="location-input"
+                className="block text-xs font-semibold mb-2 text-gray"
+              >
                 LOCATION
               </label>
+
               <div className="flex flex-row items-center gap-2">
                 <MapPin className="text-primary" />
-                <p className="text-white">Texas,USA</p>
+                <input
+                  id="location-input"
+                  type="text"
+                  defaultValue="Texas, USA"
+                  placeholder="Enter location"
+                  className="text-white w-full bg-transparent border-none p-0 focus:outline-none focus:ring-0"
+                />
               </div>
             </div>
-
             <div className="bg-BG p-4 outline-none rounded-lg text-primary">
-              <label className="block text-xs font-semibold mb-2 text-gray">
+              <label
+                htmlFor="budget-input"
+                className="block text-xs font-semibold mb-2 text-gray"
+              >
                 BUDGET
               </label>
               <div>
-                <p className="text-white">$500</p>
+                <input
+                  id="budget-input"
+                  type="number"
+                  defaultValue="$500"
+                  placeholder="Enter budget"
+                  className="text-white w-full bg-transparent border-none p-0 focus:outline-none focus:ring-0"
+                />
               </div>
             </div>
           </div>
 
           <div className="bg-BG p-4 outline-none rounded-lg text-primary">
-            <label className="block text-xs font-semibold mb-2 text-gray">
+            <label
+              htmlFor="message-input"
+              className="block text-xs font-semibold mb-2 text-gray"
+            >
               MESSAGE
             </label>
             <div>
-              <p className="text-white">“I Can handle this page”</p>
+              <textarea
+                id="message-input"
+                defaultValue="“I Can handle this page”"
+                placeholder="Enter your message"
+                rows={2}
+                className="text-white w-full bg-transparent border-none p-0 focus:outline-none focus:ring-0 resize-none"
+              />
             </div>
           </div>
-
           <div className="flex flex-row gap-4 items-center">
-            <button
-              onClick={() => handleQoutes("accept")}
-              className={`w-full flex items-center justify-center p-4 rounded-lg text-white transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-8 bg-primary`}
-            >
-              Accept
-            </button>
             <button
               onClick={() => handleQoutes("reject")}
               className={`w-full flex items-center justify-center p-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-8 bg-red-800/10 text-red-500 border border-red-800`}
             >
               Reject
+            </button>
+            <button
+              onClick={() => handleQoutes("accept")}
+              className={`w-full flex items-center justify-center p-4 rounded-lg text-white transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-8 bg-primary`}
+            >
+              Send
             </button>
           </div>
         </div>

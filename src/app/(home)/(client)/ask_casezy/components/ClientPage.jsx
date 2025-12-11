@@ -34,7 +34,7 @@ const AskCasezyForm = ({
   <div className="w-full max-w-5xl mx-auto md:mx-0">
     <header className="mb-8 md:mb-12 space-y-2">
       <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
-        Ask Casezy
+        Ask Casezys
       </h1>
       <p className="text-base text-gray-400">
         Demo only — general legal information, not legal advice.
@@ -163,7 +163,7 @@ const CasezyChatInterface = ({ state, practiceArea }) => {
     <div className="w-full">
       <header className="mb-6 space-y-1">
         <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white leading-tight">
-          Casezy Chat
+          Casezys Chat
         </h1>
 
         <p className="text-base text-gray">Session · {sessionDetail}</p>

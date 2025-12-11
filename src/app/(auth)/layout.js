@@ -4,9 +4,9 @@ import { ToastContainer } from "react-toastify";
 import StateProvider from "../providers/StateProvider";
 
 export const metadata = {
-  title: "Casezy || Sign in",
+  title: "Casezys || Sign in",
   description:
-    "Casezy is Smart legal help for everyone. Elite tools for attorneys.",
+    "Casezys is Smart legal help for everyone. Elite tools for attorneys.",
 };
 
 export default function RootLayout({ children }) {

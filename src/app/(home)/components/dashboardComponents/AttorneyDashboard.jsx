@@ -6,9 +6,10 @@ import Calendar from "./components/Calendar";
 import CasezyAssistant from "./components/CasezyAssistant";
 import QoutesDetails from "./components/QoutesDetails";
 import ConsultRequest from "../attorney/ConsultRequest";
+import SendQuoteModal from "./components/SendQuoteModal";
 
 export default function AttorneyDashboard() {
-  const { showModal } = useAuth();
+  const { showModal, user } = useAuth();
   return (
     <div className={`min-h-screen text-white`}>
       <div className="max-w-[1440px] mx-auto w-11/12  pb-10">
@@ -22,7 +23,8 @@ export default function AttorneyDashboard() {
             <ConsultRequest />
           </div>
         </div>
-        {showModal && <QoutesDetails />}
+        {showModal &&
+          (user?.role === "client" ? <QoutesDetails /> : <SendQuoteModal />)}
       </div>
     </div>
   );

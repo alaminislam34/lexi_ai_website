@@ -31,10 +31,10 @@ export default function Footer() {
         <div className="flex flex-wrap justify-between items-start gap-8">
           <div className="space-y-4">
             <h2 className="text-3xl font-bold text-primary font-lora">
-              Casezy
+              Casezys
             </h2>
             <p className="text-gray-400 max-w-md">
-              Casezy gives general legal information with citations, matches
+              Casezys gives general legal information with citations, matches
               clients to verified attorneys, and equips lawyers with a powerful
               AI dashboard.
             </p>

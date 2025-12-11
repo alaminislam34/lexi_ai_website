@@ -21,7 +21,7 @@ export default function Banner() {
             href={"/ask_casezy"}
             className="py-4 md:py-6 px-8 md:px-14 lg:px-16 rounded-2xl bg-primary text-white md:text-lg hover:bg-[#0c68fe] border border-primary duration-300"
           >
-            Ask Casezy
+            Ask Casezys
           </Link>
           {user?.role === "client" && (
             <Link
@@ -33,7 +33,7 @@ export default function Banner() {
           )}
         </div>
         <p className="flex items-center gap-2 text-sm">
-          <TriangleAlert className="text-amber-500" /> Casezy provides general
+          <TriangleAlert className="text-amber-500" /> Casezys provides general
           legal information only. Not legal advice.
         </p>
       </div>

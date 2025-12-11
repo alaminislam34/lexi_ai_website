@@ -305,7 +305,7 @@ export default function MessageBoard() {
             <div className="relative">
               <button
                 onClick={() => setShowRate(!showRate)}
-                className={`p-2 rounded-full text-gray-400 hover:text-white transition hover:${TEXT_ELEMENT_BG}`}
+                className={`p-2 rounded-full text-gray-400 hover:text-white transition hover:bg-element`}
                 aria-label="Options"
               >
                 <MoreVertical className="w-5 h-5" />
