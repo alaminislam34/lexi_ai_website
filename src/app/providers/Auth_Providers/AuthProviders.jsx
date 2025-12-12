@@ -48,6 +48,15 @@ export default function AuthProvider({ children }) {
         localStorage.setItem("user", JSON.stringify(apiResponse.user));
         toast.success("Logged in successful! Redirecting...");
         router.push("/");
+      } else if (email === "alamin1@gmail.com" && password === "alamin.bd") {
+        const apiResponse = {
+          accessToken: "actual_jwt_token_from_server",
+          user: { name: "Al Amin Islam", email: email, role: "client" },
+        };
+
+        localStorage.setItem("user", JSON.stringify(apiResponse.user));
+        toast.success("Logged in successful! Redirecting...");
+        router.push("/");
       } else {
         setError("Invalid credentials. Please try again.");
       }
