@@ -145,11 +145,10 @@ export default function Ask_Casezy_Attorney() {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto w-11/12 pt-28 text-white">
-         
-      <div className="flex flex-col h-[85vh]">
-        <div className="py-4 shrink-0 mb-4 border">
-             <p className="text-xl md:text-2xl font-bold">Casezy Assistant</p>
+    <div className="max-w-[1440px] mx-auto w-11/12 mt-28 text-white ">
+      <div className="flex flex-col h-[85vh] ">
+        <div className="pb-4 shrink-0 mb-4">
+          <p className="text-xl md:text-2xl lg:text-3xl font-bold">Casezy Assistant</p>
         </div>
         <div
           // ref={messagesEndRef}
@@ -187,9 +186,7 @@ export default function Ask_Casezy_Attorney() {
           </button>
                
         </div>
-           
       </div>
-       
     </div>
   );
 }
