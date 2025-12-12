@@ -2,6 +2,7 @@
 import { CreditCard } from "lucide-react";
 import { ChevronDown, Loader2, X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const inputClasses = `w-full py-2 px-4 border-none rounded-lg placeholder:text-gray text-black focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-gray-500 appearance-none shadow-inner bg-white`;
 
@@ -17,7 +18,7 @@ export const UpdatePaymentModal = ({ setShowModal }) => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      console.log("Payment details updated.");
+      toast.success("Payment successful!");
       setShowModal(false);
     }, 1500);
   };

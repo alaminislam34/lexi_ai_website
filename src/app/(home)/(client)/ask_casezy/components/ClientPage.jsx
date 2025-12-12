@@ -181,13 +181,13 @@ const CasezyChatInterface = ({ state, practiceArea }) => {
           ))}
         </div>
 
-        <div className="flex space-x-4 pt-4">
+        <div className="flex flex-col sm:flex-row space-y-4 space-x-4 pt-4">
           <input
             type="text"
             placeholder="Type your answer...."
-            className="grow p-4 rounded-xl text-white text-base border-none focus:ring-2 bg-[#12151B] focus:ring-blue-500 focus:outline-none"
+            className="grow p-3 sm:p-4 w-full sm:w-auto rounded-xl text-white text-base border-none focus:ring3 bg-[#12151B] focus:ring-blue-500 focus:outline-none"
           />
-          <button className="shrink-0 w-24 flex items-center justify-center rounded-xl text-white text-lg font-semibold transition duration-300 hover:opacity-90 bg-primary">
+          <button className="shrink-0 w-full py-3 sm:py-4 sm:w-24 flex items-center justify-center rounded-xl text-white text-lg font-semibold transition duration-300 hover:opacity-90 bg-primary">
             Send
           </button>
         </div>
@@ -195,11 +195,11 @@ const CasezyChatInterface = ({ state, practiceArea }) => {
         <div className="flex space-x-4 pt-4">
           <Link
             href={"/attorneys"}
-            className="py-3 px-5 rounded-lg text-white text-sm font-medium transition duration-300 hover:opacity-90 bg-primary"
+            className="py-3 px-5 w-1/2 truncate rounded-lg text-white text-sm font-medium transition duration-300 hover:opacity-90 bg-primary"
           >
             Browse attorneys
           </Link>
-          <button className="py-3 px-5 rounded-lg text-white text-sm font-medium border border-gray transition duration-300 hover:bg-gray-700">
+          <button className="py-3 px-5 w-1/2 truncate rounded-lg text-white text-sm font-medium border border-gray transition duration-300 hover:bg-gray-700">
             View Sources
           </button>
         </div>

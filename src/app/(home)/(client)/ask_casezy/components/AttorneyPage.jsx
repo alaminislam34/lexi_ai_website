@@ -156,7 +156,7 @@ export default function Ask_Casezy_Attorney() {
         </div>
          
         <div
-          ref={messagesEndRef}
+          // ref={messagesEndRef}
           style={{ maxHeight: "100%", overflowY: "auto" }}
           className="flex-1 overflow-y-auto space-y-4 no-scrollbar"
         >
