@@ -12,8 +12,8 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [email, setEmail] = useState("client@gmail.com");
-  const [password, setPassword] = useState("client");
+  const [email, setEmail] = useState("attorney@gmail.com");
+  const [password, setPassword] = useState("attorney");
   const [showModal, setShowModal] = useState(false);
   const router = useRouter();
   useEffect(() => {
