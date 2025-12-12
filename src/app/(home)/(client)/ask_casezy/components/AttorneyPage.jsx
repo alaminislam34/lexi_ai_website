@@ -6,7 +6,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 const SECONDARY_BG = "bg-secondary";
 const PRIMARY_BG = "bg-primary";
 
-
 const INITIAL_MESSAGES = [
   {
     id: 1,
@@ -120,7 +119,7 @@ export default function Ask_Casezy_Attorney() {
     setTimeout(() => {
       setMessages((prev) => [...prev, newReply]);
     }, 500);
-  }, []); // মেসেজ পাঠানোর হ্যান্ডলার
+  }, []);
 
   const handleSendMessage = useCallback(() => {
     const text = inputMessage.trim();
@@ -149,12 +148,9 @@ export default function Ask_Casezy_Attorney() {
     <div className="max-w-[1440px] mx-auto w-11/12 pt-28 text-white">
          
       <div className="flex flex-col h-[85vh]">
-        <div className="py-4 shrink-0">
-                 
-          <p className="text-xl md:text-2xl font-bold">Casezy Assistant</p>     
-               
+        <div className="py-4 shrink-0 mb-4 border">
+             <p className="text-xl md:text-2xl font-bold">Casezy Assistant</p>
         </div>
-         
         <div
           // ref={messagesEndRef}
           style={{ maxHeight: "100%", overflowY: "auto" }}
@@ -163,20 +159,19 @@ export default function Ask_Casezy_Attorney() {
           {messages.map((message) => (
             <MessageBubble key={message.id} message={message} />
           ))}
-                   
+               
         </div>
-             
         <div
-          className={`flex justify-between items-center p-4 sm:p-6 rounded-xl bg-secondary`}
+          className={`flex items-center p-4 sm:p-6 rounded-xl bg-secondary border border-white`}
         >
-                 
+             
           <textarea
             ref={textareaRef}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask the assistant...."
-            className={`flex-1 p-3 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-BG resize-none`}
+            className={`flex-1 py-3 w-full inline-block px-6 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-BG resize-none`}
             rows={1}
             style={{ overflowY: "hidden" }}
           />
@@ -184,12 +179,11 @@ export default function Ask_Casezy_Attorney() {
           <button
             onClick={handleSendMessage}
             disabled={inputMessage.trim() === ""}
-            className={`py-2 px-4 flex items-center justify-center rounded-lg text-white transition duration-300 bg-primary ${
+            className={`py-3 px-6 max-w-[100px] flex items-center justify-center rounded-lg text-white bg-primary ${
               inputMessage.trim() === "" ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            aria-label="Send message"
           >
-            <Send />       
+            <Send />
           </button>
                
         </div>
