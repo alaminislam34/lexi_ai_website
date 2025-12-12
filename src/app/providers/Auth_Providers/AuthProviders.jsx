@@ -12,8 +12,8 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [email, setEmail] = useState("alamin@gmail.com");
-  const [password, setPassword] = useState("alamin.bd");
+  const [email, setEmail] = useState("client@gmail.com");
+  const [password, setPassword] = useState("client");
   const [showModal, setShowModal] = useState(false);
   const router = useRouter();
   useEffect(() => {
@@ -39,19 +39,19 @@ export default function AuthProvider({ children }) {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      if (email === "alamin@gmail.com" && password === "alamin.bd") {
+      if (email === "attorney@gmail.com" && password === "attorney") {
         const apiResponse = {
           accessToken: "actual_jwt_token_from_server",
-          user: { name: "Al Amin Islam", email: email, role: "attorney" },
+          user: { name: "Attorney", email: email, role: "attorney" },
         };
 
         localStorage.setItem("user", JSON.stringify(apiResponse.user));
         toast.success("Logged in successful! Redirecting...");
         router.push("/");
-      } else if (email === "alamin1@gmail.com" && password === "alamin.bd") {
+      } else if (email === "client@gmail.com" && password === "client") {
         const apiResponse = {
           accessToken: "actual_jwt_token_from_server",
-          user: { name: "Al Amin Islam", email: email, role: "client" },
+          user: { name: "Client", email: email, role: "client" },
         };
 
         localStorage.setItem("user", JSON.stringify(apiResponse.user));
