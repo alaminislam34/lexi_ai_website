@@ -161,7 +161,7 @@ export default function Ask_Casezy_Attorney() {
                
         </div>
         <div
-          className={`flex items-center p-4 sm:p-6 rounded-xl bg-secondary border border-white`}
+          className={`flex items-center p-4 sm:p-6 rounded-xl bg-secondary`}
         >
              
           <textarea
