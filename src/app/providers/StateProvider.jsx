@@ -50,12 +50,13 @@ export default function StateProvider({ children }) {
   const [name, setName] = useState(() => getInitialState("name", ""));
   const [email, setEmail] = useState(() => getInitialState("email", ""));
   const [location, setLocation] = useState(() =>
-    getInitialState("location", "")
+    getInitialState("location", ""),
   );
   const [area, setArea] = useState(() => getInitialState("area", ""));
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [gender, setGender] = useState("");
 
   // --- EFFECT FOR PERSISTENCE ---
   useEffect(() => {
@@ -121,18 +122,16 @@ export default function StateProvider({ children }) {
     setLoading(true);
 
     try {
-      // *** REPLACE THIS WITH YOUR ACTUAL API CALL ***
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       toast.success("Account created successfully!");
-      // Clear localStorage and redirect to login page after success
       localStorage.removeItem(STORAGE_KEY);
       setStep(1);
-      router.push("/login"); // Redirect to login page
+      router.push("/login");
     } catch (err) {
       console.error("Registration failed:", err);
       toast.error(
-        "Registration failed. Please check your connection and try again."
+        "Registration failed. Please check your connection and try again.",
       );
     } finally {
       setLoading(false);
@@ -161,6 +160,8 @@ export default function StateProvider({ children }) {
     SubmitNameOrEmail,
     SubmitProfile,
     handleSubmit,
+    gender,
+    setGender,
   };
 
   return (

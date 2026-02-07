@@ -1,15 +1,21 @@
 "use client";
 
-import { useContext } from "react"; // 1. Import useContext
+import { useContext } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FcGoogle } from "react-icons/fc";
-import { StateContext } from "@/app/providers/StateProvider"; // 2. Import StateContext
+import { StateContext } from "@/app/providers/StateProvider"; 
 
 export default function Step_2() {
   // 3. Use useContext to access state and handler
-  const { name, setName, email, setEmail, SubmitNameOrEmail } =
-    useContext(StateContext);
+  const {
+    name,
+    setName,
+    gender,
+    setGender,
+    email,
+    setEmail,
+    SubmitNameOrEmail,
+  } = useContext(StateContext);
 
   return (
     // Main container with full screen height and theme background
@@ -21,7 +27,7 @@ export default function Step_2() {
             Casezys
           </h1>
           <Image
-            src={"./images/log_in.jpg"}
+            src={"/images/log_in.jpg"}
             height={465}
             width={500}
             alt="Avatar image"
@@ -41,22 +47,6 @@ export default function Step_2() {
               </p>
             </header>
 
-            {/* Google Login Button */}
-            <button
-              onClick={() => console.log("Continue with Google")}
-              className="w-full flex items-center justify-center p-3 rounded-xl transition duration-200 border text-base font-medium bg-secondary border-element text-text_color"
-            >
-              <FcGoogle className="w-5 h-5 mr-3" />
-              Continue with Google
-            </button>
-
-            {/* OR Separator */}
-            <div className="flex max-w-32 mx-auto items-center justify-center my-6">
-              <div className="grow border-t border-element"></div>
-              <span className="mx-4 text-gray">or</span>
-              <div className="grow border-t border-element"></div>
-            </div>
-
             <form onSubmit={SubmitNameOrEmail} className="space-y-4">
               {/* Name Field */}
               <div>
@@ -72,6 +62,25 @@ export default function Step_2() {
                   placeholder="Enter your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
+                  required
+                />
+              </div>
+
+              {/* gender Field */}
+              <div>
+                <label
+                  htmlFor="gender"
+                  className="block text-sm font-medium mb-2 text-text_color"
+                >
+                  Gender
+                </label>
+                <input
+                  type="text"
+                  id="gender"
+                  placeholder="Enter your gender"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
                   className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
                   required
                 />
