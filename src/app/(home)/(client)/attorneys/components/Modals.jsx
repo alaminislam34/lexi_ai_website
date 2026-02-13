@@ -167,7 +167,14 @@ export const RequestConsultModal = ({ attorney, closeModal }) => {
     }
 
     setLoading(true);
-    const accessToken = localStorage.getItem("accessToken");
+    const tokenData = localStorage.getItem("token");
+    const tokens = JSON.parse(tokenData);
+    if (!tokens?.accessToken) {
+      toast.error("Authentication error. Please log in again.");
+      setLoading(false);
+      return;
+    }
+    const accessToken = tokens?.accessToken;
 
     const payload = {
       receiver_id: attorney.id,
