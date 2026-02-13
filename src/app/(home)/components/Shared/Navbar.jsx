@@ -24,7 +24,6 @@ export default function Navbar() {
   const [scroll, setScroll] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const { user, logout } = useAuth();
-  console.log(user);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,7 +54,7 @@ export default function Navbar() {
           </h1>
         </div>
         <ul className="lg:flex flex-row items-center justify-center gap-14 hidden">
-          {(user?.role === "client" ? navlinksClient : navlinksAttorney).map(
+          {(user?.role === "user" ? navlinksClient : navlinksAttorney).map(
             (nav, i) => (
               <li
                 key={i}
@@ -67,7 +66,7 @@ export default function Navbar() {
               >
                 <Link href={nav.link}>{nav.name}</Link>
               </li>
-            )
+            ),
           )}
         </ul>
 
@@ -94,7 +93,7 @@ export default function Navbar() {
                     Name
                   </p>
                   <p className="text-base font-medium text-gray-900 dark:text-white">
-                    {user?.name || "Example User"}
+                    {user?.full_name}
                   </p>
                 </div>
 
@@ -103,7 +102,7 @@ export default function Navbar() {
                     Email
                   </p>
                   <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
-                    {user?.email || "example@gmail.com"}
+                    {user?.email}
                   </p>
                 </div>
 
@@ -111,9 +110,7 @@ export default function Navbar() {
                   <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 tracking-wider">
                     Role
                   </p>
-                  <p className="text-sm font-medium">
-                    {user?.role || "Member"}
-                  </p>
+                  <p className="text-sm font-medium">{user?.role}</p>
                 </div>
               </div>
               <Link

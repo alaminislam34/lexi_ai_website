@@ -2,18 +2,42 @@
 
 import { StateContext } from "@/app/providers/StateProvider";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useContext } from "react";
+import { toast } from "react-toastify";
 
 export default function Step_3() {
   // All necessary state and handler are destructured here:
-  const { setArea, location, setLocation, area, SubmitProfile } =
-    useContext(StateContext);
+  const { setUserData } = useContext(StateContext);
+  const [area, setArea] = useState("");
+  const [location, setLocation] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    try {
+      if (!area || !location) {
+        toast.error("Please fill in all required fields.");
+        return;
+      }
+      setUserData((prev) => ({
+        ...prev,
+        preferred_legal_area: area,
+        location,
+      }));
+      router.push("/register/step_4");
+    } catch (error) {
+      toast.error(
+        "An error occurred while submitting the form. Please try again.",
+      );
+    }
+  };
 
   return (
-    // Main container with full screen height and theme background
     <div className="min-h-screen flex items-center justify-center bg-BG">
       <div className="max-w-[1440px] w-11/12 mx-auto flex flex-col lg:flex-row justify-center items-center gap-12 min-h-screen lg:min-h-[700px]">
-        {/* Left Side: Illustration */}
         <div className="w-1/2 flex flex-col gap-6 justify-center items-center">
           <h1 className="text-2xl md:text-3xl lg:text-[40px] font-semibold text-primary font-lora mt-10">
             Casezys
@@ -41,10 +65,7 @@ export default function Step_3() {
               </p>
             </header>
 
-            {/* The form submits using the SubmitProfile handler from context. */}
-
-            <form onSubmit={SubmitProfile} className="space-y-4">
-              {/* Location Field */}
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label
                   htmlFor="location"
@@ -63,7 +84,7 @@ export default function Step_3() {
                   required
                 />
               </div>
-              {/* Area Field */}
+
               <div className="relative">
                 <label
                   htmlFor="area"
@@ -82,7 +103,6 @@ export default function Step_3() {
                   required
                 />
               </div>
-              {/* Continue Button */}
               <button
                 type="submit"
                 disabled={!location || !area}

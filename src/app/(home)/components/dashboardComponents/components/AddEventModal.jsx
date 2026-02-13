@@ -1,16 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { CalendarIcon, ChevronDown, Loader2, X } from "lucide-react";
+import { CalendarIcon, Loader2, X } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 // Standard class string for all inputs/selects (modern dark design)
 const inputClasses =
   "w-full py-2 px-4 rounded-lg bg-[#27272A] text-white border border-[#3F3F46] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-150 placeholder-gray-500";
-
-// Primary blue color class for the submit button
-const PRIMARY_COLOR_CLASSES = "bg-blue-600 hover:bg-blue-700";
 
 export default function AddEventModal({ setShowModal }) {
   const [title, setTitle] = useState("");
@@ -19,24 +18,71 @@ export default function AddEventModal({ setShowModal }) {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!date || !time) {
+      toast.error("Please select both date and time");
+      return;
+    }
+
     setLoading(true);
 
-    // Combine date and time for API if needed
-    const eventDateTime = date
-      ? new Date(date).setHours(
-          parseInt(time.split(":")[0] || 0),
-          parseInt(time.split(":")[1] || 0)
-        )
-      : null;
+    try {
+      // 1. Get the token from local storage
+      const tokenData = JSON.parse(localStorage.getItem("token"));
+      const accessToken = tokenData?.accessToken;
 
-    console.log({ title, date, time, eventDateTime, description });
+      if (!accessToken) {
+        toast.error("Authentication required. Please login again.");
+        return;
+      }
 
-    setTimeout(() => {
+      // 2. Format Date to YYYY-MM-DD
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const formattedDate = `${year}-${month}-${day}`;
+
+      // 3. Format Time to HH:mm:ss
+      // API response showed seconds (14:30:00), so we add them here
+      const formattedTime = time.length === 5 ? `${time}:00` : time;
+
+      // 4. Prepare payload
+      const payload = {
+        title: title,
+        description: description,
+        date: formattedDate,
+        time: formattedTime,
+      };
+
+      // 5. API Call
+      const res = await axios.post(
+        "http://3.141.14.219:8000/api/attorney/events/",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (res.status === 201 || res.status === 200) {
+        toast.success("Event added successfully!");
+        setShowModal(false);
+        // If you have a refresh function passed as a prop, call it here:
+        // refreshEvents();
+      }
+    } catch (error) {
+      console.error("Event Creation Error:", error);
+      const errorMsg =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        "Failed to add event";
+      toast.error(errorMsg);
+    } finally {
       setLoading(false);
-      setShowModal(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -79,12 +125,13 @@ export default function AddEventModal({ setShowModal }) {
             <div className="relative">
               <DatePicker
                 selected={date}
-                onChange={(date) => setDate(date)}
+                onChange={(selectedDate) => setDate(selectedDate)}
                 className={`${inputClasses} w-full`}
                 placeholderText="Select a date"
                 dateFormat="EEEE, MMMM d, yyyy"
                 id="date"
                 wrapperClassName="w-full"
+                required
               />
               <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
             </div>
@@ -125,14 +172,14 @@ export default function AddEventModal({ setShowModal }) {
             <button
               type="button"
               onClick={() => setShowModal(false)}
-              className={`w-full flex items-center bg-gray/20 justify-center py-2.5 rounded-lg text-white transition duration-300`}
+              className={`w-full flex items-center bg-gray-700/50 justify-center py-2.5 rounded-lg text-white transition duration-300 hover:bg-gray-700`}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className={`w-full flex items-center bg-primary justify-center py-2.5 rounded-lg text-white transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`w-full flex items-center bg-blue-600 hover:bg-blue-700 justify-center py-2.5 rounded-lg text-white transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {loading ? (
                 <>

@@ -1,19 +1,29 @@
 "use client";
 
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 import Image from "next/image";
-import React, { useState } from "react";
-import { Edit2, Save } from "lucide-react";
+import React, { useState, useEffect, useContext } from "react";
+import { Edit2, Save, Camera, Loader2, Lock } from "lucide-react";
+import { StateContext } from "@/app/providers/StateProvider";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { PROFILE_DETAILS } from "@/api/apiEntpoint";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, setUser } = useContext(StateContext);
 
+  // States
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [passLoading, setPassLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const [profileData, setProfileData] = useState({
-    name: user?.name || "Client Name",
-    location: "Dhaka, Bangladesh",
-    preferredLegalArea: "Family Law",
+    full_name: "",
+    phone: "",
+    gender: "",
+    location: "",
+    preferred_legal_area: "",
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -21,55 +31,124 @@ export default function Profile() {
     newPassword: "",
   });
 
+  // Sync with Context Data
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        full_name: user.full_name || "",
+        phone: user.phone || "",
+        gender: user.gender || "",
+        location: user.location || "",
+        preferred_legal_area: user.preferred_legal_area || "",
+      });
+      setPreviewUrl(user.profile_image);
+    }
+  }, [user]);
+
+  // Handlers
   const handleChange = (e) => {
     const { id, value } = e.target;
-    setProfileData((prevData) => ({
-      ...prevData,
-      [id]: value,
-    }));
+    setProfileData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSaveProfile = (e) => {
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    console.log("Saving Profile Data:", profileData);
+    setLoading(true);
 
-    setIsEditing(false);
+    try {
+      const tokenData = JSON.parse(localStorage.getItem("token"));
+      const formData = new FormData();
+
+      formData.append("full_name", profileData.full_name);
+      formData.append("phone", profileData.phone);
+      formData.append("gender", profileData.gender);
+      formData.append("location", profileData.location);
+      formData.append("preferred_legal_area", profileData.preferred_legal_area);
+
+      if (selectedFile) {
+        formData.append("profile_image", selectedFile);
+      }
+
+      const res = await axios.put(
+        `http://3.141.14.219:8000${PROFILE_DETAILS}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${tokenData?.accessToken}`,
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      if (res.status === 200) {
+        setUser(res.data); // Update global state
+        toast.success("Profile updated successfully!");
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response?.data?.message || "Update failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePasswordChange = (e) => {
-    const { id, value } = e.target;
-    setPasswordForm((prevData) => ({
-      ...prevData,
-      [id]: value,
-    }));
-  };
-
-  const handlePasswordReset = (e) => {
+  // API Call: Update Password
+  const handlePasswordReset = async (e) => {
     e.preventDefault();
-    console.log("Resetting Password with:", passwordForm);
+    if (!passwordForm.oldPassword || !passwordForm.newPassword) {
+      return toast.warn("Fill both password fields");
+    }
 
-    setPasswordForm({ oldPassword: "", newPassword: "" });
+    setPassLoading(true);
+    try {
+      const tokenData = JSON.parse(localStorage.getItem("token"));
+
+      // Note: Check if your API expects 'password' or 'new_password'
+      const res = await axios.put(
+        `http://3.141.14.219:8000${PROFILE_DETAILS}`,
+        {
+          password: passwordForm.newPassword,
+          // old_password: passwordForm.oldPassword // Uncomment if your backend requires old pass
+        },
+        {
+          headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
+        },
+      );
+
+      if (res.status === 200) {
+        toast.success("Password changed!");
+        setPasswordForm({ oldPassword: "", newPassword: "" });
+      }
+    } catch (error) {
+      toast.error("Failed to change password");
+    } finally {
+      setPassLoading(false);
+    }
   };
 
   return (
-    <section className="max-w-[1440px] mx-auto w-11/12 pt-28">
+    <section className="max-w-[1440px] mx-auto w-11/12 pt-28 pb-20">
       <div className="flex items-center justify-between">
         <h1 className="text-xl md:text-2xl lg:text-3xl font-medium">
           Profile Details
         </h1>
-
         <button
           onClick={() => setIsEditing(!isEditing)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition duration-300 ${
-            isEditing
-              ? "bg-red-500 hover:bg-red-600 text-white"
-              : "bg-primary hover:bg-dark-primary text-white"
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition ${
+            isEditing ? "bg-red-500 text-white" : "bg-primary text-white"
           }`}
         >
           {isEditing ? (
-            <>
-              <Save className="w-4 h-4" /> Cancel Edit
-            </>
+            "Cancel Edit"
           ) : (
             <>
               <Edit2 className="w-4 h-4" /> Edit Profile
@@ -78,138 +157,142 @@ export default function Profile() {
         </button>
       </div>
 
-      <br />
-
-      <Image
-        src={"/images/user.jpg"}
-        height={300}
-        width={300}
-        alt="User image"
-        className="w-14 md:w-20 h-14 md:h-20 rounded-full shadow shadow-gray/60"
-      />
-      <br />
-
-      <form onSubmit={handleSaveProfile} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="text-gray md:text-lg block">
-            Name
-          </label>
-          {isEditing ? (
+      {/* Profile Image Section */}
+      <div className="mt-8 relative w-24 h-24 md:w-32 md:h-32">
+        <Image
+          src={previewUrl || "/images/user.jpg"}
+          height={200}
+          width={200}
+          alt="Profile"
+          unoptimized
+          className="w-full h-full rounded-full shadow-lg object-cover border-4 border-white"
+        />
+        {isEditing && (
+          <label className="absolute bottom-1 right-1 bg-primary p-2 rounded-full cursor-pointer hover:bg-dark-primary transition">
+            <Camera className="w-4 h-4 text-white" />
             <input
-              type="text"
-              id="name"
-              value={profileData.name}
-              onChange={handleChange}
-              className="w-full md:w-1/2 py-2.5 px-4 border border-blue-400 rounded-xl mt-3  focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="Enter your full name"
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
             />
-          ) : (
-            <p className="w-full md:w-1/2 py-2.5 px-4 border rounded-xl mt-3 border-gray/50">
-              {profileData.name}
-            </p>
-          )}
-        </div>
-
-        {/* Location Field */}
-        <div>
-          <label htmlFor="location" className="text-gray md:text-lg block">
-            Location
           </label>
-          {isEditing ? (
-            <input
-              type="text"
-              id="location"
-              value={profileData.location}
-              onChange={handleChange}
-              className="w-full md:w-1/2 py-2.5 px-4 border border-blue-400 rounded-xl mt-3  focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="e.g. Dhaka, Bangladesh"
-            />
-          ) : (
-            <p className="w-full md:w-1/2 py-2.5 px-4 border rounded-xl mt-3 border-gray/50">
-              {profileData.location}
-            </p>
-          )}
-        </div>
+        )}
+      </div>
 
-        {/* Preferred Legal Area Field */}
-        <div>
-          <label
-            htmlFor="preferredLegalArea"
-            className="text-gray md:text-lg block"
+      {/* Info Form */}
+      <form
+        onSubmit={handleSaveProfile}
+        className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6"
+      >
+        {[
+          { label: "Full Name", id: "full_name", type: "text" },
+          { label: "Phone", id: "phone", type: "text" },
+          { label: "Location", id: "location", type: "text" },
+        ].map((field) => (
+          <div key={field.id} className="flex flex-col gap-2">
+            <label className="text-gray font-medium">{field.label}</label>
+            <input
+              id={field.id}
+              disabled={!isEditing}
+              value={profileData[field.id]}
+              onChange={handleChange}
+              className={`p-3 rounded-xl border transition ${isEditing ? "border-blue-400" : " border-gray-200"}`}
+            />
+          </div>
+        ))}
+
+        <div className="flex flex-col gap-2">
+          <label className="text-gray font-medium">Gender</label>
+          <select
+            id="gender"
+            disabled={!isEditing}
+            value={profileData.gender}
+            onChange={handleChange}
+            className={`p-3 rounded-xl border transition ${isEditing ? "border-blue-400 bg-transparent" : " border-gray-200"}`}
           >
-            Preferred Legal Area
-          </label>
-          {isEditing ? (
-            <input
-              type="text"
-              id="preferredLegalArea"
-              value={profileData.preferredLegalArea}
-              onChange={handleChange}
-              className="w-full md:w-1/2 py-2.5 px-4 border border-blue-400 rounded-xl mt-3  focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="e.g. Corporate Law, Civil Litigation"
-            />
-          ) : (
-            <p className="w-full md:w-1/2 py-2.5 px-4 border rounded-xl mt-3 border-gray/50">
-              {profileData.preferredLegalArea}
-            </p>
-          )}
+            <option className="bg-gray-700" value="male">
+              Male
+            </option>
+            <option className="bg-gray-700" value="female">
+              Female
+            </option>
+            <option className="bg-gray-700" value="other">
+              Other
+            </option>
+          </select>
         </div>
 
-        {/* Save Changes Button (only visible when editing) */}
+        <div className="flex flex-col gap-2 md:col-span-2">
+          <label className="text-gray font-medium">Preferred Legal Area</label>
+          <input
+            id="preferred_legal_area"
+            disabled={!isEditing}
+            value={profileData.preferred_legal_area}
+            onChange={handleChange}
+            className={`p-3 rounded-xl border transition ${isEditing ? "border-blue-400" : " border-gray-200"}`}
+          />
+        </div>
+
         {isEditing && (
           <button
             type="submit"
-            className={`flex items-center justify-center gap-2 w-full md:w-1/2 py-2.5 rounded-lg text-white text-sm sm:text-base md:text-lg transition duration-300 bg-primary hover:bg-dark-primary mt-6`}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 bg-primary text-white p-4 rounded-xl font-semibold hover:bg-dark-primary transition"
           >
-            <Save className="w-5 h-5" /> Save Profile Changes
+            {loading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <>
+                <Save className="w-5 h-5" /> Update Profile
+              </>
+            )}
           </button>
         )}
       </form>
 
-      <br />
-      <br />
-      <hr className="my-8" />
+      <hr className="my-12 border-gray-200" />
 
-      {/* Reset Password Section */}
-      <div>
-        <h1 className="text-lg md:text-xl font-semibold">Reset Password</h1>
-        <br />
-        <form onSubmit={handlePasswordReset} className="flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <label className="flex flex-col gap-2 flex-1 max-w-xs">
-              <span className="text-gray">Old Password</span>
-              <input
-                type="password"
-                id="oldPassword"
-                value={passwordForm.oldPassword}
-                onChange={handlePasswordChange}
-                placeholder="********"
-                className="py-2.5 px-4 border border-gray/50 rounded-xl mt-3 focus:outline-none focus:ring-1 focus:ring-gray-400"
-              />
-            </label>
-            <label className="flex flex-col gap-2 flex-1 max-w-xs">
-              <span className="text-gray">New Password</span>
-              <input
-                type="password"
-                id="newPassword"
-                value={passwordForm.newPassword}
-                onChange={handlePasswordChange}
-                placeholder="********"
-                className="py-2.5 px-4 border border-gray/50 rounded-xl mt-3 focus:outline-none focus:ring-1 focus:ring-gray-400"
-              />
-            </label>
-          </div>
-          <div>
-            <button
-              type="submit"
-              className={`mt-4 md:mt-0 px-6 h-12 py-2 rounded-lg text-white text-sm sm:text-base transition duration-300 bg-primary hover:bg-dark-primary`}
-            >
-              Update Password
-            </button>
-          </div>
+      {/* Password Reset Section */}
+      <div className="max-w-2xl">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Lock className="w-5 h-5" /> Security & Password
+        </h2>
+        <form
+          onSubmit={handlePasswordReset}
+          className="mt-6 flex flex-col md:flex-row gap-4"
+        >
+          <input
+            type="password"
+            placeholder="Old Password"
+            value={passwordForm.oldPassword}
+            onChange={(e) =>
+              setPasswordForm({ ...passwordForm, oldPassword: e.target.value })
+            }
+            className="p-3 rounded-xl border border-gray-300 flex-1"
+          />
+          <input
+            type="password"
+            placeholder="New Password"
+            value={passwordForm.newPassword}
+            onChange={(e) =>
+              setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+            }
+            className="p-3 rounded-xl border border-gray-300 flex-1"
+          />
+          <button
+            type="submit"
+            disabled={passLoading}
+            className="bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-dark-primary transition"
+          >
+            {passLoading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              "Update Password"
+            )}
+          </button>
         </form>
       </div>
-      <br />
     </section>
   );
 }

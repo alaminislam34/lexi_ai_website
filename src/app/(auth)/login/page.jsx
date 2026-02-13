@@ -7,21 +7,55 @@ import Image from "next/image";
 import Link from "next/link";
 import SentResetLink from "./components/SentResetLink";
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
+import { toast } from "react-toastify";
+import axios from "axios";
+import baseApi from "@/api/base_url";
+import { LOGIN } from "@/api/apiEntpoint";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [forget, setForget] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const {
-    handleSubmit,
-    error,
-    loading,
-    setEmail,
-    setPassword,
-    email,
-    password,
-  } = useAuth();
-
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
   const PasswordToggleIcon = showPassword ? EyeOff : Eye;
+  const router = useRouter();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      if (!email || !password) {
+        toast.error("Please enter both email and password.");
+        return;
+      }
+      setLoading(true);
+      const res = await axios.post(`http://3.141.14.219:8000${LOGIN}`, {
+        email,
+        password,
+        remember_me: rememberMe ? "true" : "false",
+      });
+      if (res.status === 200) {
+        toast.success("Logged in successfully!");
+      }
+      localStorage.setItem(
+        "token",
+        JSON.stringify({
+          accessToken: res.data.access,
+          refreshToken: res.data.refresh,
+        }),
+      );
+      router.push("/");
+    } catch (error) {
+      console.log(error);
+      toast.error(
+        "An error occurred while logging in. Please check your credentials and try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-BG">
@@ -65,14 +99,7 @@ export default function Login() {
                 <div className="grow border-t border-element"></div>
               </div>
 
-              {error && (
-                <div className="flex items-center p-3 mb-4 rounded-xl text-sm font-medium bg-[#FF573330] text-[#FF5733]">
-                  <AlertCircle className="w-4 h-4 mr-2" />
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div>
                   <label
                     htmlFor="email"
@@ -83,6 +110,7 @@ export default function Login() {
                   <input
                     type="email"
                     id="email"
+                    placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
@@ -100,6 +128,7 @@ export default function Login() {
                   <input
                     type={showPassword ? "text" : "password"}
                     id="password"
+                    placeholder="***********"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
@@ -118,6 +147,8 @@ export default function Login() {
                       name="remember-me"
                       type="checkbox"
                       className="h-4 w-4 rounded cursor-pointer bg-element border-gray accent-primary hover:ring-primary"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
                     />
                     <label
                       htmlFor="remember-me"

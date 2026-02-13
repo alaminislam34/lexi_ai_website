@@ -15,6 +15,17 @@ export default function AuthProvider({ children }) {
   const [email, setEmail] = useState("attorney@gmail.com");
   const [password, setPassword] = useState("attorney");
   const [showModal, setShowModal] = useState(false);
+  const [userData, setUserData] = useState({
+    email: "",
+    username: "",
+    password: "",
+    password_confirm: "",
+    full_name: "",
+    role: "",
+    location: "",
+    preferred_legal_area: "",
+    gender: "",
+  });
   const router = useRouter();
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -63,7 +74,7 @@ export default function AuthProvider({ children }) {
     } catch (err) {
       console.error(err);
       setError(
-        "An unexpected network error occurred. Please check your connection."
+        "An unexpected network error occurred. Please check your connection.",
       );
     } finally {
       setLoading(false);
@@ -92,6 +103,8 @@ export default function AuthProvider({ children }) {
     password,
     showModal,
     setShowModal,
+    userData,
+    setUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -3,11 +3,20 @@
 import React, { useContext } from "react";
 import Image from "next/image";
 import { StateContext } from "@/app/providers/StateProvider";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 export default function Step_1() {
-  // 1. Destructure handleSetRole instead of setStep and setRole
-  const { handleSetRole } = useContext(StateContext);
-
+  const { setUserData } = useContext(StateContext);
+  const router = useRouter();
+  const handleRoleSelection = (selectedRole) => {
+    if (selectedRole !== "user" && selectedRole !== "attorney") {
+      toast.error("Please select a valid role.");
+      return;
+    }
+    setUserData((prev) => ({ ...prev, role: selectedRole }));
+    router.push("/register/step_2");
+  };
   return (
     // Main container with full screen height and theme background
     <div className="min-h-screen flex items-center justify-center bg-BG">
@@ -41,8 +50,7 @@ export default function Step_1() {
             <div className="space-y-4">
               <button
                 onClick={() => {
-                  // 2. Use the unified handler for 'client'
-                  handleSetRole("client");
+                  handleRoleSelection("user");
                 }}
                 className="w-full flex items-center justify-center p-4 rounded-xl bg-primary text-text_color text-base font-semibold transition duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
               >
@@ -51,8 +59,7 @@ export default function Step_1() {
 
               <button
                 onClick={() => {
-                  // 3. Use the unified handler for 'attorney'
-                  handleSetRole("attorney");
+                  handleRoleSelection("attorney");
                 }}
                 className="w-full flex items-center justify-center p-4 rounded-xl bg-primary text-text_color text-base font-semibold transition duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
               >

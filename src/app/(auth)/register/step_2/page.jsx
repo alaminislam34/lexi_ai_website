@@ -3,19 +3,33 @@
 import { useContext } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { StateContext } from "@/app/providers/StateProvider"; 
+import { StateContext } from "@/app/providers/StateProvider";
+import { toast } from "react-toastify";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Step_2() {
   // 3. Use useContext to access state and handler
-  const {
-    name,
-    setName,
-    gender,
-    setGender,
-    email,
-    setEmail,
-    SubmitNameOrEmail,
-  } = useContext(StateContext);
+  const { setUserData } = useContext(StateContext);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [gender, setGender] = useState("");
+  const router = useRouter();
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    try {
+      if (!name || !email || !gender) {
+        toast.error("Please fill in all required fields.");
+        return;
+      }
+      setUserData({ name, email, gender });
+      router.push("/register/step_3");
+    } catch (error) {
+      toast.error(
+        "An error occurred while submitting the form. Please try again.",
+      );
+    }
+  };
 
   return (
     // Main container with full screen height and theme background
@@ -47,7 +61,7 @@ export default function Step_2() {
               </p>
             </header>
 
-            <form onSubmit={SubmitNameOrEmail} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Name Field */}
               <div>
                 <label
@@ -60,9 +74,9 @@ export default function Step_2() {
                   type="text"
                   id="name"
                   placeholder="Enter your name"
+                  className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
                   required
                 />
               </div>
@@ -79,9 +93,9 @@ export default function Step_2() {
                   type="text"
                   id="gender"
                   placeholder="Enter your gender"
+                  className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
                   required
                 />
               </div>
@@ -98,9 +112,9 @@ export default function Step_2() {
                   type="email"
                   id="email"
                   placeholder="example@gmail.com"
+                  className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
                   required
                 />
               </div>
@@ -108,7 +122,7 @@ export default function Step_2() {
               {/* Login Button */}
               <button
                 type="submit"
-                disabled={!email || !name}
+                disabled={!email || !name || !gender}
                 className="w-full flex items-center justify-center p-4 rounded-xl bg-primary text-text_color text-base font-semibold transition duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
               >
                 Continue

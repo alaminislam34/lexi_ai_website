@@ -1,10 +1,16 @@
 "use client";
 
+import { REGISTER } from "@/api/apiEntpoint";
+import baseApi from "@/api/base_url";
 import { StateContext } from "@/app/providers/StateProvider";
+import axios from "axios";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useContext } from "react";
 // Assuming you use icons from react-icons. Adding a placeholder for the toggle icon.
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 // Helper component for the password eye icon (assuming this is how you intended it)
 const PasswordToggleIcon = ({ onClick, className, isVisible }) => {
@@ -15,16 +21,38 @@ const PasswordToggleIcon = ({ onClick, className, isVisible }) => {
 
 export default function Step_4() {
   // Destructure all necessary state, setters, and the final handler:
-  const {
-    showPassword,
-    password,
-    setPassword,
-    confirmPassword,
-    setConfirmPassword,
-    setShowPassword,
-    handleSubmit, // <--- Added the final submission handler
-    loading, // <--- Added the loading state
-  } = useContext(StateContext);
+  const { setUserData, userData } = useContext(StateContext);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      if (!password || !confirmPassword) {
+        toast.error("Please fill in all required fields.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        toast.error("Passwords do not match. Please try again.");
+        return;
+      }
+      setUserData((prev) => ({
+        ...prev,
+        password,
+        password_confirm: confirmPassword,
+      }));
+
+      const res = await axios.post(`${baseApi}/${REGISTER}`, {});
+      router.push("/login");
+    } catch (error) {
+      toast.error(
+        "An error occurred while submitting the form. Please try again.",
+      );
+    }
+  };
 
   return (
     // Main container with full screen height and theme background
@@ -87,7 +115,7 @@ export default function Step_4() {
               {/* confirm Password Field */}
               <div className="relative">
                 <label
-                  htmlFor="confirmPassword" // Changed htmlFor from 'password' to 'confirmPassword' for better semantics
+                  htmlFor="confirmPassword"
                   className="block text-sm font-medium mb-2 text-text_color"
                 >
                   Confirm Password
@@ -95,7 +123,7 @@ export default function Step_4() {
 
                 <input
                   type={showPassword ? "text" : "password"}
-                  id="confirmPassword" // Changed id from 'password' to 'confirmPassword' for better semantics
+                  id="confirmPassword"
                   placeholder="********"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -128,11 +156,10 @@ export default function Step_4() {
               {/* Login Button */}
               <button
                 type="submit" // Disable button if fields are empty OR if the form is currently loading
-                disabled={!confirmPassword || !password || loading}
+                disabled={!confirmPassword || !password}
                 className="w-full flex items-center justify-center p-4 rounded-xl bg-primary text-text_color text-base font-semibold transition duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
               >
-                {loading ? "Registering..." : "Continue"}{" "}
-                {/* Display loading text if submitting */}
+                Continue
               </button>
             </form>
           </div>
