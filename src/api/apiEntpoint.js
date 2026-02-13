@@ -4,9 +4,7 @@
 export const REGISTER = "/api/auth/register/";
 export const LOGIN = "/api/login/";
 export const PROFILE_DETAILS = "/api/auth/me/";
-
-
-
+export const PASSWORD_CHANGE = "/api/auth/password/change/";
 
 // export const PROFILE_UPDATE = "/api/profile/update/";
 // export const TOKEN_REFRESH = "/api/token/refresh/";

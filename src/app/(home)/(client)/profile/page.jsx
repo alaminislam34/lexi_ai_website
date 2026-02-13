@@ -6,7 +6,7 @@ import { Edit2, Save, Camera, Loader2, Lock } from "lucide-react";
 import { StateContext } from "@/app/providers/StateProvider";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { PROFILE_DETAILS } from "@/api/apiEntpoint";
+import { PASSWORD_CHANGE, PROFILE_DETAILS } from "@/api/apiEntpoint";
 
 export default function Profile() {
   const { user, setUser } = useContext(StateContext);
@@ -29,6 +29,7 @@ export default function Profile() {
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: "",
     newPassword: "",
+    newConfirmPassword: "",
   });
 
   // Sync with Context Data
@@ -104,20 +105,24 @@ export default function Profile() {
   // API Call: Update Password
   const handlePasswordReset = async (e) => {
     e.preventDefault();
-    if (!passwordForm.oldPassword || !passwordForm.newPassword) {
-      return toast.warn("Fill both password fields");
+    if (
+      !passwordForm.oldPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.newConfirmPassword
+    ) {
+      return toast.warn("Fill all password fields");
     }
 
     setPassLoading(true);
     try {
       const tokenData = JSON.parse(localStorage.getItem("token"));
 
-      // Note: Check if your API expects 'password' or 'new_password'
       const res = await axios.put(
-        `http://3.141.14.219:8000${PROFILE_DETAILS}`,
+        `http://3.141.14.219:8000${PASSWORD_CHANGE}`,
         {
-          password: passwordForm.newPassword,
-          // old_password: passwordForm.oldPassword // Uncomment if your backend requires old pass
+          old_password: passwordForm.oldPassword,
+          new_password: passwordForm.newPassword,
+          new_password_confirm: passwordForm.newConfirmPassword,
         },
         {
           headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
@@ -126,10 +131,14 @@ export default function Profile() {
 
       if (res.status === 200) {
         toast.success("Password changed!");
-        setPasswordForm({ oldPassword: "", newPassword: "" });
+        setPasswordForm({
+          oldPassword: "",
+          newPassword: "",
+          newConfirmPassword: "",
+        });
       }
     } catch (error) {
-      toast.error("Failed to change password");
+      toast.error(error.response?.data?.detail || "Failed to change password");
     } finally {
       setPassLoading(false);
     }
@@ -277,6 +286,18 @@ export default function Profile() {
             value={passwordForm.newPassword}
             onChange={(e) =>
               setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+            }
+            className="p-3 rounded-xl border border-gray-300 flex-1"
+          />
+          <input
+            type="password"
+            placeholder="New Confirm Password"
+            value={passwordForm.newConfirmPassword}
+            onChange={(e) =>
+              setPasswordForm({
+                ...passwordForm,
+                newConfirmPassword: e.target.value,
+              })
             }
             className="p-3 rounded-xl border border-gray-300 flex-1"
           />

@@ -36,7 +36,7 @@ export default function Step_2() {
     <div className="min-h-screen flex items-center justify-center bg-BG">
       <div className="max-w-[1440px] w-11/12 mx-auto flex flex-col lg:flex-row justify-center items-center gap-12 min-h-screen lg:min-h-[700px]">
         {/* Left Side: Illustration */}
-        <div className="w-1/2 flex flex-col gap-6 justify-center items-center">
+        <div className="w-1/2 hidden lg:flex flex-col gap-6 justify-center items-center">
           <h1 className="text-2xl md:text-3xl lg:text-[40px] font-semibold text-primary font-lora mt-10">
             Casezys
           </h1>

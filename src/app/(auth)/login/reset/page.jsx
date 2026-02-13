@@ -1,19 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
 import SentResetLink from "./components/SentResetLink";
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 import { toast } from "react-toastify";
 import axios from "axios";
-import baseApi from "@/api/base_url";
 import { LOGIN } from "@/api/apiEntpoint";
 import { useRouter } from "next/navigation";
 
-export default function Login() {
+export default function Reset() {
   const [forget, setForget] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
