@@ -29,7 +29,7 @@ export default function Reset() {
         return;
       }
       setLoading(true);
-      const res = await axios.post(`http://3.141.14.219:8000${LOGIN}`, {
+      const res = await axios.post(`http://10.10.7.19:8001${LOGIN}`, {
         email,
         password,
         remember_me: rememberMe ? "true" : "false",

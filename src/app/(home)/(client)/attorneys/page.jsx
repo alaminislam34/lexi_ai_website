@@ -27,7 +27,7 @@ export default function Attorneys() {
       const tokens = JSON.parse(tokenData);
       try {
         const res = await axios.get(
-          "http://3.141.14.219:8000/api/attorney/attorneys/",
+          "http://10.10.7.19:8001/api/attorney/attorneys/",
           {
             headers: {
               Authorization: `Bearer ${tokens.accessToken}`,

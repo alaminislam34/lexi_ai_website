@@ -1,11 +1,13 @@
 "use client";
 
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
+import { StateContext } from "@/app/providers/StateProvider";
 import { LogOut, Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { useContext } from "react";
 export const navlinksClient = [
   { name: "Home", link: "/" },
   { name: "Ask Casezy", link: "/ask_casezy" },
@@ -14,16 +16,16 @@ export const navlinksClient = [
 ];
 export const navlinksAttorney = [
   { name: "Home", link: "/" },
-  { name: "Ask Casezy", link: "/ask_casezy" },
+  // { name: "Ask Casezy", link: "/ask_casezy" },
   { name: "For Attorney", link: "/for_attorney" },
-  { name: "Dashboard", link: "/dashboard" },
+  { name: "Dashboard", link: "/dashboard/attorney" },
 ];
 export default function Navbar() {
   const path = usePathname();
   const [showMenu, setShowMenu] = useState(false);
   const [scroll, setScroll] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useContext(StateContext);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,6 +43,14 @@ export default function Navbar() {
     };
   }, []);
 
+  let navlinks;
+  console.log(user?.role);
+  if (user?.role === "user") {
+    navlinks = navlinksClient;
+  } else if (user?.role === "attorney") {
+    navlinks = navlinksAttorney;
+  }
+
   return (
     <div
       className={`py-4 z-50 fixed top-0 left-0 w-full duration-150 ${
@@ -54,20 +64,18 @@ export default function Navbar() {
           </h1>
         </div>
         <ul className="lg:flex flex-row items-center justify-center gap-14 hidden">
-          {(user?.role === "user" ? navlinksClient : navlinksAttorney).map(
-            (nav, i) => (
-              <li
-                key={i}
-                className={`${
-                  path === nav.link
-                    ? "text-primary"
-                    : "text-white hover:text-primary duration-300"
-                }`}
-              >
-                <Link href={nav.link}>{nav.name}</Link>
-              </li>
-            ),
-          )}
+          {navlinks?.map((nav, i) => (
+            <li
+              key={i}
+              className={`${
+                path === nav.link
+                  ? "text-primary"
+                  : "text-white hover:text-primary duration-300"
+              }`}
+            >
+              <Link href={nav.link}>{nav.name}</Link>
+            </li>
+          ))}
         </ul>
 
         <div className="flex items-center gap-4 relative">

@@ -67,7 +67,7 @@ export const AttorneyProfileModal = ({
                   <Image
                     src={profileData.image}
                     fill
-                    alt={profileData.name}
+                    alt={profileData?.name || "Attorney Profile Image"}
                     className="rounded-full object-cover p-1 border border-gray-700/50"
                   />
                 </div>
@@ -184,7 +184,7 @@ export const RequestConsultModal = ({ attorney, closeModal }) => {
 
     try {
       const response = await axios.post(
-        "http://3.141.14.219:8000/api/attorney/consultations/create/",
+        "http://10.10.7.19:8001/api/attorney/consultations/create/",
         payload,
         {
           headers: {

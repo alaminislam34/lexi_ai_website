@@ -62,7 +62,7 @@ const DayCell = ({ dayData, selectedDate, onSelectDay }) => {
   return (
     <div className="aspect-video" onClick={() => onSelectDay(date)}>
       <div className={cellClasses}>
-        <span className={`font-semibold ${isTodayDay && "text-blue-400"}`}>
+        <span className={`font-semibold ${isTodayDay && "text-blue-50"}`}>
           {day}
         </span>
         {hasEvent && (
@@ -108,11 +108,12 @@ export default function Calendar() {
     try {
       const tokenData = JSON.parse(localStorage.getItem("token"));
       const res = await axios.get(
-        "http://3.141.14.219:8000/api/attorney/events/",
+        "http://10.10.7.19:8001/api/attorney/events/",
         {
           headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
         },
       );
+      console.log(res.data);
       setEvents(res.data);
     } catch (error) {
       console.error("Error fetching events:", error);

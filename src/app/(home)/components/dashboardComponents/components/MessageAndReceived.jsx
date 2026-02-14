@@ -1,62 +1,16 @@
-// src/components/MessageAndReceived.jsx
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { MoreVertical } from "lucide-react";
-import { BiMessageAltDetail } from "react-icons/bi";
+import { BiMessageAltDetail, BiLoaderAlt } from "react-icons/bi";
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 import Link from "next/link";
+import axios from "axios";
+import { toast } from "react-toastify";
 
-const PRIMARY_COLOR_CLASSES = "bg-blue-600 hover:bg-blue-700";
 const TEXT_ELEMENT_BG = "bg-[#33363D]";
 
-const MOCK_MESSAGES = [
-  {
-    id: 1,
-    name: "Al Junaid",
-    lastMessage: "something...",
-    time: "12:36 PM",
-    image: "/images/user.jpg",
-    unread: true,
-  },
-  {
-    id: 2,
-    name: "Eleena",
-    lastMessage: "something...",
-    time: "12:36 PM",
-    image: "/images/user.jpg",
-    unread: true,
-  },
-];
-
-const MOCK_QUOTES = [
-  {
-    id: 101,
-    lawyerName: "Michael Smith",
-    firm: "Doe Law PLLC",
-    location: "Detroit, MI",
-    budget: "$500",
-    image: "/images/user.jpg",
-  },
-  {
-    id: 102,
-    lawyerName: "Michael Smith",
-    firm: "Doe Law PLLC",
-    location: "Detroit, MI",
-    budget: "$500",
-    image: "/images/user.jpg",
-  },
-  {
-    id: 103,
-    lawyerName: "Michael Smith",
-    firm: "Doe Law PLLC",
-    location: "Detroit, MI",
-    budget: "$500",
-    image: "/images/user.jpg",
-  },
-];
-
+// Message Item Component (Static for now as per your mockup)
 const MessageItem = ({ message }) => (
   <div
     className={`flex items-center p-4 shadow-[1px_1px_5px_0px_rgb(0,0,0,0.3)] hover:shadow-[1px_1px_5px_0px_rgb(0,0,0,0.6)] hover:bg-element transition duration-200 cursor-pointer ${
@@ -91,17 +45,68 @@ const MessageItem = ({ message }) => (
 );
 
 export default function MessageAndReceived() {
-  const { setShowModal, showModal } = useAuth();
-  const handleModal = (v) => {
-    setShowModal(v);
+  const { setShowModal, setSelectedRequest } = useAuth();
+  const [quotes, setQuotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // MOCK MESSAGES kept as per your requirement
+  const MOCK_MESSAGES = [
+    {
+      id: 1,
+      name: "Al Junaid",
+      lastMessage: "something...",
+      time: "12:36 PM",
+      image: "/images/user.jpg",
+      unread: true,
+    },
+    {
+      id: 2,
+      name: "Eleena",
+      lastMessage: "something...",
+      time: "12:36 PM",
+      image: "/images/user.jpg",
+      unread: true,
+    },
+  ];
+
+  // 1. Fetch REAL Quotes from your API
+  useEffect(() => {
+    const fetchQuotes = async () => {
+      const tokenData = localStorage.getItem("token");
+      const tokens = tokenData ? JSON.parse(tokenData) : null;
+
+      try {
+        const res = await axios.get(
+          "http://10.10.7.19:8001/api/attorney/consultations/reply-messages/",
+          {
+            headers: {
+              Authorization: `Bearer ${tokens?.accessToken}`,
+            },
+          },
+        );
+        setQuotes(res.data || []);
+      } catch (error) {
+        console.error("Fetch Error:", error);
+        toast.error("Failed to load received quotes.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuotes();
+  }, []);
+
+  const handleOpenDetails = (quoteData) => {
+    setSelectedRequest(quoteData); // Set the real data for the QoutesDetails modal
+    setShowModal(true);
   };
 
-  console.log(showModal);
   const totalUnread = MOCK_MESSAGES.filter((m) => m.unread).length;
 
   return (
     <div className={`min-h-screen text-white`}>
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Messages Section */}
         <div className={`rounded-xl overflow-hidden bg-secondary p-4`}>
           <div className="flex items-center py-4 border-b border-gray-700/50">
             <BiMessageAltDetail className="w-6 h-6 mr-3 text-blue-500" />
@@ -134,54 +139,65 @@ export default function MessageAndReceived() {
           </div>
         </div>
 
+        {/* Received Quotes Section - Now Dynamic */}
         <div className="bg-secondary p-4 rounded-xl">
           <h2 className="text-xl font-semibold text-white mb-6">
             Received Quotes
           </h2>
 
           <div className="flex flex-col gap-2">
-            {MOCK_QUOTES.map((quote, i) => (
-              <div
-                key={i}
-                className={`p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <Image
-                      src={quote.image}
-                      height={50}
-                      width={50}
-                      alt={quote.lawyerName}
-                      className="w-10 md:w-12 h-10 md:h-12 rounded-full object-cover"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-white font-medium text-sm md:text-lg truncate">
-                        {quote.lawyerName}
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-400 truncate">
-                        {quote.firm} &bull; {quote.location}
-                      </p>
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <BiLoaderAlt className="animate-spin text-primary text-3xl" />
+              </div>
+            ) : quotes.length > 0 ? (
+              quotes.map((quote) => (
+                <div
+                  key={quote.id}
+                  className={`p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <Image
+                        src={quote.sender.profile_image || "/images/user.jpg"}
+                        height={50}
+                        width={50}
+                        alt={quote.sender.full_name}
+                        className="w-10 md:w-12 h-10 md:h-12 rounded-full object-cover"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-white font-medium text-sm md:text-lg truncate">
+                          {quote.sender.full_name || "New Client"}
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-400 truncate">
+                          {quote.location || "Location not provided"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`px-4 py-2 rounded-lg text-gray text-xs sm:text-sm border border-gray-700/50`}
+                    >
+                      Budget
+                      <span className="block text-center mt-0.5 text-white font-bold">
+                        ${quote.budget}
+                      </span>
                     </div>
                   </div>
 
-                  <div
-                    className={`px-4 py-2  rounded-lg text-gray text-xs sm:text-sm border border-gray-700/50`}
+                  <button
+                    onClick={() => handleOpenDetails(quote)}
+                    className={`w-full py-2 rounded-lg text-white transition duration-300 bg-primary hover:bg-dark-primary`}
                   >
-                    Budget
-                    <span className="block text-center mt-0.5">
-                      {quote.budget}
-                    </span>
-                  </div>
+                    View Details
+                  </button>
                 </div>
-
-                <button
-                  onClick={() => handleModal(true)}
-                  className={`w-full py-2 rounded-lg text-white transition duration-300 bg-primary hover:bg-dark-primary`}
-                >
-                  View Details
-                </button>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-10">
+                No quotes received yet.
+              </p>
+            )}
           </div>
         </div>
       </div>

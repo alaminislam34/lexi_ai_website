@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 
 // Define the API Base URL from environment variables for production
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://3.141.14.219:8000";
+  process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8001";
 const REFRESH_ENDPOINT = "/api/token/refresh/";
 
 // Create an axios instance

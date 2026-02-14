@@ -20,7 +20,7 @@ export default function SentResetLink({ setForget }) {
     confirm_password: "",
   });
 
-  const BASE_URL = "http://3.141.14.219:8000";
+  const BASE_URL = "http://10.10.7.19:8001";
 
   // Step 1: Send OTP to Email
   const handleSendOTP = async (e) => {
@@ -43,12 +43,26 @@ export default function SentResetLink({ setForget }) {
     }
   };
 
-  // Step 2: Verify OTP
+  const handleResendOTP = async () => {
+    try {
+      const res = await axios.post(`${BASE_URL}/api/auth/password/forgot/`, {
+        email,
+      });
+      if (res.status === 200 || res.status === 201) {
+        toast.success("OTP sent to your email!");
+        setStep(2);
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.detail || "Failed to send OTP. Check email.",
+      );
+    }
+  };
+
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // এই API টি আপনার দেওয়া তথ্য অনুযায়ী otp এবং email নিয়ে reset_token রিটার্ন করবে
       const res = await axios.post(
         `${BASE_URL}/api/auth/password/reset/verify/`,
         {
@@ -155,7 +169,6 @@ export default function SentResetLink({ setForget }) {
           </form>
         )}
 
-        {/* STEP 2: OTP VERIFY FORM */}
         {step === 2 && (
           <form onSubmit={handleVerifyOTP} className="space-y-5">
             <div>
@@ -167,9 +180,18 @@ export default function SentResetLink({ setForget }) {
                 placeholder="Enter 6-digit code"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="w-full p-4 rounded-xl border bg-element border-element text-white text-center text-xl tracking-widest focus:ring-2 focus:ring-primary outline-none"
+                className="w-full p-4 rounded-xl border bg-element border-element text-white text-center focus:ring-2 focus:ring-primary outline-none"
                 required
               />
+            </div>
+            <div className="flex justify-end items-center">
+              <button
+                type="button"
+                onClick={handleResendOTP}
+                className="text-primary hover:text-white transition underline"
+              >
+                Resend Code
+              </button>
             </div>
             <button
               type="submit"

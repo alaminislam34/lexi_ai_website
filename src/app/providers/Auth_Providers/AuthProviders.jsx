@@ -15,6 +15,7 @@ export default function AuthProvider({ children }) {
   const [email, setEmail] = useState("attorney@gmail.com");
   const [password, setPassword] = useState("attorney");
   const [showModal, setShowModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
   const [userData, setUserData] = useState({
     email: "",
     username: "",
@@ -27,14 +28,6 @@ export default function AuthProvider({ children }) {
     gender: "",
   });
   const router = useRouter();
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    const currentUser = JSON.parse(user);
-    if (!user) {
-      router.push("/login");
-    }
-    setUser(currentUser);
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -105,6 +98,8 @@ export default function AuthProvider({ children }) {
     setShowModal,
     userData,
     setUserData,
+    selectedRequest,
+    setSelectedRequest,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

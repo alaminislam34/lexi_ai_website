@@ -79,7 +79,7 @@ export default function Profile() {
       }
 
       const res = await axios.put(
-        `http://3.141.14.219:8000${PROFILE_DETAILS}`,
+        `http://10.10.7.19:8001${PROFILE_DETAILS}`,
         formData,
         {
           headers: {
@@ -118,7 +118,7 @@ export default function Profile() {
       const tokenData = JSON.parse(localStorage.getItem("token"));
 
       const res = await axios.put(
-        `http://3.141.14.219:8000${PASSWORD_CHANGE}`,
+        `http://10.10.7.19:8001${PASSWORD_CHANGE}`,
         {
           old_password: passwordForm.oldPassword,
           new_password: passwordForm.newPassword,

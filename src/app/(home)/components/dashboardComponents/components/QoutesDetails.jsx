@@ -1,122 +1,146 @@
 "use client";
 
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
-import { MapPin, X } from "lucide-react";
+import { MapPin, X, Loader2, CheckCircle } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 export default function QoutesDetails() {
-  const { setShowModal } = useAuth();
-  const handleQoutes = (v) => {
-    try {
-      if (v === "accept") {
-        toast.success("Your appointment has been confirmed successfully.");
-      } else if (v === "reject") {
-        toast.error("Reject the attorney offer!");
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
+  const { setShowModal, selectedRequest } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  // Local state to track if we just accepted it in this session
+  const [isAccepted, setIsAccepted] = useState(
+    selectedRequest?.status === "offered",
+  );
+  console.log(selectedRequest);
+  const handleQoutes = async (v) => {
+    if (v === "reject") {
+      toast.error("You have rejected the offer.");
       setShowModal(false);
+      return;
+    }
+
+    if (v === "accept") {
+      setLoading(true);
+      const tokenData = localStorage.getItem("token");
+      const tokens = tokenData ? JSON.parse(tokenData) : null;
+
+      try {
+        const res = await axios.post(
+          `http://10.10.7.19:8001/api/attorney/consultations/${selectedRequest.consultation}/accept/`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${tokens?.accessToken}`,
+            },
+          },
+        );
+
+        if (res.status === 200 || res.status === 201) {
+          toast.success("Consultation accepted!");
+          setIsAccepted(true); // Update UI immediately
+          // Optional: You might want to refresh the background list here
+          setTimeout(() => setShowModal(false), 1500);
+        }
+      } catch (error) {
+        console.error("Accept Error:", error);
+        toast.error(
+          error.response?.data?.detail || "Already accepted or error occurred.",
+        );
+      } finally {
+        setLoading(false);
+      }
     }
   };
+
+  if (!selectedRequest) return null;
+
   return (
-    <div className="fixed inset-0 z-50 bg-opacity-50 bg-black/70 flex items-center justify-center p-4 overflow-y-auto">
-      <div
-        className={`bg-secondary p-6 sm:p-8 rounded-xl shadow-2xl max-w-xl w-full relative my-8`}
-      >
-        <div className="flex justify-between items-center absolute top-2 right-2">
-          <button
-            onClick={() => setShowModal(false)}
-            className={`p-2 text-gray-400 hover:text-element transition rounded-full hover:bg-gray `}
-            aria-label="Close Modal"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <div className="flex flex-row items-center gap-4">
+    <div className="fixed inset-0 z-50 bg-opacity-50 bg-black/70 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-sm">
+      <div className="bg-secondary p-6 sm:p-8 rounded-xl shadow-2xl max-w-xl w-full relative my-8 border border-white/10 animate-in zoom-in duration-200">
+        <button
+          onClick={() => setShowModal(false)}
+          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition rounded-full hover:bg-white/10"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        <div className="flex flex-row items-center gap-4 mb-6">
           <Image
-            src={"/images/user.jpg"}
-            height={200}
-            width={200}
-            alt="User image"
-            className="w-20 rounded-full bg-cover bg-center border border-gray/20"
+            src={selectedRequest.sender.profile_image || "/images/user.jpg"}
+            height={80}
+            width={80}
+            alt="User"
+            className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
           />
           <div>
-            <h2 className="text-xl md:text-2xl lg:text-3xl">Michael Smith</h2>
-            <p className="text-gray">Doe Law PLLC · Detroit, MI</p>
+            <h2 className="text-xl font-bold">
+              {selectedRequest.sender.full_name || "Client"}
+            </h2>
+            <p className="text-gray-400 text-sm">
+              {selectedRequest.sender.email}
+            </p>
           </div>
         </div>
-        <div className="my-4 h-0 border-b w-full border-gray/20"></div>
 
         <div className="space-y-6">
-          <div>
-            <label
-              htmlFor="state"
-              className="block text-sm font-semibold mb-2 text-gray"
-            >
-              Case Details
+          <div className="bg-BG p-4 rounded-lg border border-white/5">
+            <label className="block text-[10px] font-bold mb-1 text-primary uppercase tracking-widest">
+              Original Message
             </label>
-            <div className="bg-BG w-full p-4 outline-none rounded-lg">
-              <p className="text-gray overflow-y-auto max-h-[150px]">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nam
-                provident cupiditate perferendis, exercitationem corporis ex
-                commodi iusto voluptas enim quia excepturi eius a aperiam rem
-                eveniet hic neque doloremque nemo!Lorem ipsum dolor sit amet,
-                consectetur adipisicing elit. Nam provident cupiditate
-                perferendis, exercitationem corporis ex commodi iusto voluptas
-                enim quia excepturi eius a aperiam rem eveniet hic neque
-                doloremque nemo!Lorem ipsum dolor sit amet, consectetur
-                adipisicing elit. Nam provident cupiditate perferendis,
-                exercitationem corporis ex commodi iusto voluptas enim quia
-                excepturi eius a aperiam rem eveniet hic neque doloremque nemo!
+            <p className="text-gray-300 text-sm italic">
+              "{selectedRequest.message}"
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-BG p-4 rounded-lg border border-white/5">
+              <label className="block text-[10px] font-bold mb-1 text-gray-500 uppercase">
+                Location
+              </label>
+              <div className="flex items-center gap-2">
+                <MapPin className="text-primary w-4 h-4" />
+                <p className="text-white text-sm">{selectedRequest.location}</p>
+              </div>
+            </div>
+            <div className="bg-BG p-4 rounded-lg border border-white/5">
+              <label className="block text-[10px] font-bold mb-1 text-gray-500 uppercase">
+                Budget
+              </label>
+              <p className="text-white font-bold text-sm">
+                ${selectedRequest.budget}
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-BG p-4 outline-none rounded-lg text-primary">
-              <label className="block text-xs font-semibold mb-2 text-gray">
-                LOCATION
-              </label>
-              <div className="flex flex-row items-center gap-2">
-                <MapPin className="text-primary" />
-                <p className="text-white">Texas,USA</p>
+          {/* Logic for Buttons: If already accepted, show a status badge instead */}
+          <div className="pt-4">
+            {isAccepted ? (
+              <div className="w-full flex items-center justify-center gap-2 p-4 rounded-xl bg-green-500/10 border border-green-500 text-green-500 font-bold">
+                <CheckCircle size={20} />
+                Accepted & Confirmed
               </div>
-            </div>
-
-            <div className="bg-BG p-4 outline-none rounded-lg text-primary">
-              <label className="block text-xs font-semibold mb-2 text-gray">
-                BUDGET
-              </label>
-              <div>
-                <p className="text-white">$500</p>
+            ) : (
+              <div className="flex flex-row gap-4 items-center">
+                <button
+                  onClick={() => handleQoutes("accept")}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center p-4 rounded-xl text-white font-bold transition bg-primary hover:bg-opacity-90 disabled:opacity-50 shadow-lg shadow-primary/20"
+                >
+                  {loading ? <Loader2 className="animate-spin" /> : "Accept"}
+                </button>
+                <button
+                  onClick={() => handleQoutes("reject")}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center p-4 rounded-xl font-bold transition bg-red-800/10 text-red-500 border border-red-800/50 hover:bg-red-800/20"
+                >
+                  Reject
+                </button>
               </div>
-            </div>
-          </div>
-
-          <div className="bg-BG p-4 outline-none rounded-lg text-primary">
-            <label className="block text-xs font-semibold mb-2 text-gray">
-              MESSAGE
-            </label>
-            <div>
-              <p className="text-white">“I Can handle this page”</p>
-            </div>
-          </div>
-
-          <div className="flex flex-row gap-4 items-center">
-            <button
-              onClick={() => handleQoutes("accept")}
-              className={`w-full flex items-center justify-center p-4 rounded-lg text-white transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-8 bg-primary`}
-            >
-              Accept
-            </button>
-            <button
-              onClick={() => handleQoutes("reject")}
-              className={`w-full flex items-center justify-center p-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-8 bg-red-800/10 text-red-500 border border-red-800`}
-            >
-              Reject
-            </button>
+            )}
           </div>
         </div>
       </div>
