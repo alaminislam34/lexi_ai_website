@@ -67,8 +67,9 @@ export default function ConsultRequest() {
   }, []);
 
   // --- Processing Conversations (Memoized) ---
-  const { requests, conversations } = useMemo(() => {
-    if (!rawData) return { requests: [], conversations: [] };
+  // Only compute grouped/normalized conversations, do not access refs/localStorage
+  const { requests, conversations, groupedConversations } = useMemo(() => {
+    if (!rawData) return { requests: [], conversations: [], groupedConversations: [] };
 
     const received = rawData.received || [];
     const sent = rawData.sent || [];
@@ -77,24 +78,7 @@ export default function ConsultRequest() {
       (item) => `${item?.status || ""}`.toLowerCase() === "accepted",
     );
 
-    const unreadStorageKey = `${CHAT_UNREAD_STORAGE_KEY_PREFIX}${loggedUserId}`;
-    const messageStorageKey = `${CHAT_STORAGE_KEY_PREFIX}${loggedUserId}`;
-
-    let unreadMap = {};
-    let messageMap = {};
-    try {
-      unreadMap =
-        JSON.parse(localStorage.getItem(unreadStorageKey) || "{}") || {};
-      messageMap =
-        JSON.parse(localStorage.getItem(messageStorageKey) || "{}") || {};
-    } catch (e) {
-      unreadMap = {};
-      messageMap = {};
-    }
-
-    const nextSignatures = {};
-    const previousSignatures = conversationSignatureRef.current;
-
+    // Only group and compute signatures, do not access refs/localStorage
     const grouped = acceptedRows.reduce((acc, item) => {
       const senderId = Number(item?.sender?.id || item?.sender_id);
       const receiverId = Number(item?.receiver?.id || item?.receiver_id);
@@ -113,7 +97,6 @@ export default function ConsultRequest() {
         image: otherUser.profile_image || "/images/user.jpg",
         lastMessage: item?.message || item?.description || "No messages yet",
         time: formatTime(item?.created_at),
-        unreadCount: unreadMap[key] ?? (item?.is_read ? 0 : 1),
         createdAt: item?.created_at || "",
         senderId,
         receiverId,
@@ -128,20 +111,12 @@ export default function ConsultRequest() {
       return acc;
     }, new Map());
 
+    // Compute signatures for each conversation
     const normalized = Array.from(grouped.values()).map((conversation) => {
       const signature = `${conversation.createdAt || ""}|${conversation.lastMessage || ""}`;
-      nextSignatures[conversation.id] = signature;
-
-      const previousSignature = previousSignatures[conversation.id];
-      const hasChanged = Boolean(
-        previousSignature && previousSignature !== signature,
-      );
-
-      // Only compute, do not mutate refs or localStorage here
       return {
         ...conversation,
         _signature: signature,
-        _hasChanged: hasChanged,
       };
     });
 
@@ -151,17 +126,20 @@ export default function ConsultRequest() {
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       ),
+      groupedConversations: normalized,
     };
   }, [rawData, loggedUserId]);
 
   // --- Side effect: update refs and localStorage after render ---
   useEffect(() => {
-    if (!conversations) return;
+    if (!groupedConversations) return;
+    // Read previous signatures from ref
+    const previousSignatures = conversationSignatureRef.current || {};
     const nextSignatures = {};
     const unreadMap = {};
     const messageMap = {};
-    conversations.forEach((conversation) => {
-      const { id, createdAt, lastMessage, senderId, receiverId, time, _signature, _hasChanged } = conversation;
+    groupedConversations.forEach((conversation) => {
+      const { id, createdAt, lastMessage, senderId, receiverId, time, _signature } = conversation;
       nextSignatures[id] = _signature;
       // Only update messageMap and unreadMap if lastMessage is valid
       if (lastMessage && lastMessage !== "No messages yet") {
@@ -170,9 +148,13 @@ export default function ConsultRequest() {
         const lastExistingSignature = lastExisting
           ? `${lastExisting.created_at || ""}|${lastExisting.content || ""}`
           : "";
+        const previousSignature = previousSignatures[id];
+        const hasChanged = Boolean(
+          previousSignature && previousSignature !== _signature,
+        );
         if (
           existingMessages.length === 0 ||
-          (_hasChanged && lastExistingSignature !== _signature)
+          (hasChanged && lastExistingSignature !== _signature)
         ) {
           const snapshot = {
             id: `${id}-${createdAt || "snapshot"}`,
@@ -185,7 +167,7 @@ export default function ConsultRequest() {
           messageMap[id] = [...existingMessages, snapshot];
           // Increment unread if background
           if (
-            _hasChanged &&
+            hasChanged &&
             id !== selectedConversationIdRef.current
           ) {
             unreadMap[id] = (unreadMap[id] || 0) + 1;
@@ -200,7 +182,7 @@ export default function ConsultRequest() {
       localStorage.setItem(unreadStorageKey, JSON.stringify(unreadMap));
       localStorage.setItem(messageStorageKey, JSON.stringify(messageMap));
     }
-  }, [conversations, loggedUserId]);
+  }, [groupedConversations, loggedUserId]);
 
   const handleOpenOfferModal = (item) => {
     setSelectedRequest(item);

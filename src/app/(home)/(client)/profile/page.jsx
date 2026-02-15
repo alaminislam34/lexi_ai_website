@@ -40,11 +40,7 @@ export default function Profile() {
       });
       return res.data;
     },
-  });
-
-  // Sync internal form state when data is fetched
-  useEffect(() => {
-    if (user) {
+    onSuccess: (user) => {
       setProfileData({
         full_name: user.full_name || "",
         phone: user.phone || "",
@@ -54,8 +50,9 @@ export default function Profile() {
       });
       setPreviewUrl(user.profile_image);
       setUser(user); // Sync global context if needed
-    }
-  }, [user, setUser]);
+    },
+  });
+  // Removed useEffect for setProfileData
 
   // --- 2. Update Profile Mutation ---
   const profileMutation = useMutation({
