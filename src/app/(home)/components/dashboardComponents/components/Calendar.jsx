@@ -108,7 +108,7 @@ export default function Calendar() {
     try {
       const tokenData = JSON.parse(localStorage.getItem("token"));
       const res = await axios.get(
-        "http://10.10.7.19:8001/api/attorney/events/",
+        "http://10.10.7.19:8002/api/attorney/events/",
         {
           headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
         },

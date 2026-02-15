@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8002";
 const CHAT_STORAGE_KEY_PREFIX = "chat_messages_by_conversation_";
 const CHAT_UNREAD_STORAGE_KEY_PREFIX = "chat_unread_by_conversation_";
 

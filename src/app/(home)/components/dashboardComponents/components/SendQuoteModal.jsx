@@ -46,7 +46,7 @@ export default function SendQuoteModal() {
 
     try {
       const res = await axios.post(
-        `http://10.10.7.19:8001/api/attorney/consultations/${selectedRequest.id}/reply/`,
+        `http://10.10.7.19:8002/api/attorney/consultations/${selectedRequest.id}/reply/`,
         {
           subject: formData.subject,
           case_details: formData.case_details,
@@ -79,7 +79,7 @@ export default function SendQuoteModal() {
 
   return (
     <div className="fixed inset-0 z-100 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-secondary border border-white/10 p-6 md:p-8 rounded-2xl shadow-2xl max-w-2xl w-full relative animate-in fade-in zoom-in duration-200">
+      <div className="bg-secondary max-h-[80vh] border border-white/10 p-6 md:p-8 rounded-2xl shadow-2xl max-w-2xl w-full relative animate-in fade-in zoom-in duration-200">
         {/* Header Section */}
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center gap-4">
@@ -113,14 +113,14 @@ export default function SendQuoteModal() {
         {/* Dynamic Context Box */}
         <div className="mb-6 p-4 bg-black/30 rounded-xl border border-white/5">
           <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">
-            Client's Request (
+            Client&apos;s Request (
             {new Date(selectedRequest.created_at).toLocaleDateString()})
           </h4>
           <p className="text-white font-semibold mb-1">
             {selectedRequest.subject}
           </p>
-          <p className="text-gray-400 text-sm italic leading-relaxed">
-            "{selectedRequest.message}"
+          <p className="text-gray-400 text-sm italic leading-relaxed overflow-y-auto max-h-40">
+            &ldquo;{selectedRequest.message}&rdquo;
           </p>
         </div>
 

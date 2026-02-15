@@ -31,7 +31,7 @@ export default function Login() {
         return;
       }
       setLoading(true);
-      const res = await axios.post(`http://10.10.7.19:8001${LOGIN}`, {
+      const res = await axios.post(`http://10.10.7.19:8002${LOGIN}`, {
         email,
         password,
         remember_me: rememberMe ? "true" : "false",

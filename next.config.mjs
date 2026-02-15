@@ -10,8 +10,15 @@ const nextConfig = {
       },
       {
         protocol: "http",
-        hostname: "10.10.7.19", // Added this
-        port: "8001", // Added the port from your error message
+        hostname: "10.10.7.19",
+        port: "8002", // আপনার এরর মেসেজ অনুযায়ী এখানে 8002 হবে
+        pathname: "/media/**",
+      },
+      // অথবা যদি আপনার API কখনো 8001 আবার কখনো 8002 হয়, তবে নিচের মতো দিতে পারেন:
+      {
+        protocol: "http",
+        hostname: "10.10.7.19",
+        port: "", // পোর্ট খালি রাখলে ওই হোস্টনেমের সব পোর্ট এলাউ করবে
         pathname: "/media/**",
       },
     ],

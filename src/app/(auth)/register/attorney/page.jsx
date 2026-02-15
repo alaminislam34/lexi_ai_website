@@ -52,7 +52,7 @@ export default function AttorneyRegisterPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://10.10.7.19:8001/api/auth/register/",
+        "http://10.10.7.19:8002/api/auth/register/",
         formData,
       );
 
@@ -75,7 +75,7 @@ export default function AttorneyRegisterPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://10.10.7.19:8001/api/auth/otp/verify/",
+        "http://10.10.7.19:8002/api/auth/otp/verify/",
         otpData,
       );
 
@@ -283,7 +283,7 @@ export default function AttorneyRegisterPage() {
                 <div className="bg-element p-4 rounded-xl border border-primary/20 flex items-center gap-4">
                   <ShieldCheck className="text-primary" size={32} />
                   <p className="text-xs text-gray">
-                    Please check your inbox. If you don't see the email, check
+                    Please check your inbox. If you don&apos;t see the email, check
                     your spam folder.
                   </p>
                 </div>
@@ -327,7 +327,7 @@ export default function AttorneyRegisterPage() {
                 </button>
 
                 <p className="text-center text-sm text-gray">
-                  Didn't receive a code?{" "}
+                  Didn&apos;t receive a code?{" "}
                   <span className="text-primary cursor-pointer hover:underline">
                     Resend Code
                   </span>

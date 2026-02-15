@@ -31,7 +31,7 @@ export default function QoutesDetails() {
 
       try {
         const res = await axios.post(
-          `http://10.10.7.19:8001/api/attorney/consultations/${selectedRequest.consultation}/accept/`,
+          `http://10.10.7.19:8002/api/attorney/consultations/${selectedRequest.consultation}/accept/`,
           {},
           {
             headers: {
@@ -93,7 +93,7 @@ export default function QoutesDetails() {
               Original Message
             </label>
             <p className="text-gray-300 text-sm italic">
-              "{selectedRequest.message}"
+              &ldquo;{selectedRequest.message}&rdquo;
             </p>
           </div>
 

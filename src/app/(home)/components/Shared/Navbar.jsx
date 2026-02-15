@@ -6,26 +6,32 @@ import { LogOut, Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useContext } from "react";
+
 export const navlinksClient = [
   { name: "Home", link: "/" },
   { name: "Ask Casezy", link: "/ask_casezy" },
   { name: "Attorney", link: "/attorneys" },
   { name: "Dashboard", link: "/dashboard" },
 ];
+
 export const navlinksAttorney = [
   { name: "Home", link: "/" },
-  // { name: "Ask Casezy", link: "/ask_casezy" },
   { name: "For Attorney", link: "/for_attorney" },
   { name: "Dashboard", link: "/dashboard/attorney" },
 ];
+
 export default function Navbar() {
   const path = usePathname();
   const [showMenu, setShowMenu] = useState(false);
   const [scroll, setScroll] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const { user, logout, loading } = useContext(StateContext);
+
+  // Refs for closing modal on outside click
+  const userModalRef = useRef(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,15 +42,30 @@ export default function Navbar() {
       }
     };
 
+    const handleClickOutside = (event) => {
+      // Close user modal if clicked outside
+      if (
+        userModalRef.current &&
+        !userModalRef.current.contains(event.target)
+      ) {
+        setShowUserModal(false);
+      }
+      // Close mobile menu if clicked outside
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+
     window.addEventListener("scroll", handleScroll);
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   let navlinks;
-  console.log(user?.role);
   if (user?.role === "user") {
     navlinks = navlinksClient;
   } else if (user?.role === "attorney") {
@@ -79,101 +100,97 @@ export default function Navbar() {
         </ul>
 
         <div className="flex items-center gap-4 relative">
-          <Image
-            onClick={() => {
-              setShowUserModal(!showUserModal);
-              if (showMenu) {
-                setShowMenu(false);
-              }
-            }}
-            src={"/images/user.jpg"}
-            width={300}
-            height={300}
-            alt="Profile image"
-            className="md:w-12 w-9 md:h-12 h-9 rounded-full bg-cover bg-center border border-gray-500 p-2 cursor-pointer"
-          />
-          {showUserModal && (
-            <div className="absolute top-14 right-2 z-50 max-w-sm min-w-[280px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl ring-1 ring-gray-100 dark:ring-gray-700 p-5 transition-all duration-300 ease-in-out">
-              {/* User Info Section */}
-              <div className="pb-4 border-b border-gray-100 dark:border-gray-700 space-y-4">
-                <div className="flex flex-col">
-                  <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 tracking-wider">
-                    Name
-                  </p>
-                  <p className="text-base font-medium text-gray-900 dark:text-white">
-                    {user?.full_name}
-                  </p>
-                </div>
+          <div ref={userModalRef} className="relative">
+            <Image
+              onClick={() => {
+                setShowUserModal(!showUserModal);
+                if (showMenu) setShowMenu(false);
+              }}
+              src={user?.profile_image || "/images/user.jpg"}
+              width={300}
+              height={300}
+              alt="Profile image"
+              className="md:w-12 w-9 md:h-12 h-9 rounded-full bg-cover bg-center border border-gray-500 p-2 cursor-pointer"
+            />
+            {showUserModal && (
+              <div className="absolute top-14 right-0 z-50 max-w-sm min-w-[280px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl ring-1 ring-gray-100 dark:ring-gray-700 p-5 transition-all duration-300 ease-in-out">
+                {/* User Info Section */}
+                <div className="pb-4 border-b border-gray-100 dark:border-gray-700 space-y-4">
+                  <div className="flex flex-col">
+                    <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 tracking-wider">
+                      Name
+                    </p>
+                    <p className="text-base font-medium text-gray-900 dark:text-white">
+                      {user?.full_name}
+                    </p>
+                  </div>
 
-                <div className="flex flex-col">
-                  <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 tracking-wider">
-                    Email
-                  </p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
-                    {user?.email}
-                  </p>
-                </div>
+                  <div className="flex flex-col">
+                    <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 tracking-wider">
+                      Email
+                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                      {user?.email}
+                    </p>
+                  </div>
 
-                <div className="flex flex-col">
-                  <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 tracking-wider">
-                    Role
-                  </p>
-                  <p className="text-sm font-medium">{user?.role}</p>
+                  <div className="flex flex-col">
+                    <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 tracking-wider">
+                      Role
+                    </p>
+                    <p className="text-sm font-medium dark:text-white uppercase">
+                      {user?.role}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <Link
-                href={"/profile"}
-                onClick={() => setShowUserModal(false)}
-                className="py-2 mt-2 inline-block hover:bg-gray/50 duration-300 rounded-xl px-4 w-full"
-              >
-                Profile Details
-              </Link>
-
-              <div className="pt-6">
-                <button
-                  onClick={logout}
-                  className="w-full flex items-center justify-center gap-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 dark:hover:bg-red-700 transition-colors duration-200 ease-in-out py-2 px-3 rounded-lg border border-red-500 dark:border-red-600 hover:border-transparent"
+                <Link
+                  href={"/profile"}
+                  onClick={() => setShowUserModal(false)}
+                  className="py-2 mt-2 inline-block hover:bg-gray/10 dark:hover:bg-gray-700 duration-300 rounded-xl px-4 w-full dark:text-white"
                 >
-                  <LogOut size={16} />
-                  Log out
-                </button>
+                  Profile Details
+                </Link>
+
+                <div className="pt-6">
+                  <button
+                    onClick={logout}
+                    className="w-full flex items-center justify-center gap-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 dark:hover:bg-red-700 transition-colors duration-200 ease-in-out py-2 px-3 rounded-lg border border-red-500 dark:border-red-600 hover:border-transparent"
+                  >
+                    <LogOut size={16} />
+                    Log out
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-          <div>
+            )}
+          </div>
+
+          <div ref={menuRef} className="relative">
             <button
               onClick={() => {
                 setShowMenu(!showMenu);
-                if (showUserModal) {
-                  setShowUserModal(false);
-                }
+                if (showUserModal) setShowUserModal(false);
               }}
-              className="block lg:hidden cursor-pointer hover:text-white active:bg-primary hover:bg-primary p-2 duration-300 hover:border-primary active:scale-95 rounded-xl bg-transparent border border-gray"
+              className="block lg:hidden cursor-pointer hover:text-white active:bg-primary hover:bg-primary p-2 duration-300 hover:border-primary active:scale-95 rounded-xl bg-transparent border border-gray text-white"
             >
               <Menu size={18} />
             </button>
             {showMenu && (
-              <div className="absolute top-14 right-2 z-40 max-w-sm min-w-[280px] rounded-2xl shadow-2xl bg-element p-6 transition-all duration-300 ease-in-out">
+              <div className="absolute top-14 right-0 z-40 max-w-sm min-w-[280px] rounded-2xl shadow-2xl bg-[#1d1d1d] p-6 transition-all duration-300 ease-in-out">
                 <h1 className="text-2xl lg:text-3xl font-semibold text-primary font-lora">
-                  <Link href={"/client"}>Casezys</Link>
+                  <Link href={"/"}>Casezys</Link>
                 </h1>
                 <br />
                 <ul className="flex flex-col justify-center gap-2">
                   {navlinks?.map((nav, i) => (
                     <li
-                      onClick={() => {
-                        if (showUserModal || showMenu) {
-                          setShowUserModal(false);
-                          setShowMenu(false);
-                        }
-                      }}
+                      onClick={() => setShowMenu(false)}
                       key={i}
                       className={` ${
                         path === nav.link ? "text-primary" : "text-white"
                       }`}
                     >
                       <Link
-                        className="text-sm hover:bg-white/20 py-2 px-3 rounded-lg w-full inline-block duration-300"
+                        className="text-sm hover:bg-white/10 py-2 px-3 rounded-lg w-full inline-block duration-300"
                         href={nav.link}
                       >
                         {nav.name}

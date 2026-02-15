@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Image from "next/image";
-import { BiMessageAltDetail, BiLoaderAlt } from "react-icons/bi";
+import { BiLoaderAlt } from "react-icons/bi";
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 import Link from "next/link";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DashboardConversationList from "./DashboardConversationList";
-
-const TEXT_ELEMENT_BG = "bg-[#33363D]";
 
 const getStatusClasses = (status) => {
   if (status === "accepted") {
@@ -26,56 +25,82 @@ const getStatusClasses = (status) => {
 
 export default function MessageAndReceived() {
   const { setShowModal, setSelectedRequest } = useAuth();
-  const [quotes, setQuotes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  // 1. Fetch REAL Quotes from your API
-  useEffect(() => {
-    const fetchQuotes = async () => {
+  // --- 1. Fetch Quotes using useQuery ---
+  const { data: quotes = [], isLoading } = useQuery({
+    queryKey: ["receivedQuotes"],
+    queryFn: async () => {
+      const tokenData = localStorage.getItem("token");
+      const tokens = tokenData ? JSON.parse(tokenData) : null;
+      if (!tokens?.accessToken) throw new Error("No Access Token");
+
+      const res = await axios.get(
+        "http://10.10.7.19:8002/api/attorney/consultations/reply-messages/",
+        {
+          headers: { Authorization: `Bearer ${tokens.accessToken}` },
+        },
+      );
+      return res.data;
+    },
+    onError: (err) => {
+      console.error("Fetch Error:", err);
+      toast.error("Failed to load received quotes.");
+    },
+  });
+
+  // --- 2. Reject Quote Mutation ---
+  const rejectMutation = useMutation({
+    mutationFn: async (quoteId) => {
       const tokenData = localStorage.getItem("token");
       const tokens = tokenData ? JSON.parse(tokenData) : null;
 
-      try {
-        const res = await axios.get(
-          "http://10.10.7.19:8001/api/attorney/consultations/reply-messages/",
-          {
-            headers: {
-              Authorization: `Bearer ${tokens?.accessToken}`,
-            },
-          },
-        );
-        console.log(res.data)
-        setQuotes(res.data || []);
-      } catch (error) {
-        console.error("Fetch Error:", error);
-        toast.error("Failed to load received quotes.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchQuotes();
-  }, []);
-  console.log(quotes, "user qoutes");
+      // API call to reject
+      const res = await axios.post(
+        `http://10.10.7.19:8002/api/attorney/consultations/${quoteId}/reject/`,
+        {}, // body usually empty for this action
+        {
+          headers: { Authorization: `Bearer ${tokens?.accessToken}` },
+        },
+      );
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Quote rejected successfully.");
+      // Invalidate and refetch the list to show updated status
+      queryClient.invalidateQueries(["receivedQuotes"]);
+    },
+    onError: (error) => {
+      console.error("Reject Error:", error);
+      toast.error(error?.response?.data?.message || "Failed to reject quote.");
+    },
+  });
 
   const handleOpenDetails = (quoteData) => {
-    setSelectedRequest(quoteData); // Set the real data for the QoutesDetails modal
+    setSelectedRequest(quoteData);
     setShowModal(true);
   };
 
+  const handleReject = (e, quoteId) => {
+    e.preventDefault();
+    if (window.confirm("Are you sure you want to reject this quote?")) {
+      rejectMutation.mutate(quoteId);
+    }
+  };
+
   return (
-    <div className={`min-h-screen text-white`}>
+    <div className="min-h-screen text-white">
       <div className="max-w-4xl mx-auto space-y-6">
         <DashboardConversationList title="Messages" limit={5} />
 
-        {/* Received Quotes Section - Now Dynamic */}
+        {/* Received Quotes Section */}
         <div className="bg-secondary p-4 rounded-xl">
           <h2 className="text-xl font-semibold text-white mb-6">
             Received Quotes
           </h2>
 
           <div className="flex flex-col gap-2">
-            {loading ? (
+            {isLoading ? (
               <div className="flex justify-center py-10">
                 <BiLoaderAlt className="animate-spin text-primary text-3xl" />
               </div>
@@ -83,27 +108,29 @@ export default function MessageAndReceived() {
               quotes.map((quote) => (
                 <div
                   key={quote.id}
-                  className={`p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20`}
+                  className="p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
                       <Image
-                        src={quote.sender.profile_image || "/images/user.jpg"}
+                        src={quote.sender?.profile_image || "/images/user.jpg"}
                         height={50}
                         width={50}
-                        alt={quote.sender.full_name}
+                        alt={quote.sender?.full_name || "User"}
                         className="w-10 md:w-12 h-10 md:h-12 rounded-full object-cover"
                       />
                       <div className="min-w-0">
                         <p className="text-white font-medium text-sm md:text-lg truncate">
-                          {quote.sender.full_name || "New Client"}
+                          {quote.sender?.full_name || "New Client"}
                         </p>
                         <div className="flex items-center gap-2">
                           <p className="text-xs sm:text-sm text-gray-400 truncate">
                             {quote.location || "Location not provided"}
                           </p>
                           <span
-                            className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full border ${getStatusClasses(quote.status)}`}
+                            className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full border ${getStatusClasses(
+                              quote.status,
+                            )}`}
                           >
                             {quote.status || "unknown"}
                           </span>
@@ -111,9 +138,7 @@ export default function MessageAndReceived() {
                       </div>
                     </div>
 
-                    <div
-                      className={`px-4 py-2 rounded-lg text-gray text-xs sm:text-sm border border-gray-700/50`}
-                    >
+                    <div className="px-4 py-2 rounded-lg text-gray text-xs sm:text-sm border border-gray-700/50">
                       Budget
                       <span className="block text-center mt-0.5 text-white font-bold">
                         ${quote.budget}
@@ -121,16 +146,35 @@ export default function MessageAndReceived() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleOpenDetails(quote)}
-                    className={`w-full py-2 rounded-lg text-white transition duration-300 bg-primary hover:bg-dark-primary`}
-                  >
-                    View Details
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={() => handleOpenDetails(quote)}
+                      className="flex-1 py-2 rounded-lg text-white transition duration-300 bg-primary hover:bg-dark-primary text-sm"
+                    >
+                      View Details
+                    </button>
+
+                    {/* Reject Button: Only show if not already rejected/accepted */}
+                    {quote.status === "offered" && (
+                      <button
+                        onClick={(e) => handleReject(e, quote.id)}
+                        disabled={rejectMutation.isLoading}
+                        className="flex-1 py-2 rounded-lg text-white transition duration-300 bg-red-500/20 border border-red-500/40 hover:bg-red-500/40 text-sm disabled:opacity-50"
+                      >
+                        {rejectMutation.isLoading &&
+                        rejectMutation.variables === quote.id
+                          ? "Rejecting..."
+                          : "Reject Quote"}
+                      </button>
+                    )}
+                  </div>
+
                   {quote.status === "accepted" && (
                     <Link
-                      href={`/message?consultationId=${quote.consultation || quote.id}`}
-                      className="w-full mt-2 inline-block text-center py-2 rounded-lg text-white transition duration-300 bg-primary/20 border border-primary/40 hover:bg-primary/30"
+                      href={`/message?consultationId=${
+                        quote.consultation || quote.id
+                      }`}
+                      className="w-full mt-2 inline-block text-center py-2 rounded-lg text-white transition duration-300 bg-green-500/20 border border-green-500/40 hover:bg-green-500/30 text-sm"
                     >
                       Message Client
                     </Link>

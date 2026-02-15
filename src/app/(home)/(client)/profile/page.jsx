@@ -35,7 +35,7 @@ export default function Profile() {
     queryKey: ["profile"],
     queryFn: async () => {
       const tokenData = JSON.parse(localStorage.getItem("token"));
-      const res = await axios.get(`http://10.10.7.19:8001${PROFILE_DETAILS}`, {
+      const res = await axios.get(`http://10.10.7.19:8002${PROFILE_DETAILS}`, {
         headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
       });
       return res.data;
@@ -62,7 +62,7 @@ export default function Profile() {
     mutationFn: async (formData) => {
       const tokenData = JSON.parse(localStorage.getItem("token"));
       const res = await axios.put(
-        `http://10.10.7.19:8001${PROFILE_DETAILS}`,
+        `http://10.10.7.19:8002${PROFILE_DETAILS}`,
         formData,
         {
           headers: {
@@ -89,8 +89,8 @@ export default function Profile() {
   const passwordMutation = useMutation({
     mutationFn: async (passData) => {
       const tokenData = JSON.parse(localStorage.getItem("token"));
-      return await axios.put(
-        `http://10.10.7.19:8001${PASSWORD_CHANGE}`,
+      return await axios.post(
+        `http://10.10.7.19:8002${PASSWORD_CHANGE}`,
         passData,
         {
           headers: { Authorization: `Bearer ${tokenData?.accessToken}` },

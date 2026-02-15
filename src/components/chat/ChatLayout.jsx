@@ -3,7 +3,7 @@
 import { ArrowLeft, MoreVertical, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RiStarFill, RiStarLine } from "react-icons/ri";
 import Rating from "react-rating";
 import toast, { Toaster } from "react-hot-toast";
@@ -16,7 +16,7 @@ const PRIMARY_COLOR_CLASSES = "bg-blue-500 hover:bg-blue-600";
 const SECONDARY_BG_COLOR = "bg-[#1D1F23]";
 const APP_BG = "bg-[#12151B]";
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8001";
+  process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8002";
 const CHAT_STORAGE_KEY_PREFIX = "chat_messages_by_conversation_";
 const CHAT_UNREAD_STORAGE_KEY_PREFIX = "chat_unread_by_conversation_";
 const POLLING_INTERVAL_MS = 5000;
@@ -223,7 +223,7 @@ export default function ChatLayout({
     [selectedConversation, currentMessages],
   );
 
-  const appendMessageForConversation = (
+  const appendMessageForConversation = useCallback((
     conversationKey,
     message,
     { increaseUnreadWhenInactive = true } = {},
@@ -270,9 +270,9 @@ export default function ChatLayout({
         return timeB - timeA;
       });
     });
-  };
+  }, []);
 
-  const handleSocketMessage = (conversationRecord, payload) => {
+  const handleSocketMessage = useCallback((conversationRecord, payload) => {
     if (payload?.error) {
       toast.error(payload.error);
       return;
@@ -302,7 +302,7 @@ export default function ChatLayout({
     appendMessageForConversation(conversationKey, normalizedMessage, {
       increaseUnreadWhenInactive: true,
     });
-  };
+  }, [appendMessageForConversation, loggedUserId]);
 
   useEffect(() => {
     if (!isReady) return;
@@ -494,7 +494,7 @@ export default function ChatLayout({
       activeSockets[consultationKey].close();
       delete activeSockets[consultationKey];
     });
-  }, [conversations, isReady, jwtToken]);
+  }, [conversations, handleSocketMessage, isReady, jwtToken]);
 
   useEffect(() => {
     return () => {

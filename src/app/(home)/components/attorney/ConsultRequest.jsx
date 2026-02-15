@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 import axios from "axios";
 import { BiMessageAltDetail, BiLoaderAlt } from "react-icons/bi";
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RiStarFill, RiStarLine } from "react-icons/ri";
 import { toast } from "react-toastify";
+import { useQuery } from "@tanstack/react-query";
 import ConversationList from "@/components/chat/ConversationList";
 
 const CHAT_STORAGE_KEY_PREFIX = "chat_messages_by_conversation_";
@@ -30,292 +30,211 @@ const formatTime = (isoTime) => {
 export default function ConsultRequest() {
   const router = useRouter();
   const { setShowModal, setSelectedRequest } = useAuth();
-  const [requests, setRequests] = useState([]);
-  const [conversations, setConversations] = useState([]);
   const [selectedConversationId, setSelectedConversationId] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [loggedUserId, setLoggedUserId] = useState(0);
-  const conversationSignatureRef = React.useRef({});
-  const selectedConversationIdRef = React.useRef("");
+  const conversationSignatureRef = useRef({});
+  const selectedConversationIdRef = useRef("");
 
   useEffect(() => {
     selectedConversationIdRef.current = selectedConversationId;
   }, [selectedConversationId]);
 
-  // 1. Fetch Dynamic Data from API
-  useEffect(() => {
-    let intervalId;
-
-    const fetchConsultations = async (isInitial = false) => {
+  // --- TanStack Query for Fetching Data ---
+  const { data: rawData, isLoading } = useQuery({
+    queryKey: ["consultations"],
+    queryFn: async () => {
       const tokenData = localStorage.getItem("token");
       const tokens = JSON.parse(tokenData);
 
-      if (!tokens?.accessToken) {
-        toast.error("Session expired. Please log in.");
-        setLoading(false);
-        return;
-      }
+      if (!tokens?.accessToken) throw new Error("No Access Token");
 
-      try {
-        const res = await axios.get(
-          "http://10.10.7.19:8001/api/attorney/consultations/me/",
-          {
-            headers: {
-              Authorization: `Bearer ${tokens.accessToken}`,
-            },
-          },
-        );
-        // Ensure we are setting the real data from the 'received' array
-        setRequests(res.data.received || []);
+      const res = await axios.get(
+        "http://10.10.7.19:8002/api/attorney/consultations/me/",
+        {
+          headers: { Authorization: `Bearer ${tokens.accessToken}` },
+        },
+      );
+      return res.data;
+    },
+    refetchInterval: POLLING_INTERVAL_MS,
+    onError: () => toast.error("Failed to sync data"),
+  });
 
-        const userData = JSON.parse(localStorage.getItem("user") || "{}");
-        const currentLoggedUserId = Number(
-          userData?.id || userData?.user_id || 0,
-        );
-        setLoggedUserId(currentLoggedUserId);
-        const unreadStorageKey = `${CHAT_UNREAD_STORAGE_KEY_PREFIX}${currentLoggedUserId}`;
-        const messageStorageKey = `${CHAT_STORAGE_KEY_PREFIX}${currentLoggedUserId}`;
-
-        let unreadMap = {};
-        let messageMap = {};
-        try {
-          unreadMap =
-            JSON.parse(localStorage.getItem(unreadStorageKey) || "{}") || {};
-        } catch {
-          unreadMap = {};
-        }
-
-        try {
-          messageMap =
-            JSON.parse(localStorage.getItem(messageStorageKey) || "{}") || {};
-        } catch {
-          messageMap = {};
-        }
-
-        const allRows = [
-          ...(res.data.received || []),
-          ...(res.data.sent || []),
-        ];
-        const acceptedRows = allRows.filter(
-          (item) => `${item?.status || ""}`.toLowerCase() === "accepted",
-        );
-
-        const nextSignatures = {};
-        const previousSignatures = conversationSignatureRef.current;
-
-        const grouped = acceptedRows.reduce((acc, item) => {
-          const senderId = Number(item?.sender?.id || item?.sender_id);
-          const receiverId = Number(item?.receiver?.id || item?.receiver_id);
-          const otherUser =
-            senderId === currentLoggedUserId ? item?.receiver : item?.sender;
-          if (!otherUser?.id) return acc;
-
-          const key = `${otherUser.id}`;
-          const existing = acc.get(key);
-
-          const record = {
-            id: key,
-            consultationId:
-              item?.consultation || item?.consultation_id || item?.id,
-            name: otherUser.full_name || otherUser.email || "Unknown",
-            email: otherUser.email || "",
-            image: otherUser.profile_image || "/images/user.jpg",
-            lastMessage:
-              item?.message || item?.description || "No messages yet",
-            time: formatTime(item?.created_at),
-            unreadCount: unreadMap[key] ?? (item?.is_read ? 0 : 1),
-            createdAt: item?.created_at || "",
-            senderId,
-            receiverId,
-          };
-
-          if (!existing) {
-            acc.set(key, record);
-            return acc;
-          }
-
-          const existingDate = new Date(existing.createdAt || 0).getTime();
-          const currentDate = new Date(record.createdAt || 0).getTime();
-          if (currentDate > existingDate) {
-            acc.set(key, {
-              ...record,
-              unreadCount: unreadMap[key] ?? existing.unreadCount,
-            });
-          }
-
-          return acc;
-        }, new Map());
-
-        const normalized = Array.from(grouped.values())
-          .map((conversation) => {
-            const signature = `${conversation.createdAt || ""}|${conversation.lastMessage || ""}`;
-            nextSignatures[conversation.id] = signature;
-
-            const previousSignature = previousSignatures[conversation.id];
-            const hasChanged = Boolean(
-              previousSignature && previousSignature !== signature,
-            );
-
-            if (
-              conversation.lastMessage &&
-              conversation.lastMessage !== "No messages yet"
-            ) {
-              const existingMessages = messageMap[conversation.id] || [];
-              const lastExisting =
-                existingMessages[existingMessages.length - 1];
-              const lastExistingSignature = lastExisting
-                ? `${lastExisting.created_at || ""}|${lastExisting.content || ""}`
-                : "";
-
-              if (
-                existingMessages.length === 0 ||
-                (hasChanged && lastExistingSignature !== signature)
-              ) {
-                const snapshot = {
-                  id: `${conversation.id}-${conversation.createdAt || Date.now()}`,
-                  sender_id: conversation.senderId,
-                  receiver_id: conversation.receiverId,
-                  content: conversation.lastMessage,
-                  created_at:
-                    conversation.createdAt || new Date().toISOString(),
-                  time: conversation.time,
-                };
-                messageMap = {
-                  ...messageMap,
-                  [conversation.id]: [...existingMessages, snapshot],
-                };
-              }
-
-              if (
-                hasChanged &&
-                conversation.id !== selectedConversationIdRef.current
-              ) {
-                unreadMap = {
-                  ...unreadMap,
-                  [conversation.id]: (unreadMap[conversation.id] || 0) + 1,
-                };
-              }
-            }
-
-            return {
-              ...conversation,
-              unreadCount:
-                unreadMap[conversation.id] ?? conversation.unreadCount ?? 0,
-            };
-          })
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt || 0).getTime() -
-              new Date(a.createdAt || 0).getTime(),
-          );
-
-        conversationSignatureRef.current = nextSignatures;
-        localStorage.setItem(unreadStorageKey, JSON.stringify(unreadMap));
-        localStorage.setItem(messageStorageKey, JSON.stringify(messageMap));
-
-        setConversations(normalized);
-      } catch (error) {
-        console.error("Fetch Error:", error);
-        if (isInitial) {
-          toast.error("Failed to load real-time requests");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchConsultations(true);
-    intervalId = window.setInterval(
-      () => fetchConsultations(false),
-      POLLING_INTERVAL_MS,
-    );
-
-    return () => {
-      if (intervalId) {
-        window.clearInterval(intervalId);
-      }
-    };
+  // --- Local User Identity ---
+  const loggedUserId = useMemo(() => {
+    if (typeof window === "undefined") return 0;
+    const userData = JSON.parse(localStorage.getItem("user") || "{}");
+    return Number(userData?.id || userData?.user_id || 0);
   }, []);
 
-  // 2. This function links the list to the Modal
+  // --- Processing Conversations (Memoized) ---
+  const { requests, conversations } = useMemo(() => {
+    if (!rawData) return { requests: [], conversations: [] };
+
+    const received = rawData.received || [];
+    const sent = rawData.sent || [];
+    const allRows = [...received, ...sent];
+    const acceptedRows = allRows.filter(
+      (item) => `${item?.status || ""}`.toLowerCase() === "accepted",
+    );
+
+    const unreadStorageKey = `${CHAT_UNREAD_STORAGE_KEY_PREFIX}${loggedUserId}`;
+    const messageStorageKey = `${CHAT_STORAGE_KEY_PREFIX}${loggedUserId}`;
+
+    let unreadMap = {};
+    let messageMap = {};
+    try {
+      unreadMap =
+        JSON.parse(localStorage.getItem(unreadStorageKey) || "{}") || {};
+      messageMap =
+        JSON.parse(localStorage.getItem(messageStorageKey) || "{}") || {};
+    } catch (e) {
+      unreadMap = {};
+      messageMap = {};
+    }
+
+    const nextSignatures = {};
+    const previousSignatures = conversationSignatureRef.current;
+
+    const grouped = acceptedRows.reduce((acc, item) => {
+      const senderId = Number(item?.sender?.id || item?.sender_id);
+      const receiverId = Number(item?.receiver?.id || item?.receiver_id);
+      const otherUser =
+        senderId === loggedUserId ? item?.receiver : item?.sender;
+      if (!otherUser?.id) return acc;
+
+      const key = `${otherUser.id}`;
+      const existing = acc.get(key);
+
+      const record = {
+        id: key,
+        consultationId: item?.consultation || item?.consultation_id || item?.id,
+        name: otherUser.full_name || otherUser.email || "Unknown",
+        email: otherUser.email || "",
+        image: otherUser.profile_image || "/images/user.jpg",
+        lastMessage: item?.message || item?.description || "No messages yet",
+        time: formatTime(item?.created_at),
+        unreadCount: unreadMap[key] ?? (item?.is_read ? 0 : 1),
+        createdAt: item?.created_at || "",
+        senderId,
+        receiverId,
+      };
+
+      if (
+        !existing ||
+        new Date(record.createdAt) > new Date(existing.createdAt)
+      ) {
+        acc.set(key, record);
+      }
+      return acc;
+    }, new Map());
+
+    const normalized = Array.from(grouped.values()).map((conversation) => {
+      const signature = `${conversation.createdAt || ""}|${conversation.lastMessage || ""}`;
+      nextSignatures[conversation.id] = signature;
+
+      const previousSignature = previousSignatures[conversation.id];
+      const hasChanged = Boolean(
+        previousSignature && previousSignature !== signature,
+      );
+
+      // Only compute, do not mutate refs or localStorage here
+      return {
+        ...conversation,
+        _signature: signature,
+        _hasChanged: hasChanged,
+      };
+    });
+
+    return {
+      requests: received,
+      conversations: normalized.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    };
+  }, [rawData, loggedUserId]);
+
+  // --- Side effect: update refs and localStorage after render ---
+  useEffect(() => {
+    if (!conversations) return;
+    const nextSignatures = {};
+    const unreadMap = {};
+    const messageMap = {};
+    conversations.forEach((conversation) => {
+      const { id, createdAt, lastMessage, senderId, receiverId, time, _signature, _hasChanged } = conversation;
+      nextSignatures[id] = _signature;
+      // Only update messageMap and unreadMap if lastMessage is valid
+      if (lastMessage && lastMessage !== "No messages yet") {
+        const existingMessages = messageMap[id] || [];
+        const lastExisting = existingMessages[existingMessages.length - 1];
+        const lastExistingSignature = lastExisting
+          ? `${lastExisting.created_at || ""}|${lastExisting.content || ""}`
+          : "";
+        if (
+          existingMessages.length === 0 ||
+          (_hasChanged && lastExistingSignature !== _signature)
+        ) {
+          const snapshot = {
+            id: `${id}-${createdAt || "snapshot"}`,
+            sender_id: senderId,
+            receiver_id: receiverId,
+            content: lastMessage,
+            created_at: createdAt || new Date().toISOString(),
+            time,
+          };
+          messageMap[id] = [...existingMessages, snapshot];
+          // Increment unread if background
+          if (
+            _hasChanged &&
+            id !== selectedConversationIdRef.current
+          ) {
+            unreadMap[id] = (unreadMap[id] || 0) + 1;
+          }
+        }
+      }
+    });
+    conversationSignatureRef.current = nextSignatures;
+    if (typeof window !== "undefined") {
+      const unreadStorageKey = `${CHAT_UNREAD_STORAGE_KEY_PREFIX}${loggedUserId}`;
+      const messageStorageKey = `${CHAT_STORAGE_KEY_PREFIX}${loggedUserId}`;
+      localStorage.setItem(unreadStorageKey, JSON.stringify(unreadMap));
+      localStorage.setItem(messageStorageKey, JSON.stringify(messageMap));
+    }
+  }, [conversations, loggedUserId]);
+
   const handleOpenOfferModal = (item) => {
-    // CRITICAL: We pass the REAL object to the global context
     setSelectedRequest(item);
-    // Now the Modal has data and will render
     setShowModal(true);
   };
 
   const handleOpenConversation = (conversationId) => {
     setSelectedConversationId(conversationId);
-
     const selected = conversations.find((item) => item.id === conversationId);
     if (!selected) return;
 
+    // Reset Unread in LocalStorage
     const unreadStorageKey = `${CHAT_UNREAD_STORAGE_KEY_PREFIX}${loggedUserId}`;
-    const messageStorageKey = `${CHAT_STORAGE_KEY_PREFIX}${loggedUserId}`;
-
     try {
-      const current =
-        JSON.parse(localStorage.getItem(unreadStorageKey) || "{}") || {};
+      const current = JSON.parse(
+        localStorage.getItem(unreadStorageKey) || "{}",
+      );
       localStorage.setItem(
         unreadStorageKey,
-        JSON.stringify({
-          ...current,
-          [conversationId]: 0,
-        }),
+        JSON.stringify({ ...current, [conversationId]: 0 }),
       );
-    } catch {
-      // ignore localStorage errors
-    }
-
-    try {
-      const currentMessages =
-        JSON.parse(localStorage.getItem(messageStorageKey) || "{}") || {};
-      const existing = currentMessages[conversationId] || [];
-
-      if (
-        existing.length === 0 &&
-        selected.lastMessage &&
-        selected.lastMessage !== "No messages yet"
-      ) {
-        const snapshot = {
-          id: `${conversationId}-${selected.createdAt || Date.now()}`,
-          sender_id: selected.senderId,
-          receiver_id: selected.receiverId,
-          content: selected.lastMessage,
-          created_at: selected.createdAt || new Date().toISOString(),
-          time: selected.time || formatTime(selected.createdAt),
-        };
-
-        localStorage.setItem(
-          messageStorageKey,
-          JSON.stringify({
-            ...currentMessages,
-            [conversationId]: [snapshot],
-          }),
-        );
-      }
-    } catch {
-      // ignore localStorage errors
-    }
-
-    setConversations((prev) =>
-      prev.map((item) =>
-        item.id === conversationId ? { ...item, unreadCount: 0 } : item,
-      ),
-    );
+    } catch (e) {}
 
     router.push(`/message?consultationId=${selected.consultationId}`);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64 bg-secondary rounded-xl">
         <BiLoaderAlt className="animate-spin text-primary text-4xl" />
       </div>
     );
   }
-  console.log(requests, "consultRequest");
+
   return (
     <div className="w-full text-white">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -361,12 +280,11 @@ export default function ConsultRequest() {
 
                   <div className="bg-black/20 p-3 rounded-lg mb-4 border border-white/5">
                     <p className="text-sm text-gray-300 line-clamp-2 italic">
-                      "{item.message}"
+                      &ldquo;{item.message}&rdquo;
                     </p>
                   </div>
                   {item.status === "pending" && (
                     <div className="grid grid-cols-2 items-center gap-4">
-                      {/* Both buttons now trigger the Modal with the dynamic 'item' */}
                       <button
                         onClick={() => handleOpenOfferModal(item)}
                         className="w-full py-2 rounded-lg text-white text-xs font-medium border border-gray-600 hover:bg-white/5 transition"

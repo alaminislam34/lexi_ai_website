@@ -33,7 +33,7 @@ export default function StateProvider({ children }) {
   const router = useRouter();
 
   const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8001";
+    process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8002";
 
   const fetchUser = useCallback(async () => {
     // 1. SSR Check: Ensure localStorage is available
@@ -86,7 +86,7 @@ export default function StateProvider({ children }) {
     } else {
       toast.error("An error occurred while logging out. Please try again.");
     }
-  });
+  }, [API_BASE_URL, router]);
 
   useEffect(() => {
     fetchUser();
@@ -102,7 +102,7 @@ export default function StateProvider({ children }) {
       logout,
       refreshUser: fetchUser,
     }),
-    [userData, user, loading, fetchUser],
+    [userData, user, loading, logout, fetchUser],
   );
 
   return (
