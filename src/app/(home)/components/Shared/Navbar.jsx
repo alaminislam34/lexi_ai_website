@@ -159,10 +159,7 @@ export default function Navbar() {
                 </h1>
                 <br />
                 <ul className="flex flex-col justify-center gap-2">
-                  {(user?.role === "client"
-                    ? navlinksClient
-                    : navlinksAttorney
-                  ).map((nav, i) => (
+                  {navlinks?.map((nav, i) => (
                     <li
                       onClick={() => {
                         if (showUserModal || showMenu) {

@@ -1,10 +1,11 @@
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
+import { StateContext } from "@/app/providers/StateProvider";
 import { TriangleAlert } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useContext } from "react";
 
 export default function Banner() {
-  const { user } = useAuth();
+  const { user } = useContext(StateContext);
   return (
     <div className=" max-w-[1440px] mx-auto w-11/12 min-h-[95vh] flex items-center">
       <div className="space-y-6">
@@ -23,12 +24,20 @@ export default function Banner() {
           >
             Ask Casezys
           </Link>
-          {user?.role === "client" && (
+          {user?.role === "attorney" && (
+            <Link
+              href={"/dashboard/attorney"}
+              className="py-4 md:py-6 px-8 md:px-14 lg:px-16 rounded-2xl text-white border border-white md:text-lg hover:border-primary duration-300 hover:text-primary"
+            >
+              Browse Client
+            </Link>
+          )}
+          {user?.role === "user" && (
             <Link
               href={"/attorneys"}
               className="py-4 md:py-6 px-8 md:px-14 lg:px-16 rounded-2xl text-white border border-white md:text-lg hover:border-primary duration-300 hover:text-primary"
             >
-              Attorney
+              Browse Attorneys
             </Link>
           )}
         </div>

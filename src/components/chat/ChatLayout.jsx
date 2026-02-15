@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, MessageSquare, MoreVertical, X } from "lucide-react";
+import { ArrowLeft, MoreVertical, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -15,7 +15,11 @@ import ConversationList from "./ConversationList";
 const PRIMARY_COLOR_CLASSES = "bg-blue-500 hover:bg-blue-600";
 const SECONDARY_BG_COLOR = "bg-[#1D1F23]";
 const APP_BG = "bg-[#12151B]";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8001";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8001";
+const CHAT_STORAGE_KEY_PREFIX = "chat_messages_by_conversation_";
+const CHAT_UNREAD_STORAGE_KEY_PREFIX = "chat_unread_by_conversation_";
+const POLLING_INTERVAL_MS = 5000;
 
 const formatTime = (isoTime) => {
   if (!isoTime) return "";
@@ -44,10 +48,11 @@ const normalizeIncoming = (payload) => {
 
   if (payload.type === "message") {
     return {
-      id: Date.now() + Math.random(),
+      id: payload.id || `${Date.now()}-${Math.random()}`,
       sender_id: payload.sender_id,
       receiver_id: payload.receiver_id,
       content: payload.content,
+      created_at: payload.created_at || new Date().toISOString(),
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -58,23 +63,144 @@ const normalizeIncoming = (payload) => {
   return null;
 };
 
-export default function ChatLayout({ consultationId, loggedUserId, jwtToken, role }) {
+export default function ChatLayout({
+  consultationId,
+  loggedUserId,
+  jwtToken,
+  role,
+}) {
   const [inputMessage, setInputMessage] = useState("");
   const [isThreadListVisible, setIsThreadListVisible] = useState(true);
-  const [showRate, setShowRate] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messagesByConversation, setMessagesByConversation] = useState({});
+  const [unreadByConversation, setUnreadByConversation] = useState({});
   const [conversations, setConversations] = useState([]);
   const [selectedConversationId, setSelectedConversationId] = useState("");
   const [loadingConversations, setLoadingConversations] = useState(true);
 
-  const socketRef = useRef(null);
+  const socketsRef = useRef({});
+  const hasHydratedStorageRef = useRef(false);
+  const hasInitializedMessagePersistRef = useRef(false);
+  const hasInitializedUnreadPersistRef = useRef(false);
+  const hasInitialAutoSelectRef = useRef(false);
+  const selectedConversationIdRef = useRef("");
+  const conversationsRef = useRef([]);
+  const unreadByConversationRef = useRef({});
 
   const isReady = Boolean(jwtToken && loggedUserId);
+  const isAttorneyRole = `${role || ""}`.toLowerCase() === "attorney";
+
+  const messageStorageKey = useMemo(
+    () => `${CHAT_STORAGE_KEY_PREFIX}${loggedUserId}`,
+    [loggedUserId],
+  );
+
+  const unreadStorageKey = useMemo(
+    () => `${CHAT_UNREAD_STORAGE_KEY_PREFIX}${loggedUserId}`,
+    [loggedUserId],
+  );
+
+  useEffect(() => {
+    selectedConversationIdRef.current = selectedConversationId;
+  }, [selectedConversationId]);
+
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+  useEffect(() => {
+    unreadByConversationRef.current = unreadByConversation;
+  }, [unreadByConversation]);
+
+  useEffect(() => {
+    if (!isReady || typeof window === "undefined") return;
+
+    hasInitializedMessagePersistRef.current = false;
+    hasInitializedUnreadPersistRef.current = false;
+
+    const storedMessages = window.localStorage.getItem(messageStorageKey);
+    const storedUnread = window.localStorage.getItem(unreadStorageKey);
+
+    if (storedMessages) {
+      try {
+        const parsedMessages = JSON.parse(storedMessages);
+        if (parsedMessages && typeof parsedMessages === "object") {
+          setMessagesByConversation(parsedMessages);
+        }
+      } catch {
+        // keep existing in-memory message state if storage is malformed
+      }
+    }
+
+    if (storedUnread) {
+      try {
+        const parsedUnread = JSON.parse(storedUnread);
+        if (parsedUnread && typeof parsedUnread === "object") {
+          setUnreadByConversation(parsedUnread);
+        }
+      } catch {
+        // keep existing unread state if storage is malformed
+      }
+    }
+
+    hasHydratedStorageRef.current = true;
+  }, [isReady, messageStorageKey, unreadStorageKey]);
+
+  useEffect(() => {
+    if (!isReady || typeof window === "undefined") return;
+    if (!hasHydratedStorageRef.current) return;
+    if (!hasInitializedMessagePersistRef.current) {
+      hasInitializedMessagePersistRef.current = true;
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        messageStorageKey,
+        JSON.stringify(messagesByConversation),
+      );
+    } catch {
+      // ignore storage write errors
+    }
+  }, [isReady, messageStorageKey, messagesByConversation]);
+
+  useEffect(() => {
+    if (!isReady || typeof window === "undefined") return;
+    if (!hasHydratedStorageRef.current) return;
+    if (!hasInitializedUnreadPersistRef.current) {
+      hasInitializedUnreadPersistRef.current = true;
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        unreadStorageKey,
+        JSON.stringify(unreadByConversation),
+      );
+    } catch {
+      // ignore storage write errors
+    }
+  }, [isReady, unreadStorageKey, unreadByConversation]);
+
+  useEffect(() => {
+    setConversations((prev) =>
+      prev.map((item) => ({
+        ...item,
+        unreadCount: unreadByConversation[item.id] ?? item.unreadCount ?? 0,
+      })),
+    );
+  }, [unreadByConversation]);
 
   const selectedConversation = useMemo(
-    () => conversations.find((item) => item.id === selectedConversationId) || null,
+    () =>
+      conversations.find((item) => item.id === selectedConversationId) || null,
     [conversations, selectedConversationId],
+  );
+
+  const currentMessages = useMemo(
+    () => messagesByConversation[selectedConversationId] || [],
+    [messagesByConversation, selectedConversationId],
   );
 
   const currentConsultationId = selectedConversation?.consultationId || "";
@@ -85,21 +211,114 @@ export default function ChatLayout({ consultationId, loggedUserId, jwtToken, rol
       id: selectedConversation?.id || "",
       name: selectedConversation?.name || "Select Conversation",
       image: selectedConversation?.image || "/images/user.jpg",
-      lastMessage: selectedConversation?.lastMessage || messages[messages.length - 1]?.content || "No messages yet",
-      time: selectedConversation?.time || messages[messages.length - 1]?.time || "",
+      lastMessage:
+        selectedConversation?.lastMessage ||
+        currentMessages[currentMessages.length - 1]?.content ||
+        "No messages yet",
+      time:
+        selectedConversation?.time ||
+        currentMessages[currentMessages.length - 1]?.time ||
+        "",
     }),
-    [selectedConversation, messages],
+    [selectedConversation, currentMessages],
   );
+
+  const appendMessageForConversation = (
+    conversationKey,
+    message,
+    { increaseUnreadWhenInactive = true } = {},
+  ) => {
+    if (!conversationKey || !message) return;
+
+    const isOpenedConversation =
+      conversationKey === selectedConversationIdRef.current;
+
+    setMessagesByConversation((prev) => ({
+      ...prev,
+      [conversationKey]: [...(prev[conversationKey] || []), message],
+    }));
+
+    setUnreadByConversation((prev) => ({
+      ...prev,
+      [conversationKey]: isOpenedConversation
+        ? 0
+        : increaseUnreadWhenInactive
+          ? (prev[conversationKey] || 0) + 1
+          : prev[conversationKey] || 0,
+    }));
+
+    setConversations((prev) => {
+      const updated = prev.map((item) =>
+        item.id === conversationKey
+          ? {
+              ...item,
+              lastMessage: message.content || item.lastMessage,
+              time: message.time || item.time,
+              createdAt: message.created_at || item.createdAt,
+              unreadCount: isOpenedConversation
+                ? 0
+                : increaseUnreadWhenInactive
+                  ? (item.unreadCount || 0) + 1
+                  : item.unreadCount || 0,
+            }
+          : item,
+      );
+
+      return updated.sort((a, b) => {
+        const timeA = new Date(a.createdAt || 0).getTime();
+        const timeB = new Date(b.createdAt || 0).getTime();
+        return timeB - timeA;
+      });
+    });
+  };
+
+  const handleSocketMessage = (conversationRecord, payload) => {
+    if (payload?.error) {
+      toast.error(payload.error);
+      return;
+    }
+
+    if (payload?.ack) {
+      return;
+    }
+
+    const normalizedMessage = normalizeIncoming(payload);
+    if (!normalizedMessage) return;
+
+    const me = Number(loggedUserId);
+    const senderId = Number(normalizedMessage.sender_id);
+    const receiverId = Number(normalizedMessage.receiver_id);
+    const otherUserId = senderId === me ? receiverId : senderId;
+
+    let conversationKey = conversationRecord?.id || "";
+
+    if (!conversationKey && Number.isFinite(otherUserId)) {
+      const mappedConversation = conversationsRef.current.find(
+        (item) => Number(item.id) === Number(otherUserId),
+      );
+      conversationKey = mappedConversation?.id || `${otherUserId}`;
+    }
+
+    appendMessageForConversation(conversationKey, normalizedMessage, {
+      increaseUnreadWhenInactive: true,
+    });
+  };
 
   useEffect(() => {
     if (!isReady) return;
+
+    let intervalId;
 
     const fetchAcceptedConversations = async () => {
       setLoadingConversations(true);
 
       let rows = [];
+      const endpoint = isAttorneyRole
+        ? "/api/attorney/consultations/me/"
+        : "/api/attorney/consultations/reply-messages/";
+
       try {
-        const res = await fetch(`${API_BASE_URL}/api/attorney/consultations/reply-messages/`, {
+        const res = await fetch(`${API_BASE_URL}${endpoint}`, {
           headers: {
             Authorization: `Bearer ${jwtToken}`,
           },
@@ -112,21 +331,19 @@ export default function ChatLayout({ consultationId, loggedUserId, jwtToken, rol
         const data = await res.json();
         rows = normalizeConversationRows(data);
       } catch {
-        toast.error("Could not load accepted conversations.");
+        setLoadingConversations(false);
+        return;
       }
 
       const filteredAccepted = rows.filter((item) => {
         if (`${item?.status || ""}`.toLowerCase() !== "accepted") return false;
 
+        if (isAttorneyRole) return true;
+
         const senderId = Number(item?.sender?.id || item?.sender_id);
         const receiverId = Number(item?.receiver?.id || item?.receiver_id);
         const me = Number(loggedUserId);
-
-        if (role === "attorney") {
-          return senderId === me;
-        }
-
-        return receiverId === me;
+        return senderId === me || receiverId === me;
       });
 
       const groupedByOtherUser = filteredAccepted.reduce((acc, item) => {
@@ -142,7 +359,10 @@ export default function ChatLayout({ consultationId, loggedUserId, jwtToken, rol
 
         const record = {
           id: key,
-          consultationId: item?.consultation || item?.consultation_id || item?.id,
+          consultationId:
+            item?.consultation || item?.consultation_id || item?.id,
+          senderId: Number(item?.sender?.id || item?.sender_id) || null,
+          receiverId: Number(item?.receiver?.id || item?.receiver_id) || null,
           name: otherUser.full_name || otherUser.email || "Unknown",
           email: otherUser.email || "",
           image: otherUser.profile_image || "/images/user.jpg",
@@ -175,101 +395,177 @@ export default function ChatLayout({ consultationId, loggedUserId, jwtToken, rol
         return acc;
       }, new Map());
 
-      const normalized = Array.from(groupedByOtherUser.values()).sort(
-        (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
+      const normalizedMetadata = Array.from(groupedByOtherUser.values()).sort(
+        (a, b) =>
+          new Date(b.createdAt || 0).getTime() -
+          new Date(a.createdAt || 0).getTime(),
       );
 
-      setConversations(normalized);
+      setConversations((prev) => {
+        const previousById = prev.reduce((acc, item) => {
+          acc[item.id] = item;
+          return acc;
+        }, {});
 
-      if (normalized.length) {
-        const fromQuery = consultationId
-          ? normalized.find((item) => Number(item.consultationId) === Number(consultationId))
-          : null;
-        setMessages([]);
-        setSelectedConversationId(fromQuery?.id || normalized[0].id);
+        return normalizedMetadata.map((item) => ({
+          ...previousById[item.id],
+          ...item,
+          unreadCount:
+            unreadByConversationRef.current[item.id] ??
+            previousById[item.id]?.unreadCount ??
+            0,
+        }));
+      });
+
+      if (normalizedMetadata.length) {
+        if (!hasInitialAutoSelectRef.current) {
+          const fromQuery = consultationId
+            ? normalizedMetadata.find(
+                (item) =>
+                  Number(item.consultationId) === Number(consultationId),
+              )
+            : null;
+
+          const initialConversationId =
+            fromQuery?.id || normalizedMetadata[0].id;
+          setSelectedConversationId(initialConversationId);
+          setUnreadByConversation((prev) => ({
+            ...prev,
+            [initialConversationId]: 0,
+          }));
+          hasInitialAutoSelectRef.current = true;
+        }
       } else {
-        setMessages([]);
-        setSelectedConversationId("");
+        setConversations([]);
+        if (!selectedConversationIdRef.current) {
+          setSelectedConversationId("");
+        }
       }
 
       setLoadingConversations(false);
     };
 
     fetchAcceptedConversations();
-  }, [consultationId, isReady, jwtToken, loggedUserId]);
 
-  useEffect(() => {
-    if (!isReady || !currentConsultationId || !isAccepted) return;
-
-    const chatSocket = new ChatSocket({
-      consultationId: currentConsultationId,
-      jwtToken,
-      onMessage: (payload) => {
-        if (payload?.error) {
-          toast.error(payload.error);
-          return;
-        }
-
-        if (payload?.ack) {
-          return;
-        }
-
-        const message = normalizeIncoming(payload);
-        if (message) {
-          setMessages((prev) => [...prev, message]);
-        }
-      },
-      onError: ({ code, message }) => {
-        if (code === 4001 || code === 4002) {
-          toast.error(message || "Authentication failed. Please login again.");
-          return;
-        }
-
-        if (message) {
-          toast.error(message);
-        }
-      },
-    });
-
-    socketRef.current = chatSocket;
-    chatSocket.connect();
+    intervalId = window.setInterval(() => {
+      fetchAcceptedConversations();
+    }, POLLING_INTERVAL_MS);
 
     return () => {
-      chatSocket.close();
-      socketRef.current = null;
+      if (intervalId) {
+        window.clearInterval(intervalId);
+      }
     };
-  }, [currentConsultationId, jwtToken, isReady, isAccepted]);
+  }, [consultationId, isReady, isAttorneyRole, jwtToken, loggedUserId]);
+
+  useEffect(() => {
+    if (!isReady) return;
+
+    const activeSockets = socketsRef.current;
+    const expectedConsultationIds = new Set();
+
+    conversations.forEach((conversation) => {
+      const consultationKey = `${conversation.consultationId || ""}`;
+      if (!consultationKey || conversation.status !== "accepted") return;
+
+      expectedConsultationIds.add(consultationKey);
+
+      if (activeSockets[consultationKey]) return;
+
+      const chatSocket = new ChatSocket({
+        consultationId: conversation.consultationId,
+        jwtToken,
+        onMessage: (payload) => handleSocketMessage(conversation, payload),
+        onError: ({ code, message }) => {
+          if (code === 4001 || code === 4002) {
+            toast.error(
+              message || "Authentication failed. Please login again.",
+            );
+          }
+        },
+      });
+
+      activeSockets[consultationKey] = chatSocket;
+      chatSocket.connect();
+    });
+
+    Object.keys(activeSockets).forEach((consultationKey) => {
+      if (expectedConsultationIds.has(consultationKey)) return;
+      activeSockets[consultationKey].close();
+      delete activeSockets[consultationKey];
+    });
+  }, [conversations, isReady, jwtToken]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(socketsRef.current).forEach((socket) => socket.close());
+      socketsRef.current = {};
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedConversationId) return;
+
+    setUnreadByConversation((prev) => ({
+      ...prev,
+      [selectedConversationId]: 0,
+    }));
+
+    setConversations((prev) =>
+      prev.map((item) =>
+        item.id === selectedConversationId ? { ...item, unreadCount: 0 } : item,
+      ),
+    );
+  }, [selectedConversationId]);
 
   const handleSendMessage = () => {
     const text = inputMessage.trim();
     if (!text) return;
 
-    const sent = socketRef.current?.sendMessage(text);
+    if (!currentConsultationId) {
+      toast.error("Please select an active conversation.");
+      return;
+    }
+
+    const consultationKey = `${currentConsultationId}`;
+    const activeSocket = socketsRef.current[consultationKey];
+    const sent = activeSocket?.sendMessage(text);
+
     if (sent) {
       setInputMessage("");
+    } else {
+      toast.error("Message could not be sent. Please try again.");
     }
   };
 
-  if (!loadingConversations && !conversations.length) {
-    return (
-      <section className="max-w-[1440px] mx-auto w-full md:w-11/12 overflow-hidden pt-28">
-        <div className="flex h-[calc(100vh-64px)] md:h-[80vh] w-full text-white bg-[#1D1F23] rounded-xl shadow-2xl items-center justify-center">
-          <p className="text-gray-300">No accepted conversations found.</p>
-        </div>
-      </section>
-    );
-  }
+  const handleSelectConversation = (conversationId) => {
+    setSelectedConversationId(conversationId);
+    setIsThreadListVisible(false);
+    setShowOptionsMenu(false);
+  };
+
+  const handleClearCurrentConversation = () => {
+    if (!selectedConversationId) return;
+
+    setMessagesByConversation((prev) => ({
+      ...prev,
+      [selectedConversationId]: [],
+    }));
+
+    setShowOptionsMenu(false);
+    toast.success("Chat messages cleared for this conversation.");
+  };
 
   return (
     <>
       <Toaster position="top-right" />
       <section className="max-w-[1440px] mx-auto w-full md:w-11/12 overflow-hidden pt-28">
         <div
-          className={`flex h-[calc(100vh-64px)] md:h-[80vh] w-full text-white ${SECONDARY_BG_COLOR} rounded-xl shadow-2xl relative`}
+          className={`flex h-[calc(100vh-64px)] md:h-[80vh] w-full text-white border border-gray-700 rounded-xl shadow-2xl relative`}
         >
           <div
             className={`absolute inset-0 md:relative md:w-1/4 md:min-w-[300px] border-r border-gray-700/50 flex flex-col z-10 
-                   bg-secondary
+                   
                       ${isThreadListVisible ? "block" : "hidden md:block"}`}
           >
             <div className="flex items-center justify-start p-4 border-b border-gray-700/50">
@@ -280,23 +576,12 @@ export default function ChatLayout({ consultationId, loggedUserId, jwtToken, rol
               >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
-
-              <button
-                className={`flex items-center ml-0 md:ml-4 px-4 py-2 rounded-lg text-white font-semibold ${PRIMARY_COLOR_CLASSES}`}
-              >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Messages
-              </button>
             </div>
 
             <ConversationList
               conversations={conversations}
               selectedConversationId={selectedConversationId}
-              onSelect={(conversationId) => {
-                setMessages([]);
-                setSelectedConversationId(conversationId);
-                setIsThreadListVisible(false);
-              }}
+              onSelect={handleSelectConversation}
             />
           </div>
 
@@ -304,12 +589,12 @@ export default function ChatLayout({ consultationId, loggedUserId, jwtToken, rol
             className={`
             flex-1 flex flex-col overflow-hidden 
             md:relative 
-            ${isThreadListVisible ? "hidden md:flex" : "fixed inset-0 z-50 flex bg-black"}
-            ${APP_BG}
+            ${isThreadListVisible ? "hidden md:flex" : "fixed inset-0 z-50 flex "}
+        
           `}
           >
             <div
-              className={`flex items-center justify-between p-4 border-b border-gray-700/50 ${SECONDARY_BG_COLOR}`}
+              className={`flex items-center justify-between p-3.5 border-b border-gray-700/50 `}
             >
               <div className="flex items-center space-x-3">
                 <button
@@ -332,20 +617,27 @@ export default function ChatLayout({ consultationId, loggedUserId, jwtToken, rol
 
               <div className="relative">
                 <button
-                  onClick={() => setShowRate(!showRate)}
+                  onClick={() => setShowOptionsMenu((prev) => !prev)}
                   className={`p-2 rounded-full text-gray-400 hover:text-white transition hover:bg-element`}
                   aria-label="Options"
                 >
                   <MoreVertical className="w-5 h-5" />
                 </button>
 
-                {showRate && (
+                {showOptionsMenu && (
                   <div className="absolute top-10 right-4 rounded-xl bg-secondary p-4 max-w-xs z-20">
                     <button
                       onClick={() => setShowRatingModal(true)}
                       className="flex flex-row items-center truncate gap-2 py-2 px-6 bg-gray/10 w-full text-white text-sm"
                     >
-                      <RiStarLine className="text-2xl text-primary" /> Rate the Attorney
+                      <RiStarLine className="text-2xl text-primary" /> Rate the
+                      Attorney
+                    </button>
+                    <button
+                      onClick={handleClearCurrentConversation}
+                      className="flex flex-row items-center truncate gap-2 py-2 px-6 bg-gray/10 w-full text-white text-sm mt-2"
+                    >
+                      <X className="w-4 h-4" /> Clear Chat
                     </button>
                   </div>
                 )}
@@ -354,10 +646,17 @@ export default function ChatLayout({ consultationId, loggedUserId, jwtToken, rol
 
             {selectedConversation ? (
               <>
-                <MessageList messages={messages} loggedUserId={loggedUserId} />
+                <MessageList
+                  messages={currentMessages}
+                  loggedUserId={loggedUserId}
+                />
 
                 {isAccepted ? (
-                  <MessageInput value={inputMessage} onChange={setInputMessage} onSend={handleSendMessage} />
+                  <MessageInput
+                    value={inputMessage}
+                    onChange={setInputMessage}
+                    onSend={handleSendMessage}
+                  />
                 ) : (
                   <div className="p-3 md:p-4 border-t border-gray-700/50 bg-secondary text-center text-sm text-yellow-400">
                     Chat will be available after this consultation is accepted.
@@ -383,14 +682,22 @@ export default function ChatLayout({ consultationId, loggedUserId, jwtToken, rol
                   </button>
                 </div>
                 <div className=" space-y-6">
-                  <h1 className="text-2xl md:text-3xl text-text_color">How many stars would you give to him?</h1>
+                  <h1 className="text-2xl md:text-3xl text-text_color">
+                    How many stars would you give to him?
+                  </h1>
                   <p className="text-text_color">
-                    After your consultation, please take a moment to rate your experience to help us maintain the highest standards of service.
+                    After your consultation, please take a moment to rate your
+                    experience to help us maintain the highest standards of
+                    service.
                   </p>
                   <Rating
                     className="space-x-3"
-                    emptySymbol={<RiStarLine className="text-4xl text-primary" />}
-                    fullSymbol={<RiStarFill className="text-4xl text-primary" />}
+                    emptySymbol={
+                      <RiStarLine className="text-4xl text-primary" />
+                    }
+                    fullSymbol={
+                      <RiStarFill className="text-4xl text-primary" />
+                    }
                   />
                 </div>
               </div>

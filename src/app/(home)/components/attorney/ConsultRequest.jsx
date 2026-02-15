@@ -6,17 +6,47 @@ import axios from "axios";
 import { BiMessageAltDetail, BiLoaderAlt } from "react-icons/bi";
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { RiStarFill, RiStarLine } from "react-icons/ri";
 import { toast } from "react-toastify";
+import ConversationList from "@/components/chat/ConversationList";
+
+const CHAT_STORAGE_KEY_PREFIX = "chat_messages_by_conversation_";
+const CHAT_UNREAD_STORAGE_KEY_PREFIX = "chat_unread_by_conversation_";
+const POLLING_INTERVAL_MS = 5000;
+
+const formatTime = (isoTime) => {
+  if (!isoTime) return "";
+  try {
+    return new Date(isoTime).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+};
 
 export default function ConsultRequest() {
+  const router = useRouter();
   const { setShowModal, setSelectedRequest } = useAuth();
   const [requests, setRequests] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [selectedConversationId, setSelectedConversationId] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loggedUserId, setLoggedUserId] = useState(0);
+  const conversationSignatureRef = React.useRef({});
+  const selectedConversationIdRef = React.useRef("");
+
+  useEffect(() => {
+    selectedConversationIdRef.current = selectedConversationId;
+  }, [selectedConversationId]);
 
   // 1. Fetch Dynamic Data from API
   useEffect(() => {
-    const fetchConsultations = async () => {
+    let intervalId;
+
+    const fetchConsultations = async (isInitial = false) => {
       const tokenData = localStorage.getItem("token");
       const tokens = JSON.parse(tokenData);
 
@@ -37,14 +67,174 @@ export default function ConsultRequest() {
         );
         // Ensure we are setting the real data from the 'received' array
         setRequests(res.data.received || []);
+
+        const userData = JSON.parse(localStorage.getItem("user") || "{}");
+        const currentLoggedUserId = Number(
+          userData?.id || userData?.user_id || 0,
+        );
+        setLoggedUserId(currentLoggedUserId);
+        const unreadStorageKey = `${CHAT_UNREAD_STORAGE_KEY_PREFIX}${currentLoggedUserId}`;
+        const messageStorageKey = `${CHAT_STORAGE_KEY_PREFIX}${currentLoggedUserId}`;
+
+        let unreadMap = {};
+        let messageMap = {};
+        try {
+          unreadMap =
+            JSON.parse(localStorage.getItem(unreadStorageKey) || "{}") || {};
+        } catch {
+          unreadMap = {};
+        }
+
+        try {
+          messageMap =
+            JSON.parse(localStorage.getItem(messageStorageKey) || "{}") || {};
+        } catch {
+          messageMap = {};
+        }
+
+        const allRows = [
+          ...(res.data.received || []),
+          ...(res.data.sent || []),
+        ];
+        const acceptedRows = allRows.filter(
+          (item) => `${item?.status || ""}`.toLowerCase() === "accepted",
+        );
+
+        const nextSignatures = {};
+        const previousSignatures = conversationSignatureRef.current;
+
+        const grouped = acceptedRows.reduce((acc, item) => {
+          const senderId = Number(item?.sender?.id || item?.sender_id);
+          const receiverId = Number(item?.receiver?.id || item?.receiver_id);
+          const otherUser =
+            senderId === currentLoggedUserId ? item?.receiver : item?.sender;
+          if (!otherUser?.id) return acc;
+
+          const key = `${otherUser.id}`;
+          const existing = acc.get(key);
+
+          const record = {
+            id: key,
+            consultationId:
+              item?.consultation || item?.consultation_id || item?.id,
+            name: otherUser.full_name || otherUser.email || "Unknown",
+            email: otherUser.email || "",
+            image: otherUser.profile_image || "/images/user.jpg",
+            lastMessage:
+              item?.message || item?.description || "No messages yet",
+            time: formatTime(item?.created_at),
+            unreadCount: unreadMap[key] ?? (item?.is_read ? 0 : 1),
+            createdAt: item?.created_at || "",
+            senderId,
+            receiverId,
+          };
+
+          if (!existing) {
+            acc.set(key, record);
+            return acc;
+          }
+
+          const existingDate = new Date(existing.createdAt || 0).getTime();
+          const currentDate = new Date(record.createdAt || 0).getTime();
+          if (currentDate > existingDate) {
+            acc.set(key, {
+              ...record,
+              unreadCount: unreadMap[key] ?? existing.unreadCount,
+            });
+          }
+
+          return acc;
+        }, new Map());
+
+        const normalized = Array.from(grouped.values())
+          .map((conversation) => {
+            const signature = `${conversation.createdAt || ""}|${conversation.lastMessage || ""}`;
+            nextSignatures[conversation.id] = signature;
+
+            const previousSignature = previousSignatures[conversation.id];
+            const hasChanged = Boolean(
+              previousSignature && previousSignature !== signature,
+            );
+
+            if (
+              conversation.lastMessage &&
+              conversation.lastMessage !== "No messages yet"
+            ) {
+              const existingMessages = messageMap[conversation.id] || [];
+              const lastExisting =
+                existingMessages[existingMessages.length - 1];
+              const lastExistingSignature = lastExisting
+                ? `${lastExisting.created_at || ""}|${lastExisting.content || ""}`
+                : "";
+
+              if (
+                existingMessages.length === 0 ||
+                (hasChanged && lastExistingSignature !== signature)
+              ) {
+                const snapshot = {
+                  id: `${conversation.id}-${conversation.createdAt || Date.now()}`,
+                  sender_id: conversation.senderId,
+                  receiver_id: conversation.receiverId,
+                  content: conversation.lastMessage,
+                  created_at:
+                    conversation.createdAt || new Date().toISOString(),
+                  time: conversation.time,
+                };
+                messageMap = {
+                  ...messageMap,
+                  [conversation.id]: [...existingMessages, snapshot],
+                };
+              }
+
+              if (
+                hasChanged &&
+                conversation.id !== selectedConversationIdRef.current
+              ) {
+                unreadMap = {
+                  ...unreadMap,
+                  [conversation.id]: (unreadMap[conversation.id] || 0) + 1,
+                };
+              }
+            }
+
+            return {
+              ...conversation,
+              unreadCount:
+                unreadMap[conversation.id] ?? conversation.unreadCount ?? 0,
+            };
+          })
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt || 0).getTime() -
+              new Date(a.createdAt || 0).getTime(),
+          );
+
+        conversationSignatureRef.current = nextSignatures;
+        localStorage.setItem(unreadStorageKey, JSON.stringify(unreadMap));
+        localStorage.setItem(messageStorageKey, JSON.stringify(messageMap));
+
+        setConversations(normalized);
       } catch (error) {
         console.error("Fetch Error:", error);
-        toast.error("Failed to load real-time requests");
+        if (isInitial) {
+          toast.error("Failed to load real-time requests");
+        }
       } finally {
         setLoading(false);
       }
     };
-    fetchConsultations();
+
+    fetchConsultations(true);
+    intervalId = window.setInterval(
+      () => fetchConsultations(false),
+      POLLING_INTERVAL_MS,
+    );
+
+    return () => {
+      if (intervalId) {
+        window.clearInterval(intervalId);
+      }
+    };
   }, []);
 
   // 2. This function links the list to the Modal
@@ -55,6 +245,69 @@ export default function ConsultRequest() {
     setShowModal(true);
   };
 
+  const handleOpenConversation = (conversationId) => {
+    setSelectedConversationId(conversationId);
+
+    const selected = conversations.find((item) => item.id === conversationId);
+    if (!selected) return;
+
+    const unreadStorageKey = `${CHAT_UNREAD_STORAGE_KEY_PREFIX}${loggedUserId}`;
+    const messageStorageKey = `${CHAT_STORAGE_KEY_PREFIX}${loggedUserId}`;
+
+    try {
+      const current =
+        JSON.parse(localStorage.getItem(unreadStorageKey) || "{}") || {};
+      localStorage.setItem(
+        unreadStorageKey,
+        JSON.stringify({
+          ...current,
+          [conversationId]: 0,
+        }),
+      );
+    } catch {
+      // ignore localStorage errors
+    }
+
+    try {
+      const currentMessages =
+        JSON.parse(localStorage.getItem(messageStorageKey) || "{}") || {};
+      const existing = currentMessages[conversationId] || [];
+
+      if (
+        existing.length === 0 &&
+        selected.lastMessage &&
+        selected.lastMessage !== "No messages yet"
+      ) {
+        const snapshot = {
+          id: `${conversationId}-${selected.createdAt || Date.now()}`,
+          sender_id: selected.senderId,
+          receiver_id: selected.receiverId,
+          content: selected.lastMessage,
+          created_at: selected.createdAt || new Date().toISOString(),
+          time: selected.time || formatTime(selected.createdAt),
+        };
+
+        localStorage.setItem(
+          messageStorageKey,
+          JSON.stringify({
+            ...currentMessages,
+            [conversationId]: [snapshot],
+          }),
+        );
+      }
+    } catch {
+      // ignore localStorage errors
+    }
+
+    setConversations((prev) =>
+      prev.map((item) =>
+        item.id === conversationId ? { ...item, unreadCount: 0 } : item,
+      ),
+    );
+
+    router.push(`/message?consultationId=${selected.consultationId}`);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64 bg-secondary rounded-xl">
@@ -62,7 +315,7 @@ export default function ConsultRequest() {
       </div>
     );
   }
-
+  console.log(requests, "consultRequest");
   return (
     <div className="w-full text-white">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -85,7 +338,7 @@ export default function ConsultRequest() {
                     <div className="flex items-center space-x-3 w-full">
                       <div className="relative shrink-0">
                         <Image
-                          src={item.sender.profile_image || "/images/user.jpg"}
+                          src={item.sender.profile_image}
                           height={50}
                           width={50}
                           alt="Sender"
@@ -111,22 +364,23 @@ export default function ConsultRequest() {
                       "{item.message}"
                     </p>
                   </div>
-
-                  <div className="grid grid-cols-2 items-center gap-4">
-                    {/* Both buttons now trigger the Modal with the dynamic 'item' */}
-                    <button
-                      onClick={() => handleOpenOfferModal(item)}
-                      className="w-full py-2 rounded-lg text-white text-xs font-medium border border-gray-600 hover:bg-white/5 transition"
-                    >
-                      View Details
-                    </button>
-                    <button
-                      onClick={() => handleOpenOfferModal(item)}
-                      className="w-full py-2 rounded-lg text-white text-xs font-semibold bg-primary hover:bg-opacity-90 transition shadow-lg shadow-primary/10"
-                    >
-                      Send Offer
-                    </button>
-                  </div>
+                  {item.status === "pending" && (
+                    <div className="grid grid-cols-2 items-center gap-4">
+                      {/* Both buttons now trigger the Modal with the dynamic 'item' */}
+                      <button
+                        onClick={() => handleOpenOfferModal(item)}
+                        className="w-full py-2 rounded-lg text-white text-xs font-medium border border-gray-600 hover:bg-white/5 transition"
+                      >
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => handleOpenOfferModal(item)}
+                        className="w-full py-2 rounded-lg text-white text-xs font-semibold bg-primary hover:bg-opacity-90 transition shadow-lg shadow-primary/10"
+                      >
+                        Send Offer
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
@@ -154,18 +408,17 @@ export default function ConsultRequest() {
           </div>
         </div>
 
-        {/* Message Navigation */}
         <div className="rounded-xl overflow-hidden bg-secondary p-4 shadow-lg border border-gray-700/30">
           <div className="flex items-center py-2 border-b border-gray-700/50 mb-4">
             <BiMessageAltDetail className="w-5 h-5 mr-3 text-primary" />
-            <h2 className="text-lg font-semibold">Quick Actions</h2>
+            <h2 className="text-lg font-semibold">Recent Conversations</h2>
           </div>
-          <Link
-            href="/message"
-            className="w-full py-3 inline-block text-center rounded-xl text-white text-sm font-semibold transition duration-300 bg-primary/10 border border-primary/30 hover:bg-primary/20"
-          >
-            Open Inbox
-          </Link>
+
+          <ConversationList
+            conversations={conversations}
+            selectedConversationId={selectedConversationId}
+            onSelect={handleOpenConversation}
+          />
         </div>
       </div>
     </div>

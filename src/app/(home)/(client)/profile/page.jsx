@@ -7,17 +7,16 @@ import { StateContext } from "@/app/providers/StateProvider";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { PASSWORD_CHANGE, PROFILE_DETAILS } from "@/api/apiEntpoint";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function Profile() {
-  const { user, setUser } = useContext(StateContext);
+  const { setUser } = useContext(StateContext);
+  const queryClient = useQueryClient();
 
-  // States
+  // Local UI States
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [passLoading, setPassLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-
   const [profileData, setProfileData] = useState({
     full_name: "",
     phone: "",
@@ -25,14 +24,25 @@ export default function Profile() {
     location: "",
     preferred_legal_area: "",
   });
-
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: "",
     newPassword: "",
     newConfirmPassword: "",
   });
 
-  // Sync with Context Data
+  // --- 1. Fetch Profile Data ---
+  const { data: user, isLoading: isFetchingUser } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const tokenData = JSON.parse(localStorage.getItem("token"));
+      const res = await axios.get(`http://10.10.7.19:8001${PROFILE_DETAILS}`, {
+        headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
+      });
+      return res.data;
+    },
+  });
+
+  // Sync internal form state when data is fetched
   useEffect(() => {
     if (user) {
       setProfileData({
@@ -43,8 +53,62 @@ export default function Profile() {
         preferred_legal_area: user.preferred_legal_area || "",
       });
       setPreviewUrl(user.profile_image);
+      setUser(user); // Sync global context if needed
     }
-  }, [user]);
+  }, [user, setUser]);
+
+  // --- 2. Update Profile Mutation ---
+  const profileMutation = useMutation({
+    mutationFn: async (formData) => {
+      const tokenData = JSON.parse(localStorage.getItem("token"));
+      const res = await axios.put(
+        `http://10.10.7.19:8001${PROFILE_DETAILS}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${tokenData?.accessToken}`,
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+      return res.data;
+    },
+    onSuccess: (updatedData) => {
+      queryClient.invalidateQueries(["profile"]); // Refetch instant
+      setUser(updatedData);
+      toast.success("Profile updated successfully!");
+      setIsEditing(false);
+      setSelectedFile(null);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Update failed");
+    },
+  });
+
+  // --- 3. Update Password Mutation ---
+  const passwordMutation = useMutation({
+    mutationFn: async (passData) => {
+      const tokenData = JSON.parse(localStorage.getItem("token"));
+      return await axios.put(
+        `http://10.10.7.19:8001${PASSWORD_CHANGE}`,
+        passData,
+        {
+          headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
+        },
+      );
+    },
+    onSuccess: () => {
+      toast.success("Password changed!");
+      setPasswordForm({
+        oldPassword: "",
+        newPassword: "",
+        newConfirmPassword: "",
+      });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.detail || "Failed to change password");
+    },
+  });
 
   // Handlers
   const handleChange = (e) => {
@@ -60,50 +124,18 @@ export default function Profile() {
     }
   };
 
-  const handleSaveProfile = async (e) => {
+  const handleSaveProfile = (e) => {
     e.preventDefault();
-    setLoading(true);
+    const formData = new FormData();
+    Object.keys(profileData).forEach((key) =>
+      formData.append(key, profileData[key]),
+    );
+    if (selectedFile) formData.append("profile_image", selectedFile);
 
-    try {
-      const tokenData = JSON.parse(localStorage.getItem("token"));
-      const formData = new FormData();
-
-      formData.append("full_name", profileData.full_name);
-      formData.append("phone", profileData.phone);
-      formData.append("gender", profileData.gender);
-      formData.append("location", profileData.location);
-      formData.append("preferred_legal_area", profileData.preferred_legal_area);
-
-      if (selectedFile) {
-        formData.append("profile_image", selectedFile);
-      }
-
-      const res = await axios.put(
-        `http://10.10.7.19:8001${PROFILE_DETAILS}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${tokenData?.accessToken}`,
-            "Content-Type": "multipart/form-data",
-          },
-        },
-      );
-
-      if (res.status === 200) {
-        setUser(res.data); // Update global state
-        toast.success("Profile updated successfully!");
-        setIsEditing(false);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error(error.response?.data?.message || "Update failed");
-    } finally {
-      setLoading(false);
-    }
+    profileMutation.mutate(formData);
   };
 
-  // API Call: Update Password
-  const handlePasswordReset = async (e) => {
+  const handlePasswordReset = (e) => {
     e.preventDefault();
     if (
       !passwordForm.oldPassword ||
@@ -112,37 +144,20 @@ export default function Profile() {
     ) {
       return toast.warn("Fill all password fields");
     }
-
-    setPassLoading(true);
-    try {
-      const tokenData = JSON.parse(localStorage.getItem("token"));
-
-      const res = await axios.put(
-        `http://10.10.7.19:8001${PASSWORD_CHANGE}`,
-        {
-          old_password: passwordForm.oldPassword,
-          new_password: passwordForm.newPassword,
-          new_password_confirm: passwordForm.newConfirmPassword,
-        },
-        {
-          headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
-        },
-      );
-
-      if (res.status === 200) {
-        toast.success("Password changed!");
-        setPasswordForm({
-          oldPassword: "",
-          newPassword: "",
-          newConfirmPassword: "",
-        });
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to change password");
-    } finally {
-      setPassLoading(false);
-    }
+    passwordMutation.mutate({
+      old_password: passwordForm.oldPassword,
+      new_password: passwordForm.newPassword,
+      new_password_confirm: passwordForm.newConfirmPassword,
+    });
   };
+
+  if (isFetchingUser) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin w-10 h-10 text-primary" />
+      </div>
+    );
+  }
 
   return (
     <section className="max-w-[1440px] mx-auto w-11/12 pt-28 pb-20">
@@ -246,10 +261,10 @@ export default function Profile() {
         {isEditing && (
           <button
             type="submit"
-            disabled={loading}
+            disabled={profileMutation.isPending}
             className="flex items-center justify-center gap-2 bg-primary text-white p-4 rounded-xl font-semibold hover:bg-dark-primary transition"
           >
-            {loading ? (
+            {profileMutation.isPending ? (
               <Loader2 className="animate-spin" />
             ) : (
               <>
@@ -278,7 +293,7 @@ export default function Profile() {
             onChange={(e) =>
               setPasswordForm({ ...passwordForm, oldPassword: e.target.value })
             }
-            className="p-3 rounded-xl border border-gray-300 flex-1"
+            className="px-4 py-2 rounded-xl border border-gray-300 flex-1"
           />
           <input
             type="password"
@@ -287,7 +302,7 @@ export default function Profile() {
             onChange={(e) =>
               setPasswordForm({ ...passwordForm, newPassword: e.target.value })
             }
-            className="p-3 rounded-xl border border-gray-300 flex-1"
+            className="px-4 py-2 rounded-xl border border-gray-300 flex-1"
           />
           <input
             type="password"
@@ -299,19 +314,21 @@ export default function Profile() {
                 newConfirmPassword: e.target.value,
               })
             }
-            className="p-3 rounded-xl border border-gray-300 flex-1"
+            className="px-4 py-2 rounded-xl border border-gray-300 flex-1"
           />
-          <button
-            type="submit"
-            disabled={passLoading}
-            className="bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-dark-primary transition"
-          >
-            {passLoading ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              "Update Password"
-            )}
-          </button>
+          <div>
+            <button
+              type="submit"
+              disabled={passwordMutation.isPending}
+              className="bg-primary text-white px-6 inline-block truncate py-2 rounded-xl font-medium hover:bg-dark-primary transition"
+            >
+              {passwordMutation.isPending ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                "Update Password"
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </section>

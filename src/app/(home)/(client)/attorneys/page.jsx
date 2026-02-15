@@ -70,7 +70,7 @@ export default function Attorneys() {
     const lowerCaseSearch = searchTerm.toLowerCase();
     return attorneys.filter(
       (attorney) =>
-        attorney.full_name?.toLowerCase().includes(lowerCaseSearch) ||
+        attorney.location?.toLowerCase().includes(lowerCaseSearch) ||
         attorney.preferred_legal_area?.toLowerCase().includes(lowerCaseSearch),
     );
   }, [searchTerm, attorneys]);

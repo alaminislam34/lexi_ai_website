@@ -89,15 +89,16 @@ export default function Step_2() {
                 >
                   Gender
                 </label>
-                <input
-                  type="text"
-                  id="gender"
-                  placeholder="Enter your gender"
-                  className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
-                  value={gender}
+                <select
+                  name="gender"
                   onChange={(e) => setGender(e.target.value)}
-                  required
-                />
+                  className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
               </div>
 
               {/* Email Field */}

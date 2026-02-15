@@ -4,7 +4,10 @@ const SECONDARY_BG_COLOR = "bg-[#1D1F23]";
 
 const formatTime = (value) => {
   if (value) return value;
-  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 export default function MessageList({ messages, loggedUserId }) {
@@ -12,7 +15,8 @@ export default function MessageList({ messages, loggedUserId }) {
 
   useEffect(() => {
     if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
@@ -31,12 +35,16 @@ export default function MessageList({ messages, loggedUserId }) {
         return (
           <div
             key={message.id}
-            className={`flex flex-col p-6 ${isSent ? "items-end" : "items-start"}`}
+            className={`flex flex-col p-2 ${isSent ? "items-end" : "items-start"}`}
           >
-            <div className={`p-3 rounded-xl shadow-md max-w-xs md:max-w-md ${bubbleClasses}`}>
+            <div
+              className={`p-3 rounded-xl shadow-md max-w-xs md:max-w-md ${bubbleClasses}`}
+            >
               <p className="text-sm">{message.content}</p>
             </div>
-            <span className="text-xs text-gray-500 mt-1 mr-1 mb-2">{formatTime(message.time)}</span>
+            <span className="text-xs text-gray-500 mt-1 mr-1 mb-2">
+              {formatTime(message.time)}
+            </span>
           </div>
         );
       })}

@@ -9,9 +9,9 @@ export default function AttorneyDashboard() {
   const { showModal } = useAuth();
 
   const stats = [
-    { id: 1, label: "Ongoing Clients", value: "10" },
-    { id: 2, label: "New Leads", value: "3" },
-    { id: 3, label: "Unread Messages", value: "3" },
+    { id: 1, label: "Ongoing Clients", value: "0" },
+    { id: 2, label: "New Leads", value: "0" },
+    { id: 3, label: "Unread Messages", value: "0" },
   ];
 
   return (

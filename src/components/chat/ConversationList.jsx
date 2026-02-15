@@ -1,6 +1,10 @@
 import Image from "next/image";
 
-export default function ConversationList({ conversations, selectedConversationId, onSelect }) {
+export default function ConversationList({
+  conversations,
+  selectedConversationId,
+  onSelect,
+}) {
   if (!conversations?.length) {
     return (
       <div className="p-4 text-sm text-gray-400">
@@ -31,20 +35,21 @@ export default function ConversationList({ conversations, selectedConversationId
             />
 
             <div className="flex-1 min-w-0">
-              <p className="text-white font-medium truncate">{conversation.name || "Unknown"}</p>
-              {conversation.email ? (
-                <p className="text-xs text-gray-500 truncate">{conversation.email}</p>
-              ) : null}
+              <p className="text-white font-medium truncate">
+                {conversation.name || "Unknown"}
+              </p>
+
               <div className="flex items-center gap-2">
-                <p className="text-sm text-gray-400 truncate">{conversation.lastMessage || "No messages yet"}</p>
-                <span className="text-[10px] px-2 py-0.5 rounded-full border bg-green-500/10 text-green-400 border-green-500/40 shrink-0">
-                  {conversation.status || "accepted"}
-                </span>
+                <p className="text-sm text-gray-400 truncate">
+                  {conversation.lastMessage || "No messages yet"}
+                </p>
               </div>
             </div>
 
             <div className="flex flex-col items-end gap-1 shrink-0 ml-2">
-              <span className="text-xs text-gray-500">{conversation.time || ""}</span>
+              <span className="text-xs text-gray-500">
+                {conversation.time || ""}
+              </span>
               {conversation.unreadCount > 0 && (
                 <span className="text-[10px] bg-blue-500 text-white rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center">
                   {conversation.unreadCount}

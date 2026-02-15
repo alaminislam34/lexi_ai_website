@@ -27,7 +27,7 @@ export default function MessageInput({ value, onChange, onSend }) {
 
   return (
     <div className="p-3 md:p-4 border-t border-gray-700/50 bg-secondary">
-      <div className="flex items-end space-x-3">
+      <div className="flex items-center  space-x-3">
         <textarea
           ref={textareaRef}
           value={value}
@@ -38,16 +38,18 @@ export default function MessageInput({ value, onChange, onSend }) {
           rows={1}
           style={{ overflowY: "hidden" }}
         />
-        <button
-          onClick={onSend}
-          disabled={value.trim() === ""}
-          className={`p-3 rounded-lg text-white transition duration-300 bg-primary ${
-            value.trim() === "" ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          aria-label="Send message"
-        >
-          <Send className="w-5 h-5" />
-        </button>
+        <div>
+          <button
+            onClick={onSend}
+            disabled={value.trim() === ""}
+            className={`p-3 rounded-lg text-white transition duration-300 bg-primary ${
+              value.trim() === "" ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            aria-label="Send message"
+          >
+            <Send className="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
   );

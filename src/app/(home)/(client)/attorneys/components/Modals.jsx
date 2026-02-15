@@ -23,7 +23,7 @@ export const AttorneyProfileModal = ({
   if (!attorney) return null;
 
   const profileData = {
-    name: attorney.name,
+    name: attorney.full_name,
     location: attorney.location,
     score: attorney.rating?.average || 0.0,
     practice_areas: attorney.preferred_legal_area
@@ -73,7 +73,7 @@ export const AttorneyProfileModal = ({
                 </div>
                 <div className="min-w-0">
                   <h2 className="text-xl font-bold text-white truncate">
-                    {profileData.name}
+                    {profileData.name || "Unknown Attorney"}
                   </h2>
                   <p className="text-sm text-gray-400">
                     {profileData.location}
@@ -87,15 +87,6 @@ export const AttorneyProfileModal = ({
                 {Number(profileData.score).toFixed(1)}
               </span>
             </div>
-            <button
-              onClick={() => {
-                openConsultModal(attorney);
-                closeModal();
-              }}
-              className={`px-6 py-2.5 rounded-lg text-white font-bold transition duration-300 w-full ${PRIMARY_COLOR_CLASSES}`}
-            >
-              Request Consult
-            </button>
           </div>
 
           {/* Practice Areas */}
