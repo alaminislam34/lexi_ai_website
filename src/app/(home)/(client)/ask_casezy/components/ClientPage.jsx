@@ -1,266 +1,255 @@
 "use client";
 
-import React, { useState } from "react";
-import { ChevronDown, Loader2 } from "lucide-react";
-import Link from "next/link";
+import React, { useMemo, useState } from "react";
+import { Loader2, Send } from "lucide-react";
+import axios from "axios";
+import ReactMarkdown from "react-markdown";
 
-const SelectWrapper = ({ value, onChange, children, inputClasses }) => (
-  <div className="relative">
-    <select
-      value={value}
-      onChange={onChange}
-      className={`${inputClasses} appearance-none cursor-pointer pr-10`}
-    >
-      {children}
-    </select>
-    <ChevronDown className="absolute z-0 right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-  </div>
-);
+const prettifyReport = (rawText) => {
+  if (!rawText) return "";
 
-const AskCasezyForm = ({
-  state,
-  setState,
-  zip,
-  setZip,
-  practiceArea,
-  setPracticeArea,
-  description,
-  setDescription,
-  handleSubmit,
-  loading,
-  error,
-  inputClasses,
-}) => (
-  <div className="w-full max-w-5xl mx-auto md:mx-0">
-    <header className="mb-8 md:mb-12 space-y-2">
-      <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
-        Ask Casezys
-      </h1>
-      <p className="text-base text-gray-400">
-        Demo only — general legal information, not legal advice.
-      </p>
-    </header>
+  let text = `${rawText}`.trim();
 
-    <div className={`rounded-xl bg-secondary p-6 md:p-8`}>
-      {error && (
-        <div className="bg-red-900/30 border border-red-700 text-red-300 p-3 rounded-lg mb-6 text-sm">
-          {error}
-        </div>
-      )}
+  if (
+    (text.startsWith('"') && text.endsWith('"')) ||
+    (text.startsWith("'") && text.endsWith("'"))
+  ) {
+    text = text.slice(1, -1);
+  }
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label
-            htmlFor="state"
-            className="block text-sm font-semibold mb-2 text-gray-300"
-          >
-            State
-          </label>
-          <SelectWrapper
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            inputClasses={inputClasses}
-          >
-            <option value="Michigan">Michigan</option>
-            <option value="California">California</option>
-            <option value="New York">New York</option>
-            <option value="Texas">Texas</option>
-          </SelectWrapper>
-        </div>
+  text = text
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\\t/g, "\t")
+    .replace(/\r\n/g, "\n");
 
-        <div>
-          <label
-            htmlFor="zip"
-            className="block text-sm font-semibold mb-2 text-gray-300"
-          >
-            ZIP (Optional)
-          </label>
-          <input
-            type="text"
-            id="zip"
-            value={zip}
-            onChange={(e) => setZip(e.target.value)}
-            className={inputClasses}
-            placeholder="e.g., 48226"
-          />
-        </div>
+  text = text.replace(/^-{20,}\n([A-Z0-9 &\-/]+)\n-{20,}$/gm, "## $1");
+  text = text.replace(/^DISCLAIMER$/gm, "## DISCLAIMER");
+  text = text.replace(/^Generated:\s*(.+)$/gm, "**Generated:** $1");
 
-        <div>
-          <label
-            htmlFor="practiceArea"
-            className="block text-sm font-semibold mb-2 text-gray-300"
-          >
-            Case type
-          </label>
-          <SelectWrapper
-            value={practiceArea}
-            onChange={(e) => setPracticeArea(e.target.value)}
-            inputClasses={inputClasses}
-          >
-            <option value="Criminal">Criminal</option>
-            <option value="Family">Family Law</option>
-            <option value="RealEstate">Real Estate</option>
-            <option value="Civil">Civil Litigation</option>
-          </SelectWrapper>
-        </div>
-
-        <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-semibold mb-2 text-gray-300"
-          >
-            What happened?
-          </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className={`${inputClasses} resize-none h-32`}
-            placeholder="Briefly describe your situation (no sensitive details)"
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full flex items-center justify-center p-4 rounded-lg text-white bg-primary text-lg font-bold transition duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-8 shadow-lg shadow-blue-500/30"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Analyzing...
-            </>
-          ) : (
-            "Analyze & Start Chat"
-          )}
-        </button>
-      </form>
-    </div>
-  </div>
-);
-
-const CasezyChatInterface = ({ state, practiceArea }) => {
-  const sessionDetail = `${state} - ${practiceArea}${
-    practiceArea === "Family" ? " (Divorce, Custody)" : ""
-  }`;
-
-  const mockMessages = [
-    {
-      text: "Not legal advice. I can share general information and next steps.",
-      role: "ai",
-    },
-    {
-      text: `Summary for ${practiceArea}${
-        practiceArea === "Family" ? " (Divorce, Custody)" : ""
-      } in ${state}. Laws vary by county.`,
-      role: "ai",
-    },
-    { text: "When is your court date or any deadline (approx)?", role: "ai" },
-  ];
-
-  return (
-    <div className="w-full">
-      <header className="mb-6 space-y-1">
-        <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white leading-tight">
-          Casezys Chat
-        </h1>
-
-        <p className="text-base text-gray">Session · {sessionDetail}</p>
-      </header>
-
-      <div className={`space-y-8 bg-secondary rounded-2xl p-6 lg:p-8`}>
-        <div className="space-y-4 bg-[#1B1D22] p-6 rounded-2xl">
-          {mockMessages.map((msg, index) => (
-            <div key={index} className={``}>
-              <button className="w-full lg:w-1/2 text-left p-3 md:p-4 rounded-xl text-white text-base shadow-sm bg-element">
-                {" "}
-                {msg.text}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-col sm:flex-row space-y-4 space-x-4 pt-4">
-          <input
-            type="text"
-            placeholder="Type your answer...."
-            className="grow p-3 sm:p-4 w-full sm:w-auto rounded-xl text-white text-base border-none focus:ring3 bg-[#12151B] focus:ring-blue-500 focus:outline-none"
-          />
-          <button className="shrink-0 w-full py-3 sm:py-4 sm:w-24 flex items-center justify-center rounded-xl text-white text-lg font-semibold transition duration-300 hover:opacity-90 bg-primary">
-            Send
-          </button>
-        </div>
-
-        <div className="flex space-x-4 pt-4">
-          <Link
-            href={"/attorneys"}
-            className="py-3 px-5 w-1/2 truncate rounded-lg text-white text-sm font-medium transition duration-300 hover:opacity-90 bg-primary"
-          >
-            Browse attorneys
-          </Link>
-          <button className="py-3 px-5 w-1/2 truncate rounded-lg text-white text-sm font-medium border border-gray transition duration-300 hover:bg-gray-700">
-            View Sources
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return text.trim();
 };
 
-export default function Ask_Casezy_Client() {
-  const [state, setState] = useState("Michigan");
-  const [zip, setZip] = useState("48226");
-  const [practiceArea, setPracticeArea] = useState("Family");
+const parseSections = (text) => {
+  const normalized = `${text || ""}`.trim();
+  if (!normalized) return [];
+
+  const chunks = normalized.split(/\n(?=##\s+)/g);
+  return chunks.map((chunk, index) => {
+    const lines = chunk.split("\n");
+    const firstLine = lines[0] || "";
+    const title = firstLine.startsWith("## ")
+      ? firstLine.replace(/^##\s+/, "").trim()
+      : index === 0
+        ? "Overview"
+        : `Section ${index + 1}`;
+    const body = firstLine.startsWith("## ")
+      ? lines.slice(1).join("\n").trim()
+      : chunk.trim();
+
+    return {
+      id: `${title}-${index}`,
+      title,
+      body,
+    };
+  });
+};
+
+const extractHighlights = (text) => {
+  const source = `${text || ""}`;
+  const complexity = source.match(/Complexity Tier:\s*([^\n]+)/i)?.[1]?.trim();
+  const classification = source
+    .match(/Classification:\s*([^\n]+)/i)?.[1]
+    ?.trim();
+  const recommendation = source
+    .match(/Recommendation:\s*([^\n]+)/i)?.[1]
+    ?.trim();
+
+  return {
+    complexity: complexity || "Not detected",
+    classification: classification || "Not detected",
+    recommendation: recommendation || "Review the full report sections below.",
+  };
+};
+
+export default function Ask_Casezy_Simple() {
   const [description, setDescription] = useState("");
-
   const [loading, setLoading] = useState(false);
+  const [reportText, setReportText] = useState("");
   const [error, setError] = useState(null);
-  const [chatInitiated, setChatInitiated] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!state || !practiceArea || !description) {
-      setError(
-        "Please fill out all required fields (State, Practice area, Description)."
-      );
-      return;
+  const sections = useMemo(() => parseSections(reportText), [reportText]);
+  const highlights = useMemo(() => extractHighlights(reportText), [reportText]);
+
+  const handleCopy = async () => {
+    if (!reportText) return;
+    try {
+      await navigator.clipboard.writeText(reportText);
+    } catch (copyError) {
+      console.error(copyError);
+      setError("Could not copy report. Please copy manually.");
     }
+  };
+
+  const handleDownload = () => {
+    if (!reportText) return;
+
+    const blob = new Blob([reportText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `legal-research-report-${Date.now()}.txt`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleAnalyze = async (e) => {
+    e.preventDefault();
+    if (!description.trim()) return;
 
     setLoading(true);
     setError(null);
+    setReportText(""); 
 
-    console.log({ state, zip, practiceArea, description });
+    try {
+      const res = await axios.post(
+        "http://10.10.7.64:8002/query/report",
+        {
+          query: description,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-    setTimeout(() => {
+      if (res.status !== 200) {
+        throw new Error(`API responded with status ${res.status}`);
+      }
+
+      const data = res.data;
+      const result =
+        data?.report ||
+        data?.response ||
+        data?.result ||
+        data?.message ||
+        JSON.stringify(data);
+      setReportText(prettifyReport(result));
+    } catch (err) {
+      console.error(err);
+      setError("Failed to analyze. Please check your connection.");
+    } finally {
       setLoading(false);
-      setChatInitiated(true);
-    }, 2000);
+    }
   };
 
-  const inputClasses =
-    "w-full p-4 border-none rounded-lg text-white text-base focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-gray-500 appearance-none shadow-inner bg-[#12151B]";
-
   return (
-    <div className="min-h-screen pt-24 lg:pt-28 max-w-[1440px] mx-auto w-11/12 text-white flex justify-center">
-      <div className="w-full">
-        {chatInitiated ? (
-          <CasezyChatInterface state={state} practiceArea={practiceArea} />
-        ) : (
-          <AskCasezyForm
-            state={state}
-            setState={setState}
-            zip={zip}
-            setZip={setZip}
-            practiceArea={practiceArea}
-            setPracticeArea={setPracticeArea}
-            description={description}
-            setDescription={setDescription}
-            handleSubmit={handleSubmit}
-            loading={loading}
-            error={error}
-            inputClasses={inputClasses}
-          />
+    <div className="min-h-screen pt-24 lg:pt-32 max-w-4xl mx-auto w-11/12 text-white">
+      <div className="space-y-8">
+        {/* Input Section */}
+        <div className="bg-secondary p-6 rounded-2xl shadow-xl border border-white/5">
+          <h2 className="text-xl font-bold mb-4 text-primary">
+            Describe your situation
+          </h2>
+          <form onSubmit={handleAnalyze} className="space-y-4">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter details here..."
+              className="w-full h-40 p-4 bg-black/20 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-primary focus:outline-none resize-none transition-all"
+            />
+
+            <button
+              type="submit"
+              disabled={loading || !description.trim()}
+              className="w-full py-4 bg-primary hover:bg-opacity-90 disabled:opacity-50 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin w-6 h-6" />
+                  Analyzing Content...
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  Analyze Content
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/50 text-red-400 rounded-xl text-center">
+            {error}
+          </div>
+        )}
+
+        {/* Response Section */}
+        {reportText && (
+          <div className="bg-[#1B1D22] p-6 lg:p-8 rounded-2xl border border-primary/20 animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h3 className="text-xs font-black text-primary uppercase tracking-[0.2em]">
+                Analysis Results
+              </h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCopy}
+                  className="px-3 py-2 text-xs rounded-lg border border-white/20 hover:bg-white/10 transition"
+                >
+                  Copy
+                </button>
+                <button
+                  onClick={handleDownload}
+                  className="px-3 py-2 text-xs rounded-lg border border-white/20 hover:bg-white/10 transition"
+                >
+                  Download
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="p-3 rounded-xl bg-black/20 border border-white/10">
+                <p className="text-[10px] uppercase tracking-widest text-gray-400">Complexity</p>
+                <p className="text-sm mt-1 text-white">{highlights.complexity}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-black/20 border border-white/10">
+                <p className="text-[10px] uppercase tracking-widest text-gray-400">Classification</p>
+                <p className="text-sm mt-1 text-white">{highlights.classification}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-black/20 border border-white/10">
+                <p className="text-[10px] uppercase tracking-widest text-gray-400">Recommendation</p>
+                <p className="text-sm mt-1 text-white line-clamp-3">{highlights.recommendation}</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {sections.length > 0 ? (
+                sections.map((section, index) => (
+                  <details
+                    key={section.id}
+                    className="rounded-xl bg-black/20 border border-white/10 p-3"
+                    open={index < 2}
+                  >
+                    <summary className="cursor-pointer text-sm md:text-base font-semibold text-white">
+                      {section.title}
+                    </summary>
+                    <div className="mt-3 text-gray-200 leading-relaxed text-sm md:text-base prose prose-invert prose-p:my-2 prose-li:my-1 max-w-none">
+                      <ReactMarkdown>{section.body || "No content."}</ReactMarkdown>
+                    </div>
+                  </details>
+                ))
+              ) : (
+                <div className="text-gray-200 leading-relaxed text-base md:text-lg prose prose-invert prose-p:my-2 prose-li:my-1 max-w-none">
+                  <ReactMarkdown>{reportText}</ReactMarkdown>
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>

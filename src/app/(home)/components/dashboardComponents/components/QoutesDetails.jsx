@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
+import Link from "next/link";
 
 export default function QoutesDetails() {
   const { setShowModal, selectedRequest } = useAuth();
@@ -13,7 +14,7 @@ export default function QoutesDetails() {
 
   // Local state to track if we just accepted it in this session
   const [isAccepted, setIsAccepted] = useState(
-    selectedRequest?.status === "offered",
+    selectedRequest?.status === "accepted",
   );
   console.log(selectedRequest);
   const handleQoutes = async (v) => {
@@ -119,9 +120,17 @@ export default function QoutesDetails() {
           {/* Logic for Buttons: If already accepted, show a status badge instead */}
           <div className="pt-4">
             {isAccepted ? (
-              <div className="w-full flex items-center justify-center gap-2 p-4 rounded-xl bg-green-500/10 border border-green-500 text-green-500 font-bold">
-                <CheckCircle size={20} />
-                Accepted & Confirmed
+              <div className="space-y-3">
+                <div className="w-full flex items-center justify-center gap-2 p-4 rounded-xl bg-green-500/10 border border-green-500 text-green-500 font-bold">
+                  <CheckCircle size={20} />
+                  Accepted & Confirmed
+                </div>
+                <Link
+                  href={`/message?consultationId=${selectedRequest.consultation}`}
+                  className="w-full inline-flex items-center justify-center p-4 rounded-xl text-white font-bold transition bg-primary hover:bg-opacity-90 shadow-lg shadow-primary/20"
+                >
+                  Message Now
+                </Link>
               </div>
             ) : (
               <div className="flex flex-row gap-4 items-center">

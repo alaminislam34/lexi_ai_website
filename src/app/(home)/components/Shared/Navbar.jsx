@@ -93,7 +93,7 @@ export default function Navbar() {
             className="md:w-12 w-9 md:h-12 h-9 rounded-full bg-cover bg-center border border-gray-500 p-2 cursor-pointer"
           />
           {showUserModal && (
-            <div className="absolute top-14 right-2 z-40 max-w-sm min-w-[280px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl ring-1 ring-gray-100 dark:ring-gray-700 p-5 transition-all duration-300 ease-in-out">
+            <div className="absolute top-14 right-2 z-50 max-w-sm min-w-[280px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl ring-1 ring-gray-100 dark:ring-gray-700 p-5 transition-all duration-300 ease-in-out">
               {/* User Info Section */}
               <div className="pb-4 border-b border-gray-100 dark:border-gray-700 space-y-4">
                 <div className="flex flex-col">

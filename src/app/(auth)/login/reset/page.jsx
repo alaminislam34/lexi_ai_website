@@ -5,7 +5,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
-import SentResetLink from "./components/SentResetLink";
+import SentResetLink from "../components/SentResetLink";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { LOGIN } from "@/api/apiEntpoint";

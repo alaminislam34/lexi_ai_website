@@ -10,6 +10,19 @@ import { toast } from "react-toastify";
 
 const TEXT_ELEMENT_BG = "bg-[#33363D]";
 
+const getStatusClasses = (status) => {
+  if (status === "accepted") {
+    return "bg-green-500/10 text-green-400 border-green-500/40";
+  }
+  if (status === "offered") {
+    return "bg-yellow-500/10 text-yellow-300 border-yellow-500/30";
+  }
+  if (status === "rejected") {
+    return "bg-red-500/10 text-red-400 border-red-500/30";
+  }
+  return "bg-gray-500/10 text-gray-300 border-gray-500/30";
+};
+
 // Message Item Component (Static for now as per your mockup)
 const MessageItem = ({ message }) => (
   <div
@@ -169,9 +182,16 @@ export default function MessageAndReceived() {
                         <p className="text-white font-medium text-sm md:text-lg truncate">
                           {quote.sender.full_name || "New Client"}
                         </p>
-                        <p className="text-xs sm:text-sm text-gray-400 truncate">
-                          {quote.location || "Location not provided"}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs sm:text-sm text-gray-400 truncate">
+                            {quote.location || "Location not provided"}
+                          </p>
+                          <span
+                            className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full border ${getStatusClasses(quote.status)}`}
+                          >
+                            {quote.status || "unknown"}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -191,6 +211,14 @@ export default function MessageAndReceived() {
                   >
                     View Details
                   </button>
+                  {quote.status === "accepted" && (
+                    <Link
+                      href={`/message?consultationId=${quote.consultation || quote.id}`}
+                      className="w-full mt-2 inline-block text-center py-2 rounded-lg text-white transition duration-300 bg-primary/20 border border-primary/40 hover:bg-primary/30"
+                    >
+                      Message Client
+                    </Link>
+                  )}
                 </div>
               ))
             ) : (
