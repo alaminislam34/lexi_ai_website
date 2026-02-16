@@ -11,22 +11,22 @@ const AdminHomePage = () => {
       <div className="grid grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
         <StatCard
           title="Total Clients"
-          value="3,245"
-          change="+5%"
+          value="0"
+          change="0%"
           isPositive={true}
           icon={Briefcase}
         />
         <StatCard
           title="Total Attorneys"
-          value="1,890"
-          change="-3%"
-          isPositive={false}
+          value="0"
+          change="0%"
+          isPositive={true}
           icon={Scale}
         />
         <StatCard
           title="Subscribed Users"
-          value="8,765"
-          change="+8%"
+          value="0"
+          change="0%"
           isPositive={true}
           icon={Monitor}
         />

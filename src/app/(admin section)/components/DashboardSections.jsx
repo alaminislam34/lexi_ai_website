@@ -29,9 +29,9 @@ export const RecentActivity = () => {
 
 export const QuickStats = () => {
   const stats = [
-    { label: "New Users", value: "+1,234", progress: 85 },
-    { label: "Active Subscriptions", value: "+456", progress: 65 },
-    { label: "Completed Cases", value: "+789", progress: 45 },
+    { label: "New Users", value: "0", progress: 0 },
+    { label: "Active Subscriptions", value: "0", progress: 0 },
+    { label: "Completed Cases", value: "0", progress: 0 },
   ];
 
   return (
