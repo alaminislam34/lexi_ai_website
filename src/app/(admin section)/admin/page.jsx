@@ -10,13 +10,6 @@ const AdminHomePage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <StatCard
-          title="Total Users"
-          value="12,458"
-          change="+12%"
-          isPositive={true}
-          icon={Users}
-        />
-        <StatCard
           title="Total Clients"
           value="3,245"
           change="+5%"
