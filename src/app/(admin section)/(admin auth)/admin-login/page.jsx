@@ -26,7 +26,7 @@ export default function Login() {
       }
       setLoading(true);
 
-      router.push("/");
+      router.push("/admin");
     } catch (error) {
       console.log(error);
       toast.error(
