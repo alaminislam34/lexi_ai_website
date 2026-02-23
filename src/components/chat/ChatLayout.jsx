@@ -12,11 +12,8 @@ import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import ConversationList from "./ConversationList";
 
-const PRIMARY_COLOR_CLASSES = "bg-blue-500 hover:bg-blue-600";
-const SECONDARY_BG_COLOR = "bg-[#1D1F23]";
-const APP_BG = "bg-[#12151B]";
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8002";
+  process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8001";
 const CHAT_STORAGE_KEY_PREFIX = "chat_messages_by_conversation_";
 const CHAT_UNREAD_STORAGE_KEY_PREFIX = "chat_unread_by_conversation_";
 const POLLING_INTERVAL_MS = 5000;
@@ -223,86 +220,88 @@ export default function ChatLayout({
     [selectedConversation, currentMessages],
   );
 
-  const appendMessageForConversation = useCallback((
-    conversationKey,
-    message,
-    { increaseUnreadWhenInactive = true } = {},
-  ) => {
-    if (!conversationKey || !message) return;
+  const appendMessageForConversation = useCallback(
+    (conversationKey, message, { increaseUnreadWhenInactive = true } = {}) => {
+      if (!conversationKey || !message) return;
 
-    const isOpenedConversation =
-      conversationKey === selectedConversationIdRef.current;
+      const isOpenedConversation =
+        conversationKey === selectedConversationIdRef.current;
 
-    setMessagesByConversation((prev) => ({
-      ...prev,
-      [conversationKey]: [...(prev[conversationKey] || []), message],
-    }));
+      setMessagesByConversation((prev) => ({
+        ...prev,
+        [conversationKey]: [...(prev[conversationKey] || []), message],
+      }));
 
-    setUnreadByConversation((prev) => ({
-      ...prev,
-      [conversationKey]: isOpenedConversation
-        ? 0
-        : increaseUnreadWhenInactive
-          ? (prev[conversationKey] || 0) + 1
-          : prev[conversationKey] || 0,
-    }));
+      setUnreadByConversation((prev) => ({
+        ...prev,
+        [conversationKey]: isOpenedConversation
+          ? 0
+          : increaseUnreadWhenInactive
+            ? (prev[conversationKey] || 0) + 1
+            : prev[conversationKey] || 0,
+      }));
 
-    setConversations((prev) => {
-      const updated = prev.map((item) =>
-        item.id === conversationKey
-          ? {
-              ...item,
-              lastMessage: message.content || item.lastMessage,
-              time: message.time || item.time,
-              createdAt: message.created_at || item.createdAt,
-              unreadCount: isOpenedConversation
-                ? 0
-                : increaseUnreadWhenInactive
-                  ? (item.unreadCount || 0) + 1
-                  : item.unreadCount || 0,
-            }
-          : item,
-      );
+      setConversations((prev) => {
+        const updated = prev.map((item) =>
+          item.id === conversationKey
+            ? {
+                ...item,
+                lastMessage: message.content || item.lastMessage,
+                time: message.time || item.time,
+                createdAt: message.created_at || item.createdAt,
+                unreadCount: isOpenedConversation
+                  ? 0
+                  : increaseUnreadWhenInactive
+                    ? (item.unreadCount || 0) + 1
+                    : item.unreadCount || 0,
+              }
+            : item,
+        );
 
-      return updated.sort((a, b) => {
-        const timeA = new Date(a.createdAt || 0).getTime();
-        const timeB = new Date(b.createdAt || 0).getTime();
-        return timeB - timeA;
+        return updated.sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime();
+          const timeB = new Date(b.createdAt || 0).getTime();
+          return timeB - timeA;
+        });
       });
-    });
-  }, []);
+    },
+    [],
+  );
 
-  const handleSocketMessage = useCallback((conversationRecord, payload) => {
-    if (payload?.error) {
-      toast.error(payload.error);
-      return;
-    }
+  const handleSocketMessage = useCallback(
+    (conversationRecord, payload) => {
+      if (payload?.error) {
+        toast.error(payload.error);
+        return;
+      }
 
-    if (payload?.ack) {
-      return;
-    }
+      if (payload?.ack) {
+        return;
+      }
 
-    const normalizedMessage = normalizeIncoming(payload);
-    if (!normalizedMessage) return;
+      const normalizedMessage = normalizeIncoming(payload);
+      if (!normalizedMessage) return;
 
-    const me = Number(loggedUserId);
-    const senderId = Number(normalizedMessage.sender_id);
-    const receiverId = Number(normalizedMessage.receiver_id);
-    const otherUserId = senderId === me ? receiverId : senderId;
+      const me = Number(loggedUserId);
+      const senderId = Number(normalizedMessage.sender_id);
+      const receiverId = Number(normalizedMessage.receiver_id);
+      const otherUserId = senderId === me ? receiverId : senderId;
 
-    let conversationKey = conversationRecord?.id || "";
+      let conversationKey = conversationRecord?.id || "";
 
-    if (!conversationKey && Number.isFinite(otherUserId)) {
-      const mappedConversation = conversationsRef.current.find(
-        (item) => Number(item.id) === Number(otherUserId),
-      );
-      conversationKey = mappedConversation?.id || `${otherUserId}`;
-    }
+      if (!conversationKey && Number.isFinite(otherUserId)) {
+        const mappedConversation = conversationsRef.current.find(
+          (item) => Number(item.id) === Number(otherUserId),
+        );
+        conversationKey = mappedConversation?.id || `${otherUserId}`;
+      }
 
-    appendMessageForConversation(conversationKey, normalizedMessage, {
-      increaseUnreadWhenInactive: true,
-    });
-  }, [appendMessageForConversation, loggedUserId]);
+      appendMessageForConversation(conversationKey, normalizedMessage, {
+        increaseUnreadWhenInactive: true,
+      });
+    },
+    [appendMessageForConversation, loggedUserId],
+  );
 
   useEffect(() => {
     if (!isReady) return;

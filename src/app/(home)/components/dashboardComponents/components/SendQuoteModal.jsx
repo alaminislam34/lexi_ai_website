@@ -46,7 +46,7 @@ export default function SendQuoteModal() {
 
     try {
       const res = await axios.post(
-        `http://10.10.7.19:8002/api/attorney/consultations/${selectedRequest.id}/reply/`,
+        `http://10.10.7.19:8001/api/attorney/consultations/${selectedRequest.id}/reply/`,
         {
           subject: formData.subject,
           case_details: formData.case_details,

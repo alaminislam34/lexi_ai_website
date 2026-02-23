@@ -52,7 +52,7 @@ export default function AttorneyRegisterPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://10.10.7.19:8002/api/auth/register/",
+        "http://10.10.7.19:8001/api/auth/register/",
         formData,
       );
 
@@ -62,6 +62,7 @@ export default function AttorneyRegisterPage() {
         setStep("otp");
       }
     } catch (error) {
+      console.log(error)
       const errorMsg = error.response?.data?.detail || "Registration failed.";
       toast.error(errorMsg);
     } finally {
@@ -75,7 +76,7 @@ export default function AttorneyRegisterPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://10.10.7.19:8002/api/auth/otp/verify/",
+        "http://10.10.7.19:8001/api/auth/otp/verify/",
         otpData,
       );
 

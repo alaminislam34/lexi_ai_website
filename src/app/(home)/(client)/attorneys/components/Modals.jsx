@@ -175,7 +175,7 @@ export const RequestConsultModal = ({ attorney, closeModal }) => {
 
     try {
       const response = await axios.post(
-        "http://10.10.7.19:8002/api/attorney/consultations/create/",
+        "http://10.10.7.19:8001/api/attorney/consultations/create/",
         payload,
         {
           headers: {
