@@ -33,7 +33,7 @@ export default function StateProvider({ children }) {
   const router = useRouter();
 
   const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8001";
+    process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8002";
 
   const fetchUser = useCallback(async () => {
     // 1. SSR Check: Ensure localStorage is available

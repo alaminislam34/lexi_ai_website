@@ -48,7 +48,7 @@ export default function Step_4() {
       setUserData(payload);
 
       const res = await axios.post(
-        `http://10.10.7.19:8001${REGISTER}`,
+        `http://10.10.7.19:8002${REGISTER}`,
         payload,
       );
 
@@ -71,7 +71,7 @@ export default function Step_4() {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://10.10.7.19:8001/api/auth/otp/verify/",
+        "http://10.10.7.19:8002/api/auth/otp/verify/",
         {
           email: userData.email,
           otp: otp,

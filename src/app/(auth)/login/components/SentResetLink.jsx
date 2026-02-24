@@ -20,7 +20,7 @@ export default function SentResetLink({ setForget }) {
     confirm_password: "",
   });
 
-  const BASE_URL = "http://10.10.7.19:8001";
+  const BASE_URL = "http://10.10.7.19:8002";
 
   // Step 1: Send OTP to Email
   const handleSendOTP = async (e) => {

@@ -110,7 +110,7 @@ export default function Navbar() {
               width={300}
               height={300}
               alt="Profile image"
-              className="md:w-12 w-9 md:h-12 h-9 rounded-full bg-cover bg-center border border-gray-500 p-2 cursor-pointer"
+              className="md:w-12 w-9 md:h-12 h-9 rounded-full bg-cover bg-center border border-gray-500 p-0.5 object-cover cursor-pointer"
             />
             {showUserModal && (
               <div className="absolute top-14 right-0 z-50 max-w-sm min-w-[280px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl ring-1 ring-gray-100 dark:ring-gray-700 p-5 transition-all duration-300 ease-in-out">
