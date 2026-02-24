@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8002";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8002";
 const CHAT_STORAGE_KEY_PREFIX = "chat_messages_by_conversation_";
 const CHAT_UNREAD_STORAGE_KEY_PREFIX = "chat_unread_by_conversation_";
 
@@ -99,7 +100,7 @@ export default function DashboardConversationList({
 
         const data = await res.json();
         const rows = normalizeRows(data);
-
+        console.log(data, "message data");
         const accepted = rows.filter(
           (row) => `${row?.status || ""}`.toLowerCase() === "accepted",
         );
@@ -116,13 +117,21 @@ export default function DashboardConversationList({
           const existing = acc.get(key);
           const record = {
             id: key,
-            consultationId: row?.consultation || row?.consultation_id || row?.id,
-            name: otherUser.full_name || otherUser.email || "Unknown",
-            image: otherUser.profile_image || "/images/user.jpg",
-            lastMessage: row?.message || row?.description || "No messages yet",
-            createdAt: row?.created_at || "",
-            time: formatTime(row?.created_at),
-            unreadCount: row?.is_read ? 0 : 1,
+            consultationId: row?.consultation || row?.id,
+            name: otherUser.full_name || otherUser.email,
+            image: otherUser.profile_image,
+            lastMessage: row?.last_message,
+            createdAt: row?.last_message_at,
+            time: formatTime(row?.last_message_at || row?.created_at),
+            unreadCount:
+              typeof row?.unread_count === "number"
+                ? row.unread_count
+                : row?.is_read
+                  ? 0
+                  : 1,
+            location: row?.location || "",
+            budget: row?.budget || "",
+            status: row?.status || "",
           };
 
           if (!existing) {
@@ -150,13 +159,15 @@ export default function DashboardConversationList({
         let unreadFromStorage = {};
         let messageMap = {};
         try {
-          unreadFromStorage = JSON.parse(localStorage.getItem(unreadStorageKey) || "{}") || {};
+          unreadFromStorage =
+            JSON.parse(localStorage.getItem(unreadStorageKey) || "{}") || {};
         } catch {
           unreadFromStorage = {};
         }
 
         try {
-          messageMap = JSON.parse(localStorage.getItem(messageStorageKey) || "{}") || {};
+          messageMap =
+            JSON.parse(localStorage.getItem(messageStorageKey) || "{}") || {};
         } catch {
           messageMap = {};
         }
@@ -168,9 +179,12 @@ export default function DashboardConversationList({
           nextSignatures[item.id] = signature;
 
           const previousSignature = signaturesRef.current[item.id];
-          const hasChanged = Boolean(previousSignature && previousSignature !== signature);
+          const hasChanged = Boolean(
+            previousSignature && previousSignature !== signature,
+          );
 
-          const hasRealMessage = item.lastMessage && item.lastMessage !== "No messages yet";
+          const hasRealMessage =
+            item.lastMessage && item.lastMessage !== "No messages yet";
           if (hasRealMessage) {
             const existingMessages = messageMap[item.id] || [];
             const lastExisting = existingMessages[existingMessages.length - 1];
@@ -178,7 +192,10 @@ export default function DashboardConversationList({
               ? `${lastExisting.created_at || ""}|${lastExisting.content || ""}`
               : "";
 
-            if (existingMessages.length === 0 || (hasChanged && lastExistingSignature !== signature)) {
+            if (
+              existingMessages.length === 0 ||
+              (hasChanged && lastExistingSignature !== signature)
+            ) {
               const snapshot = {
                 id: `${item.id}-${item.createdAt || Date.now()}`,
                 sender_id: null,
@@ -208,7 +225,10 @@ export default function DashboardConversationList({
           };
         });
 
-        localStorage.setItem(unreadStorageKey, JSON.stringify(unreadFromStorage));
+        localStorage.setItem(
+          unreadStorageKey,
+          JSON.stringify(unreadFromStorage),
+        );
         localStorage.setItem(messageStorageKey, JSON.stringify(messageMap));
         signaturesRef.current = nextSignatures;
 
@@ -219,7 +239,7 @@ export default function DashboardConversationList({
               new Date(a.createdAt || 0).getTime(),
           )
           .slice(0, limit);
-
+        console.log(normalized, "normalized data");
         setItems(normalized);
       } catch {
         setItems([]);
@@ -234,12 +254,19 @@ export default function DashboardConversationList({
     return () => {
       if (intervalId) window.clearInterval(intervalId);
     };
-  }, [auth, unreadStorageKey, messageStorageKey, limit, selectedConversationId]);
+  }, [
+    auth,
+    unreadStorageKey,
+    messageStorageKey,
+    limit,
+    selectedConversationId,
+  ]);
 
   const clearUnreadFor = (conversationId) => {
     if (!auth.userId || typeof window === "undefined") return;
     try {
-      const current = JSON.parse(localStorage.getItem(unreadStorageKey) || "{}") || {};
+      const current =
+        JSON.parse(localStorage.getItem(unreadStorageKey) || "{}") || {};
       const next = { ...current, [conversationId]: 0 };
       localStorage.setItem(unreadStorageKey, JSON.stringify(next));
       setSelectedConversationId(conversationId);
@@ -260,9 +287,13 @@ export default function DashboardConversationList({
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-400 py-6 text-center">Loading conversations...</p>
+        <p className="text-sm text-gray-400 py-6 text-center">
+          Loading conversations...
+        </p>
       ) : !items.length ? (
-        <p className="text-sm text-gray-400 py-6 text-center">No accepted conversations yet.</p>
+        <p className="text-sm text-gray-400 py-6 text-center">
+          No accepted conversations yet.
+        </p>
       ) : (
         <div className="divide-y divide-gray-700/40">
           {items.map((conversation) => (
@@ -281,12 +312,18 @@ export default function DashboardConversationList({
               />
 
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-white font-medium truncate">{conversation.name}</p>
-                <p className="text-xs text-gray-400 truncate">{conversation.lastMessage}</p>
+                <p className="text-sm text-white font-medium truncate">
+                  {conversation.name}
+                </p>
+                <p className="text-xs text-gray-400 truncate">
+                  {conversation.lastMessage}
+                </p>
               </div>
 
               <div className="flex flex-col items-end gap-1">
-                <span className="text-[10px] text-gray-500">{conversation.time}</span>
+                <span className="text-[10px] text-gray-500">
+                  {conversation.time}
+                </span>
                 {conversation.unreadCount > 0 && (
                   <span className="text-[10px] bg-blue-500 text-white rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center">
                     {conversation.unreadCount}
@@ -309,3 +346,56 @@ export default function DashboardConversationList({
     </div>
   );
 }
+
+/*
+[
+    {
+        "id": 70,
+        "consultation": 70,
+        "sender": {
+            "id": 44,
+            "email": "alamin@gmail.com",
+            "full_name": "Al Amin",
+            "profile_image": "http://10.10.7.19:8002/media/profile_images/default_profile.png"
+        },
+        "receiver": {
+            "id": 76,
+            "email": "attorney12@gmail.com",
+            "full_name": "MD Al Amin Islam",
+            "profile_image": "http://10.10.7.19:8002/media/profile_images/default_profile.png"
+        },
+        "subject": "Re: Request for Consultation",
+        "description": "da",
+        "location": "dhaka",
+        "budget": "44",
+        "status": "accepted",
+        "last_message": "this is last message",
+        "last_message_at": "2026-02-24T20:09:13.584689+00:00",
+        "unread_count": 13
+    },
+    {
+        "id": 69,
+        "consultation": 69,
+        "sender": {
+            "id": 44,
+            "email": "alamin@gmail.com",
+            "full_name": "Al Amin",
+            "profile_image": "http://10.10.7.19:8002/media/profile_images/default_profile.png"
+        },
+        "receiver": {
+            "id": 76,
+            "email": "attorney12@gmail.com",
+            "full_name": "MD Al Amin Islam",
+            "profile_image": "http://10.10.7.19:8002/media/profile_images/default_profile.png"
+        },
+        "subject": "Re: Request for Consultation",
+        "description": "hello bro",
+        "location": "dhaka",
+        "budget": "500",
+        "status": "accepted",
+        "last_message": "helo",
+        "last_message_at": "2026-02-24T19:24:51.148256+00:00",
+        "unread_count": 2
+    }
+]
+*/

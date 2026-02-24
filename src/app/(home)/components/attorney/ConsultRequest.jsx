@@ -66,10 +66,9 @@ export default function ConsultRequest() {
     return Number(userData?.id || userData?.user_id || 0);
   }, []);
 
-  // --- Processing Conversations (Memoized) ---
-  // Only compute grouped/normalized conversations, do not access refs/localStorage
   const { requests, conversations, groupedConversations } = useMemo(() => {
-    if (!rawData) return { requests: [], conversations: [], groupedConversations: [] };
+    if (!rawData)
+      return { requests: [], conversations: [], groupedConversations: [] };
 
     const received = rawData.received || [];
     const sent = rawData.sent || [];
@@ -80,6 +79,7 @@ export default function ConsultRequest() {
 
     // Only group and compute signatures, do not access refs/localStorage
     const grouped = acceptedRows.reduce((acc, item) => {
+      console.log(item, "it is item")
       const senderId = Number(item?.sender?.id || item?.sender_id);
       const receiverId = Number(item?.receiver?.id || item?.receiver_id);
       const otherUser =
@@ -92,11 +92,11 @@ export default function ConsultRequest() {
       const record = {
         id: key,
         consultationId: item?.consultation || item?.consultation_id || item?.id,
-        name: otherUser.full_name || otherUser.email || "Unknown",
+        name: otherUser.full_name || otherUser.email,
         email: otherUser.email || "",
-        image: otherUser.profile_image || "/images/user.jpg",
-        lastMessage: item?.message || item?.description || "No messages yet",
-        time: formatTime(item?.created_at),
+        image: otherUser.profile_image,
+        lastMessage: item?.last_message || "No messages yet",
+        time: formatTime(item?.last_message_at || item?.created_at),
         createdAt: item?.created_at || "",
         senderId,
         receiverId,
@@ -139,7 +139,15 @@ export default function ConsultRequest() {
     const unreadMap = {};
     const messageMap = {};
     groupedConversations.forEach((conversation) => {
-      const { id, createdAt, lastMessage, senderId, receiverId, time, _signature } = conversation;
+      const {
+        id,
+        createdAt,
+        lastMessage,
+        senderId,
+        receiverId,
+        time,
+        _signature,
+      } = conversation;
       nextSignatures[id] = _signature;
       // Only update messageMap and unreadMap if lastMessage is valid
       if (lastMessage && lastMessage !== "No messages yet") {
@@ -166,10 +174,7 @@ export default function ConsultRequest() {
           };
           messageMap[id] = [...existingMessages, snapshot];
           // Increment unread if background
-          if (
-            hasChanged &&
-            id !== selectedConversationIdRef.current
-          ) {
+          if (hasChanged && id !== selectedConversationIdRef.current) {
             unreadMap[id] = (unreadMap[id] || 0) + 1;
           }
         }
@@ -217,15 +222,14 @@ export default function ConsultRequest() {
     );
   }
 
+  console.log("request consult:", requests);
+
   return (
     <div className="w-full text-white">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="bg-secondary p-4 rounded-xl border border-gray-700/30 shadow-xl">
           <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
             Clients Requests
-            <span className="bg-primary text-[10px] px-2 py-0.5 rounded-full">
-              {requests.length}
-            </span>
           </h2>
 
           <div className="flex flex-col gap-4">
@@ -251,7 +255,7 @@ export default function ConsultRequest() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-white font-medium text-base truncate">
-                          {item.sender.full_name || "Guest User"}
+                          {item.sender.full_name || item.sender.email}
                         </p>
                         <p className="text-xs text-gray-400 truncate font-semibold uppercase tracking-tighter">
                           {item.subject}
