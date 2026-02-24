@@ -38,7 +38,6 @@ export default function ConsultRequest() {
     selectedConversationIdRef.current = selectedConversationId;
   }, [selectedConversationId]);
 
-  // --- TanStack Query for Fetching Data ---
   const { data: rawData, isLoading } = useQuery({
     queryKey: ["consultations"],
     queryFn: async () => {
@@ -59,7 +58,6 @@ export default function ConsultRequest() {
     onError: () => toast.error("Failed to sync data"),
   });
 
-  // --- Local User Identity ---
   const loggedUserId = useMemo(() => {
     if (typeof window === "undefined") return 0;
     const userData = JSON.parse(localStorage.getItem("user") || "{}");
@@ -77,9 +75,8 @@ export default function ConsultRequest() {
       (item) => `${item?.status || ""}`.toLowerCase() === "accepted",
     );
 
-    // Only group and compute signatures, do not access refs/localStorage
     const grouped = acceptedRows.reduce((acc, item) => {
-      console.log(item, "it is item")
+      console.log(item, "it is item");
       const senderId = Number(item?.sender?.id || item?.sender_id);
       const receiverId = Number(item?.receiver?.id || item?.receiver_id);
       const otherUser =
@@ -111,7 +108,6 @@ export default function ConsultRequest() {
       return acc;
     }, new Map());
 
-    // Compute signatures for each conversation
     const normalized = Array.from(grouped.values()).map((conversation) => {
       const signature = `${conversation.createdAt || ""}|${conversation.lastMessage || ""}`;
       return {
