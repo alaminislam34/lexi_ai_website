@@ -48,7 +48,7 @@ export default function ConsultRequest() {
       if (!tokens?.accessToken) throw new Error("No Access Token");
 
       const res = await axios.get(
-        "http://10.10.7.19:8001/api/attorney/consultations/me/",
+        "http://3.142.150.64/api/attorney/consultations/me/",
         {
           headers: { Authorization: `Bearer ${tokens.accessToken}` },
         },

@@ -57,7 +57,7 @@ export default function AddEventModal({ setShowModal }) {
 
       // 5. API Call
       const res = await axios.post(
-        "http://10.10.7.19:8001/api/attorney/events/",
+        "http://3.142.150.64/api/attorney/events/",
         payload,
         {
           headers: {

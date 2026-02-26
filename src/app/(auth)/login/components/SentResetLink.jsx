@@ -19,8 +19,9 @@ export default function SentResetLink({ setForget }) {
     new_password: "",
     confirm_password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
-  const BASE_URL = "http://10.10.7.19:8001";
+  const BASE_URL = "http://3.142.150.64";
 
   // Step 1: Send OTP to Email
   const handleSendOTP = async (e) => {
@@ -211,7 +212,7 @@ export default function SentResetLink({ setForget }) {
                 New Password
               </label>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={passwords.new_password}
                 onChange={(e) =>
@@ -221,12 +222,21 @@ export default function SentResetLink({ setForget }) {
                 required
               />
             </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-sm text-primary hover:text-white transition"
+              >
+                {showPassword ? "Hide" : "Show"} Password
+              </button>
+            </div>
             <div>
               <label className="block text-sm font-medium mb-2 text-text_color">
                 Confirm Password
               </label>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={passwords.confirm_password}
                 onChange={(e) =>
@@ -241,7 +251,11 @@ export default function SentResetLink({ setForget }) {
             </div>
             <button
               type="submit"
-              disabled={loading || !passwords.new_password}
+              disabled={
+                loading ||
+                !passwords.new_password ||
+                passwords.new_password !== passwords.confirm_password
+              }
               className="w-full flex items-center justify-center p-4 rounded-xl bg-primary text-white font-semibold hover:opacity-90 disabled:opacity-50 transition"
             >
               {loading ? (

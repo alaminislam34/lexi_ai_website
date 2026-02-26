@@ -36,7 +36,7 @@ export default function MessageAndReceived() {
       if (!tokens?.accessToken) throw new Error("No Access Token");
 
       const res = await axios.get(
-        "http://10.10.7.19:8001/api/attorney/consultations/reply-messages/",
+        "http://3.142.150.64/api/attorney/consultations/reply-messages/",
         {
           headers: { Authorization: `Bearer ${tokens.accessToken}` },
         },
@@ -57,8 +57,8 @@ export default function MessageAndReceived() {
 
       // API call to reject
       const res = await axios.post(
-        `http://10.10.7.19:8001/api/attorney/consultations/${quoteId}/reject/`,
-        {}, // body usually empty for this action
+        `http://3.142.150.64/api/attorney/consultations/${quoteId}/reject/`,
+        {},
         {
           headers: { Authorization: `Bearer ${tokens?.accessToken}` },
         },
@@ -67,7 +67,6 @@ export default function MessageAndReceived() {
     },
     onSuccess: () => {
       toast.success("Quote rejected successfully.");
-      // Invalidate and refetch the list to show updated status
       queryClient.invalidateQueries(["receivedQuotes"]);
     },
     onError: (error) => {

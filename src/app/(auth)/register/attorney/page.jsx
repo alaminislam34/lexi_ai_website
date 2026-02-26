@@ -52,7 +52,7 @@ export default function AttorneyRegisterPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://10.10.7.19:8001/api/auth/register/",
+        "http://3.142.150.64/api/auth/register/",
         formData,
       );
 
@@ -76,7 +76,7 @@ export default function AttorneyRegisterPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://10.10.7.19:8001/api/auth/otp/verify/",
+        "http://3.142.150.64/api/auth/otp/verify/",
         otpData,
       );
 

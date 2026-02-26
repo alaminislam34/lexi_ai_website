@@ -13,7 +13,7 @@ import MessageInput from "./MessageInput";
 import ConversationList from "./ConversationList";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://10.10.7.19:8001";
+  process.env.NEXT_PUBLIC_API_URL || "http://3.142.150.64";
 const CHAT_STORAGE_KEY_PREFIX = "chat_messages_by_conversation_";
 const CHAT_UNREAD_STORAGE_KEY_PREFIX = "chat_unread_by_conversation_";
 const POLLING_INTERVAL_MS = 5000;

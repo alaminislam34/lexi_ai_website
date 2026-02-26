@@ -31,7 +31,7 @@ export default function QoutesDetails() {
 
       try {
         const res = await axios.post(
-          `http://10.10.7.19:8001/api/attorney/consultations/${selectedRequest.consultation}/accept/`,
+          `http://3.142.150.64/api/attorney/consultations/${selectedRequest.consultation}/accept/`,
           {},
           {
             headers: {
