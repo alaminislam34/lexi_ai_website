@@ -200,14 +200,14 @@ export default function ChatLayout({
     [messagesByConversation, selectedConversationId],
   );
 
-  const currentConsultationId = selectedConversation?.consultationId || "";
+  const currentConsultationId = selectedConversation?.consultationId;
   const isAccepted = selectedConversation?.status === "accepted";
 
   const thread = useMemo(
     () => ({
-      id: selectedConversation?.id || "",
-      name: selectedConversation?.name || "Select Conversation",
-      image: selectedConversation?.image || "/images/user.jpg",
+      id: selectedConversation?.id,
+      name: selectedConversation?.name,
+      image: selectedConversation?.image,
       lastMessage:
         selectedConversation?.lastMessage ||
         currentMessages[currentMessages.length - 1]?.content ||
@@ -328,6 +328,7 @@ export default function ChatLayout({
         }
 
         const data = await res.json();
+        console.log("ojana res:", data);
         rows = normalizeConversationRows(data);
       } catch {
         setLoadingConversations(false);
@@ -364,12 +365,12 @@ export default function ChatLayout({
           receiverId: Number(item?.receiver?.id || item?.receiver_id) || null,
           name: otherUser.full_name || otherUser.email || "Unknown",
           email: otherUser.email || "",
-          image: otherUser.profile_image || "/images/user.jpg",
-          lastMessage: item?.message || item?.description || "No messages yet",
-          time: formatTime(item?.created_at),
+          image: otherUser.profile_image,
+          lastMessage: item?.last_message || "No messages yet",
+          time: formatTime(item?.last_message_at || item?.created_at),
           unreadCount: item?.is_read ? 0 : 1,
           status: item?.status,
-          createdAt: item?.created_at || "",
+          createdAt: item?.last_message_at || item?.created_at || "",
         };
 
         if (!existing) {
@@ -569,7 +570,7 @@ export default function ChatLayout({
           >
             <div className="flex items-center justify-start p-4 border-b border-gray-700/50">
               <Link
-                href="/"
+                href={isAttorneyRole ? "/dashboard/attorney" : "/dashboard"}
                 className={`p-2 rounded-full text-gray-400 hover:text-white transition hidden md:block`}
                 aria-label="Go back to dashboard"
               >
@@ -603,20 +604,26 @@ export default function ChatLayout({
                 >
                   <X className="w-5 h-5" />
                 </button>
+                {conversations.length > 0 && (
+                  <Image
+                    src={thread.image}
+                    height={40}
+                    width={40}
+                    alt={thread.name}
+                    className="w-10 h-10 rounded-full object-cover border border-gray-500"
+                  />
+                )}
 
-                <Image
-                  src={thread.image}
-                  height={40}
-                  width={40}
-                  alt={thread.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
                 <h2 className="text-lg font-bold">{thread.name}</h2>
               </div>
 
               <div className="relative">
                 <button
-                  onClick={() => setShowOptionsMenu((prev) => !prev)}
+                  onClick={() => {
+                    if (conversations.length > 0) {
+                      setShowOptionsMenu((prev) => !prev);
+                    }
+                  }}
                   className={`p-2 rounded-full text-gray-400 hover:text-white transition hover:bg-element`}
                   aria-label="Options"
                 >
@@ -625,13 +632,16 @@ export default function ChatLayout({
 
                 {showOptionsMenu && (
                   <div className="absolute top-10 right-4 rounded-xl bg-secondary p-4 max-w-xs z-20">
-                    <button
-                      onClick={() => setShowRatingModal(true)}
-                      className="flex flex-row items-center truncate gap-2 py-2 px-6 bg-gray/10 w-full text-white text-sm"
-                    >
-                      <RiStarLine className="text-2xl text-primary" /> Rate the
-                      Attorney
-                    </button>
+                    {!isAttorneyRole && (
+                      <button
+                        onClick={() => setShowRatingModal(true)}
+                        className="flex flex-row items-center truncate gap-2 py-2 px-6 bg-gray/10 w-full text-white text-sm"
+                      >
+                        <RiStarLine className="text-2xl text-primary" /> Rate
+                        the Attorney
+                      </button>
+                    )}
+
                     <button
                       onClick={handleClearCurrentConversation}
                       className="flex flex-row items-center truncate gap-2 py-2 px-6 bg-gray/10 w-full text-white text-sm mt-2"

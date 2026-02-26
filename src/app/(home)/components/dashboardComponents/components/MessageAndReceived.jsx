@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { BiLoaderAlt } from "react-icons/bi";
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
@@ -26,6 +26,8 @@ const getStatusClasses = (status) => {
 export default function MessageAndReceived() {
   const { setShowModal, setSelectedRequest } = useAuth();
   const queryClient = useQueryClient();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentQuote, setPaymentQuote] = useState(null);
 
   // --- 1. Fetch Quotes using useQuery ---
   const { data: quotes = [], isLoading } = useQuery({
@@ -80,6 +82,16 @@ export default function MessageAndReceived() {
     setShowModal(true);
   };
 
+  const handleOpenPayment = (quote) => {
+    setPaymentQuote(quote);
+    setShowPaymentModal(true);
+  };
+
+  const handleClosePayment = () => {
+    setShowPaymentModal(false);
+    setPaymentQuote(null);
+  };
+
   const handleReject = (e, quoteId) => {
     e.preventDefault();
     if (window.confirm("Are you sure you want to reject this quote?")) {
@@ -107,37 +119,37 @@ export default function MessageAndReceived() {
               quotes.map((quote) => (
                 <div
                   key={quote.id}
-                  className="p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] duration-300 bg-[#212121] border border-gray/20"
+                  className="p-3 rounded-xl hover:shadow-[2px_2px_6px_0px_rgb(255,255,255,0.1)] border duration-300 bg-[#212121] border-gray/20"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
                       <Image
-                        src={quote.sender?.profile_image || "/images/user.jpg"}
+                        src={quote.sender?.profile_image}
                         height={50}
                         width={50}
-                        alt={quote.sender?.full_name || "User"}
+                        alt={quote.sender?.full_name}
                         className="w-10 md:w-12 h-10 md:h-12 rounded-full object-cover"
                       />
                       <div className="min-w-0">
-                        <p className="text-white font-medium text-sm md:text-lg truncate">
-                          {quote.sender?.full_name || "New Client"}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs sm:text-sm text-gray-400 truncate">
-                            {quote.location || "Location not provided"}
-                          </p>
+                        <p className="text-white flex flex-row items-center gap-2 font-medium text-sm md:text-lg truncate">
+                          {quote.sender?.full_name}
                           <span
                             className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full border ${getStatusClasses(
                               quote.status,
                             )}`}
                           >
-                            {quote.status || "unknown"}
+                            {quote.status}
                           </span>
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs sm:text-sm text-gray-400 truncate">
+                            {quote.location}
+                          </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="px-4 py-2 rounded-lg text-gray text-xs sm:text-sm border border-gray-700/50">
+                    <div className="flex flex-row gap-2 items-center px-4 py-2 rounded-lg text-gray text-xs sm:text-sm border border-gray-700/50">
                       Budget
                       <span className="block text-center mt-0.5 text-white font-bold">
                         ${quote.budget}
@@ -145,7 +157,7 @@ export default function MessageAndReceived() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2 items-center">
                     <button
                       onClick={() => handleOpenDetails(quote)}
                       className="flex-1 py-2 rounded-lg text-white transition duration-300 bg-primary hover:bg-dark-primary text-sm"
@@ -153,12 +165,11 @@ export default function MessageAndReceived() {
                       View Details
                     </button>
 
-                    {/* Reject Button: Only show if not already rejected/accepted */}
                     {quote.status === "offered" && (
                       <button
                         onClick={(e) => handleReject(e, quote.id)}
                         disabled={rejectMutation.isLoading}
-                        className="flex-1 py-2 rounded-lg text-white transition duration-300 bg-red-500/20 border border-red-500/40 hover:bg-red-500/40 text-sm disabled:opacity-50"
+                        className="py-2 rounded-lg text-white transition duration-300 bg-red-500/20 border border-red-500/40 hover:bg-red-500/40 text-sm disabled:opacity-50"
                       >
                         {rejectMutation.isLoading &&
                         rejectMutation.variables === quote.id
@@ -166,18 +177,17 @@ export default function MessageAndReceived() {
                           : "Reject Quote"}
                       </button>
                     )}
+                    {quote.status === "accepted" && (
+                      <Link
+                        href={`/message?consultationId=${
+                          quote.consultation || quote.id
+                        }`}
+                        className="flex-1 py-2 rounded-lg text-white transition duration-300 bg-green-500/20 border border-green-500/40 hover:bg-green-500/30 text-sm text-center"
+                      >
+                        Message Client
+                      </Link>
+                    )}
                   </div>
-
-                  {quote.status === "accepted" && (
-                    <Link
-                      href={`/message?consultationId=${
-                        quote.consultation || quote.id
-                      }`}
-                      className="w-full mt-2 inline-block text-center py-2 rounded-lg text-white transition duration-300 bg-green-500/20 border border-green-500/40 hover:bg-green-500/30 text-sm"
-                    >
-                      Message Client
-                    </Link>
-                  )}
                 </div>
               ))
             ) : (
@@ -187,6 +197,67 @@ export default function MessageAndReceived() {
             )}
           </div>
         </div>
+
+        {/* Payment Modal (UI only) */}
+        {showPaymentModal && paymentQuote && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+            <div className="bg-[#232323] rounded-xl p-8 w-full max-w-md shadow-lg relative">
+              <button
+                className="absolute top-3 right-3 text-gray-400 hover:text-white text-xl"
+                onClick={handleClosePayment}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+              <h3 className="text-2xl font-bold mb-4 text-white text-center">
+                Payment
+              </h3>
+              <div className="mb-4 text-center">
+                <p className="text-gray-300 mb-2">
+                  Pay for the accepted quote from{" "}
+                  <span className="font-semibold text-white">
+                    {paymentQuote.sender?.full_name}
+                  </span>
+                </p>
+                <p className="text-lg font-bold text-primary">
+                  Amount: ${paymentQuote.budget}
+                </p>
+              </div>
+              <form className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Card Number"
+                  className="w-full px-4 py-2 rounded-lg bg-[#181818] border border-gray-700 text-white focus:outline-none"
+                  disabled
+                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="MM/YY"
+                    className="flex-1 px-4 py-2 rounded-lg bg-[#181818] border border-gray-700 text-white focus:outline-none"
+                    disabled
+                  />
+                  <input
+                    type="text"
+                    placeholder="CVC"
+                    className="flex-1 px-4 py-2 rounded-lg bg-[#181818] border border-gray-700 text-white focus:outline-none"
+                    disabled
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="w-full py-2 rounded-lg bg-primary text-white font-semibold hover:bg-dark-primary transition"
+                  disabled
+                >
+                  Pay (UI Only)
+                </button>
+                <p className="text-xs text-gray-400 text-center">
+                  * Payment functionality coming soon.
+                </p>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

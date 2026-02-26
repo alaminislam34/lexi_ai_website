@@ -99,7 +99,7 @@ export default function DashboardConversationList({
 
         const data = await res.json();
         const rows = normalizeRows(data);
-
+        console.log(data, "message data");
         const accepted = rows.filter(
           (row) => `${row?.status || ""}`.toLowerCase() === "accepted",
         );
@@ -231,7 +231,7 @@ export default function DashboardConversationList({
               new Date(a.createdAt || 0).getTime(),
           )
           .slice(0, limit);
-
+        console.log(normalized, "normalized data");
         setItems(normalized);
       } catch {
         setItems([]);
@@ -340,3 +340,56 @@ export default function DashboardConversationList({
     </div>
   );
 }
+
+/*
+[
+    {
+        "id": 70,
+        "consultation": 70,
+        "sender": {
+            "id": 44,
+            "email": "alamin@gmail.com",
+            "full_name": "Al Amin",
+            "profile_image": "http://10.10.7.19:8002/media/profile_images/default_profile.png"
+        },
+        "receiver": {
+            "id": 76,
+            "email": "attorney12@gmail.com",
+            "full_name": "MD Al Amin Islam",
+            "profile_image": "http://10.10.7.19:8002/media/profile_images/default_profile.png"
+        },
+        "subject": "Re: Request for Consultation",
+        "description": "da",
+        "location": "dhaka",
+        "budget": "44",
+        "status": "accepted",
+        "last_message": "this is last message",
+        "last_message_at": "2026-02-24T20:09:13.584689+00:00",
+        "unread_count": 13
+    },
+    {
+        "id": 69,
+        "consultation": 69,
+        "sender": {
+            "id": 44,
+            "email": "alamin@gmail.com",
+            "full_name": "Al Amin",
+            "profile_image": "http://10.10.7.19:8002/media/profile_images/default_profile.png"
+        },
+        "receiver": {
+            "id": 76,
+            "email": "attorney12@gmail.com",
+            "full_name": "MD Al Amin Islam",
+            "profile_image": "http://10.10.7.19:8002/media/profile_images/default_profile.png"
+        },
+        "subject": "Re: Request for Consultation",
+        "description": "hello bro",
+        "location": "dhaka",
+        "budget": "500",
+        "status": "accepted",
+        "last_message": "helo",
+        "last_message_at": "2026-02-24T19:24:51.148256+00:00",
+        "unread_count": 2
+    }
+]
+*/

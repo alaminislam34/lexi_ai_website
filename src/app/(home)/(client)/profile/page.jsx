@@ -2,7 +2,18 @@
 
 import Image from "next/image";
 import React, { useState, useEffect, useContext } from "react";
-import { Edit2, Save, Camera, Loader2, Lock } from "lucide-react";
+import {
+  Edit2,
+  Save,
+  Camera,
+  Loader2,
+  Lock,
+  Mail,
+  Calendar,
+  User,
+  MapPin,
+  Briefcase,
+} from "lucide-react";
 import { StateContext } from "@/app/providers/StateProvider";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -17,6 +28,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+
   const [profileData, setProfileData] = useState({
     full_name: "",
     phone: "",
@@ -24,6 +36,7 @@ export default function Profile() {
     location: "",
     preferred_legal_area: "",
   });
+
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: "",
     newPassword: "",
@@ -40,19 +53,22 @@ export default function Profile() {
       });
       return res.data;
     },
-    onSuccess: (user) => {
+  });
+
+  // Sync state when data is fetched
+  useEffect(() => {
+    if (user) {
       setProfileData({
         full_name: user.full_name || "",
         phone: user.phone || "",
-        gender: user.gender || "",
+        gender: user.gender || "male",
         location: user.location || "",
         preferred_legal_area: user.preferred_legal_area || "",
       });
       setPreviewUrl(user.profile_image);
-      setUser(user); // Sync global context if needed
-    },
-  });
-  // Removed useEffect for setProfileData
+      setUser(user);
+    }
+  }, [user, setUser]);
 
   // --- 2. Update Profile Mutation ---
   const profileMutation = useMutation({
@@ -71,7 +87,7 @@ export default function Profile() {
       return res.data;
     },
     onSuccess: (updatedData) => {
-      queryClient.invalidateQueries(["profile"]); // Refetch instant
+      queryClient.invalidateQueries(["profile"]);
       setUser(updatedData);
       toast.success("Profile updated successfully!");
       setIsEditing(false);
@@ -107,7 +123,6 @@ export default function Profile() {
     },
   });
 
-  // Handlers
   const handleChange = (e) => {
     const { id, value } = e.target;
     setProfileData((prev) => ({ ...prev, [id]: value }));
@@ -128,7 +143,6 @@ export default function Profile() {
       formData.append(key, profileData[key]),
     );
     if (selectedFile) formData.append("profile_image", selectedFile);
-
     profileMutation.mutate(formData);
   };
 
@@ -150,26 +164,34 @@ export default function Profile() {
 
   if (isFetchingUser) {
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-black">
         <Loader2 className="animate-spin w-10 h-10 text-primary" />
       </div>
     );
   }
 
   return (
-    <section className="max-w-[1440px] mx-auto w-11/12 pt-28 pb-20">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-medium">
-          Profile Details
-        </h1>
+    <section className="max-w-[1440px] mx-auto w-11/12 pt-28 pb-20 text-white">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-800 pb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            Account Settings
+          </h1>
+          <p className="text-zinc-400 mt-2">
+            View and update your personal profile and security settings.
+          </p>
+        </div>
         <button
           onClick={() => setIsEditing(!isEditing)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition ${
-            isEditing ? "bg-red-500 text-white" : "bg-primary text-white"
+          className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-full font-semibold transition-all duration-300 ${
+            isEditing
+              ? "bg-red-500/10 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white"
+              : "bg-primary text-white hover:shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]"
           }`}
         >
           {isEditing ? (
-            "Cancel Edit"
+            "Cancel Editing"
           ) : (
             <>
               <Edit2 className="w-4 h-4" /> Edit Profile
@@ -178,119 +200,208 @@ export default function Profile() {
         </button>
       </div>
 
-      {/* Profile Image Section */}
-      <div className="mt-8 relative w-24 h-24 md:w-32 md:h-32">
-        <Image
-          src={previewUrl || "/images/user.jpg"}
-          height={200}
-          width={200}
-          alt="Profile"
-          unoptimized
-          className="w-full h-full rounded-full shadow-lg object-cover border-4 border-white"
-        />
-        {isEditing && (
-          <label className="absolute bottom-1 right-1 bg-primary p-2 rounded-full cursor-pointer hover:bg-dark-primary transition">
-            <Camera className="w-4 h-4 text-white" />
-            <input
-              type="file"
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-          </label>
-        )}
+      <div className="flex flex-col lg:flex-row gap-16 mt-12">
+        {/* Left Side: Avatar & Identity */}
+        <div className="lg:w-1/3 flex flex-col items-center lg:items-start">
+          <div className="relative group">
+            <div className="w-44 h-44 rounded-full p-1 border-2 border-primary/30 group-hover:border-primary transition-all duration-500">
+              <Image
+                src={previewUrl || "/default_profile.png"}
+                height={176}
+                width={176}
+                alt="Profile"
+                unoptimized
+                className="w-full h-full rounded-full object-cover bg-zinc-900"
+              />
+            </div>
+            {isEditing && (
+              <label className="absolute bottom-2 right-2 bg-primary p-3 rounded-full cursor-pointer shadow-xl hover:scale-110 active:scale-95 transition-all">
+                <Camera className="w-5 h-5 text-white" />
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+              </label>
+            )}
+          </div>
+
+          <div className="mt-8 space-y-4 w-full text-center lg:text-left">
+            <div>
+              <h2 className="text-2xl font-bold text-white uppercase tracking-wide">
+                {user?.full_name}
+              </h2>
+              <span className="text-xs font-bold text-primary px-2 py-0.5 rounded bg-primary/10 uppercase">
+                {user?.role || "Member"}
+              </span>
+            </div>
+
+            <div className="space-y-3 pt-4 border-t border-zinc-800">
+              <div className="flex items-center gap-3 text-zinc-400 text-sm">
+                <Mail className="w-4 h-4 text-primary" />
+                <span>{user?.email}</span>
+              </div>
+              <div className="flex items-center gap-3 text-zinc-400 text-sm">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span>
+                  Joined{" "}
+                  {user?.created_at
+                    ? new Date(user.created_at).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "N/A"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Form */}
+        <div className="lg:w-2/3 bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
+          <form onSubmit={handleSaveProfile} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+              {/* Full Name */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-2">
+                  <User className="w-3 h-3" /> Full Name
+                </label>
+                <input
+                  id="full_name"
+                  disabled={!isEditing}
+                  placeholder="Enter your full name"
+                  value={profileData.full_name}
+                  onChange={handleChange}
+                  className={`w-full p-3.5 rounded-xl bg-black border transition-all duration-300 outline-none ${
+                    isEditing
+                      ? "border-primary/50 text-white focus:border-primary focus:ring-1 focus:ring-primary"
+                      : "border-zinc-800 text-zinc-400 cursor-not-allowed"
+                  }`}
+                />
+              </div>
+
+              {/* Phone */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase">
+                  Phone Number
+                </label>
+                <input
+                  id="phone"
+                  disabled={!isEditing}
+                  placeholder="e.g. +1 234 567 890"
+                  value={profileData.phone}
+                  onChange={handleChange}
+                  className={`w-full p-3.5 rounded-xl bg-black border transition-all duration-300 outline-none ${
+                    isEditing
+                      ? "border-primary/50 text-white focus:border-primary focus:ring-1 focus:ring-primary"
+                      : "border-zinc-800 text-zinc-400 cursor-not-allowed"
+                  }`}
+                />
+              </div>
+
+              {/* Gender */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase">
+                  Gender
+                </label>
+                <select
+                  id="gender"
+                  disabled={!isEditing}
+                  value={profileData.gender}
+                  onChange={handleChange}
+                  className={`w-full p-3.5 rounded-xl bg-black border transition-all duration-300 outline-none appearance-none ${
+                    isEditing
+                      ? "border-primary/50 text-white focus:border-primary"
+                      : "border-zinc-800 text-zinc-400 cursor-not-allowed"
+                  }`}
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              {/* Location */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-2">
+                  <MapPin className="w-3 h-3" /> Location
+                </label>
+                <input
+                  id="location"
+                  disabled={!isEditing}
+                  placeholder="City, Country"
+                  value={profileData.location}
+                  onChange={handleChange}
+                  className={`w-full p-3.5 rounded-xl bg-black border transition-all duration-300 outline-none ${
+                    isEditing
+                      ? "border-primary/50 text-white focus:border-primary focus:ring-1 focus:ring-primary"
+                      : "border-zinc-800 text-zinc-400 cursor-not-allowed"
+                  }`}
+                />
+              </div>
+
+              {/* Legal Area */}
+              <div className="flex flex-col gap-2 md:col-span-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-2">
+                  <Briefcase className="w-3 h-3" /> Preferred Legal Area
+                </label>
+                <input
+                  id="preferred_legal_area"
+                  disabled={!isEditing}
+                  placeholder="e.g. Criminal Law, Corporate"
+                  value={profileData.preferred_legal_area}
+                  onChange={handleChange}
+                  className={`w-full p-3.5 rounded-xl bg-black border transition-all duration-300 outline-none ${
+                    isEditing
+                      ? "border-primary/50 text-white focus:border-primary focus:ring-1 focus:ring-primary"
+                      : "border-zinc-800 text-zinc-400 cursor-not-allowed"
+                  }`}
+                />
+              </div>
+            </div>
+
+            {isEditing && (
+              <button
+                type="submit"
+                disabled={profileMutation.isPending}
+                className="w-full flex items-center justify-center gap-2 bg-primary text-white p-4 rounded-xl font-bold transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
+              >
+                {profileMutation.isPending ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <>
+                    <Save className="w-5 h-5" /> Save Profile Changes
+                  </>
+                )}
+              </button>
+            )}
+          </form>
+        </div>
       </div>
 
-      {/* Info Form */}
-      <form
-        onSubmit={handleSaveProfile}
-        className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6"
-      >
-        {[
-          { label: "Full Name", id: "full_name", type: "text" },
-          { label: "Phone", id: "phone", type: "text" },
-          { label: "Location", id: "location", type: "text" },
-        ].map((field) => (
-          <div key={field.id} className="flex flex-col gap-2">
-            <label className="text-gray font-medium">{field.label}</label>
-            <input
-              id={field.id}
-              disabled={!isEditing}
-              value={profileData[field.id]}
-              onChange={handleChange}
-              className={`p-3 rounded-xl border transition ${isEditing ? "border-blue-400" : " border-gray-200"}`}
-            />
-          </div>
-        ))}
-
-        <div className="flex flex-col gap-2">
-          <label className="text-gray font-medium">Gender</label>
-          <select
-            id="gender"
-            disabled={!isEditing}
-            value={profileData.gender}
-            onChange={handleChange}
-            className={`p-3 rounded-xl border transition ${isEditing ? "border-blue-400 bg-transparent" : " border-gray-200"}`}
-          >
-            <option className="bg-gray-700" value="male">
-              Male
-            </option>
-            <option className="bg-gray-700" value="female">
-              Female
-            </option>
-            <option className="bg-gray-700" value="other">
-              Other
-            </option>
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-2 md:col-span-2">
-          <label className="text-gray font-medium">Preferred Legal Area</label>
-          <input
-            id="preferred_legal_area"
-            disabled={!isEditing}
-            value={profileData.preferred_legal_area}
-            onChange={handleChange}
-            className={`p-3 rounded-xl border transition ${isEditing ? "border-blue-400" : " border-gray-200"}`}
-          />
-        </div>
-
-        {isEditing && (
-          <button
-            type="submit"
-            disabled={profileMutation.isPending}
-            className="flex items-center justify-center gap-2 bg-primary text-white p-4 rounded-xl font-semibold hover:bg-dark-primary transition"
-          >
-            {profileMutation.isPending ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              <>
-                <Save className="w-5 h-5" /> Update Profile
-              </>
-            )}
-          </button>
-        )}
-      </form>
-
-      <hr className="my-12 border-gray-200" />
-
-      {/* Password Reset Section */}
-      <div className="max-w-2xl">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Lock className="w-5 h-5" /> Security & Password
+      {/* Security Section */}
+      <div className="mt-16 p-8 bg-zinc-900/30 rounded-3xl border border-zinc-800/50">
+        <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+          <Lock className="w-5 h-5 text-primary" /> Security & Privacy
         </h2>
+        <p className="text-zinc-500 text-sm mt-1">
+          Updating your password regularly helps keep your account secure.
+        </p>
+
         <form
           onSubmit={handlePasswordReset}
-          className="mt-6 flex flex-col md:flex-row gap-4"
+          className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4"
         >
           <input
             type="password"
-            placeholder="Old Password"
+            placeholder="Current Password"
             value={passwordForm.oldPassword}
             onChange={(e) =>
               setPasswordForm({ ...passwordForm, oldPassword: e.target.value })
             }
-            className="px-4 py-2 rounded-xl border border-gray-300 flex-1"
+            className="px-4 py-3.5 rounded-xl bg-black border border-zinc-800 text-white focus:border-primary outline-none transition-all"
           />
           <input
             type="password"
@@ -299,11 +410,11 @@ export default function Profile() {
             onChange={(e) =>
               setPasswordForm({ ...passwordForm, newPassword: e.target.value })
             }
-            className="px-4 py-2 rounded-xl border border-gray-300 flex-1"
+            className="px-4 py-3.5 rounded-xl bg-black border border-zinc-800 text-white focus:border-primary outline-none transition-all"
           />
           <input
             type="password"
-            placeholder="New Confirm Password"
+            placeholder="Confirm New Password"
             value={passwordForm.newConfirmPassword}
             onChange={(e) =>
               setPasswordForm({
@@ -311,21 +422,19 @@ export default function Profile() {
                 newConfirmPassword: e.target.value,
               })
             }
-            className="px-4 py-2 rounded-xl border border-gray-300 flex-1"
+            className="px-4 py-3.5 rounded-xl bg-black border border-zinc-800 text-white focus:border-primary outline-none transition-all"
           />
-          <div>
-            <button
-              type="submit"
-              disabled={passwordMutation.isPending}
-              className="bg-primary text-white px-6 inline-block truncate py-2 rounded-xl font-medium hover:bg-dark-primary transition"
-            >
-              {passwordMutation.isPending ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                "Update Password"
-              )}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={passwordMutation.isPending}
+            className="bg-zinc-100 text-black px-6 py-3.5 rounded-xl font-bold hover:bg-white transition-all disabled:opacity-50"
+          >
+            {passwordMutation.isPending ? (
+              <Loader2 className="animate-spin mx-auto" />
+            ) : (
+              "Update Password"
+            )}
+          </button>
         </form>
       </div>
     </section>

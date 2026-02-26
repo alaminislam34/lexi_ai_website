@@ -33,7 +33,7 @@ export default function MessageInput({ value, onChange, onSend }) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask the assistant...."
+          placeholder="type..."
           className="flex-1 p-3 rounded-lg resize-none text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-BG"
           rows={1}
           style={{ overflowY: "hidden" }}

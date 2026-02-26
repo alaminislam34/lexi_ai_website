@@ -17,6 +17,7 @@ export default function ConversationList({
     <div className="overflow-y-auto flex-1">
       {conversations.map((conversation) => {
         const isSelected = selectedConversationId === conversation.id;
+        console.log(conversation);
 
         return (
           <div
@@ -31,12 +32,12 @@ export default function ConversationList({
               height={40}
               width={40}
               alt={conversation.name || "User"}
-              className="w-10 h-10 rounded-full object-cover mr-3"
+              className="w-10 h-10 rounded-full object-cover mr-3 border border-gray-500"
             />
 
             <div className="flex-1 min-w-0">
               <p className="text-white font-medium truncate">
-                {conversation.name || "Unknown"}
+                {conversation.name}
               </p>
 
               <div className="flex items-center gap-2">
