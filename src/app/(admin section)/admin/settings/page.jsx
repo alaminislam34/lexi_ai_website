@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Camera, Lock, User, Phone, Mail } from "lucide-react";
+import Image from "next/image";
 
 const SettingPage = () => {
   const [profile, setProfile] = useState({
@@ -34,7 +35,9 @@ const SettingPage = () => {
                 <div className="relative group">
                   <div className="w-24 h-24 rounded-full bg-[#1c1c1e] border-2 border-dashed border-gray-700 flex items-center justify-center overflow-hidden">
                     {profile.image ? (
-                      <img
+                      <Image
+                        width={400}
+                        height={400}
                         src={profile.image}
                         alt="Profile"
                         className="w-full h-full object-cover"
