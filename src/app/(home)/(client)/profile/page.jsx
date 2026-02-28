@@ -81,7 +81,7 @@ const ProfilePage = () => {
     e.preventDefault();
     const data = new FormData();
     Object.keys(formData).forEach((key) => data.append(key, formData[key]));
-    if (selectedImage) data.append("profile_image", selectedImage);
+    if (selectedImage) data.append("image", selectedImage);
     mutation.mutate(data);
   };
 
