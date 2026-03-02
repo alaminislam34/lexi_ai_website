@@ -132,11 +132,7 @@ export default function MessageAndReceived() {
       acceptMutation.mutate(paymentQuote.id);
     }
   };
-  let offeredQuotes = [...quotes];
-  useEffect(() => {
-    offeredQuotes = quotes?.filter((q) => q.status !== "rejected") || [];
-  }, [quotes]);
-
+  const offeredQuotes = quotes?.filter((q) => q.status !== "rejected") || [];
   return (
     <div className="min-h-[600px] text-white">
       <div className="max-w-4xl mx-auto space-y-4">
@@ -179,7 +175,7 @@ export default function MessageAndReceived() {
                       </p>
                       <p className="text-xs text-gray-400 truncate flex items-center gap-1">
                         <span>
-                          <MapPin size={12}/>
+                          <MapPin size={12} />
                         </span>{" "}
                         {quote.location}
                       </p>
