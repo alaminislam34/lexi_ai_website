@@ -1,61 +1,13 @@
 "use client";
 
 import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
-import { MapPin, X, Loader2, CheckCircle } from "lucide-react";
+import { MapPin, X, CheckCircle } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
-import { toast } from "react-toastify";
-import axios from "axios";
 import Link from "next/link";
 
 export default function QoutesDetails() {
   const { setShowModal, selectedRequest } = useAuth();
-  const [loading, setLoading] = useState(false);
-
-  // Local state to track if we just accepted it in this session
-  const [isAccepted, setIsAccepted] = useState(
-    selectedRequest?.status === "accepted",
-  );
-  console.log(selectedRequest);
-  const handleQoutes = async (v) => {
-    if (v === "reject") {
-      toast.error("You have rejected the offer.");
-      setShowModal(false);
-      return;
-    }
-
-    if (v === "accept") {
-      setLoading(true);
-      const tokenData = localStorage.getItem("token");
-      const tokens = tokenData ? JSON.parse(tokenData) : null;
-
-      try {
-        const res = await axios.post(
-          `http://3.142.150.64/api/attorney/consultations/${selectedRequest.consultation}/accept/`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${tokens?.accessToken}`,
-            },
-          },
-        );
-
-        if (res.status === 200 || res.status === 201) {
-          toast.success("Consultation accepted!");
-          setIsAccepted(true); // Update UI immediately
-          // Optional: You might want to refresh the background list here
-          setTimeout(() => setShowModal(false), 1500);
-        }
-      } catch (error) {
-        console.error("Accept Error:", error);
-        toast.error(
-          error.response?.data?.detail || "Already accepted or error occurred.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+  const isAccepted = selectedRequest ? status === "accepted" : false;
 
   if (!selectedRequest) return null;
 
@@ -71,7 +23,7 @@ export default function QoutesDetails() {
 
         <div className="flex flex-row items-center gap-4 mb-6">
           <Image
-            src={selectedRequest.sender.profile_image || "/images/user.jpg"}
+            src={selectedRequest.sender.profile_image}
             height={80}
             width={80}
             alt="User"
@@ -79,7 +31,12 @@ export default function QoutesDetails() {
           />
           <div>
             <h2 className="text-xl font-bold">
-              {selectedRequest.sender.full_name || "Client"}
+              {selectedRequest.sender.full_name}
+              <span
+                className={`text-xs ml-4 rounded-full px-3 py-1 bg-gray-600 ${selectedRequest?.status === "offered" ? "text-yellow-400 " : selectedRequest?.status === "accepted" ? "text-green-400" : "text-red-400"}`}
+              >
+                {selectedRequest?.status}
+              </span>
             </h2>
             <p className="text-gray-400 text-sm">
               {selectedRequest.sender.email}
@@ -93,7 +50,7 @@ export default function QoutesDetails() {
               Original Message
             </label>
             <p className="text-gray-300 text-sm italic">
-              &ldquo;{selectedRequest.message}&rdquo;
+              &ldquo;{selectedRequest.last_message}&rdquo;
             </p>
           </div>
 
@@ -117,9 +74,8 @@ export default function QoutesDetails() {
             </div>
           </div>
 
-          {/* Logic for Buttons: If already accepted, show a status badge instead */}
           <div className="pt-4">
-            {isAccepted ? (
+            {isAccepted && (
               <div className="space-y-3">
                 <div className="w-full flex items-center justify-center gap-2 p-4 rounded-xl bg-green-500/10 border border-green-500 text-green-500 font-bold">
                   <CheckCircle size={20} />
@@ -131,23 +87,6 @@ export default function QoutesDetails() {
                 >
                   Message Now
                 </Link>
-              </div>
-            ) : (
-              <div className="flex flex-row gap-4 items-center">
-                <button
-                  onClick={() => handleQoutes("accept")}
-                  disabled={loading}
-                  className="w-full flex items-center justify-center p-4 rounded-xl text-white font-bold transition bg-primary hover:bg-opacity-90 disabled:opacity-50 shadow-lg shadow-primary/20"
-                >
-                  {loading ? <Loader2 className="animate-spin" /> : "Accept"}
-                </button>
-                <button
-                  onClick={() => handleQoutes("reject")}
-                  disabled={loading}
-                  className="w-full flex items-center justify-center p-4 rounded-xl font-bold transition bg-red-800/10 text-red-500 border border-red-800/50 hover:bg-red-800/20"
-                >
-                  Reject
-                </button>
               </div>
             )}
           </div>

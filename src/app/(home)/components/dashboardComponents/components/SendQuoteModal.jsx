@@ -79,7 +79,7 @@ export default function SendQuoteModal() {
 
   return (
     <div className="fixed inset-0 z-100 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-secondary max-h-[80vh] border border-white/10 p-6 md:p-8 rounded-2xl shadow-2xl max-w-2xl w-full relative animate-in fade-in zoom-in duration-200">
+      <div className="bg-secondary min-h-[80vh] border border-white/10 p-6 md:p-8 rounded-2xl shadow-2xl max-w-2xl w-full relative animate-in fade-in zoom-in duration-200">
         {/* Header Section */}
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center gap-4">

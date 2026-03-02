@@ -45,7 +45,8 @@ const DayCell = ({ dayData, selectedDate, onSelectDay }) => {
   const isSelected = isSameDay(date, selectedDate);
   const isTodayDay = isToday(date);
 
-  let cellClasses = `p-2.5 text-xs sm:text-sm md:text-base lg:text-lg rounded-md transition duration-150 cursor-pointer hover:bg-primary/40 h-full flex items-center justify-between`;
+ let cellClasses = `p-2.5 text-xs sm:text-sm md:text-base rounded-md transition duration-150 cursor-pointer h-full flex items-center justify-between
+ ${hasEvent ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/40" : "bg-[#212121] hover:bg-gray-500"}`;
 
   if (isSelected) {
     cellClasses = `p-2.5 bg-primary/80 text-xs sm:text-sm md:text-base lg:text-lg rounded-md transition duration-150 cursor-pointer h-full flex items-center justify-between shadow-lg ring-2 ring-primary/80`;
@@ -62,7 +63,7 @@ const DayCell = ({ dayData, selectedDate, onSelectDay }) => {
   return (
     <div className="aspect-video" onClick={() => onSelectDay(date)}>
       <div className={cellClasses}>
-        <span className={`font-semibold ${isTodayDay && "text-blue-50"}`}>
+        <span className={`font-semibold ${isTodayDay && "text-blue-50"} `}>
           {day}
         </span>
         {hasEvent && (
@@ -144,7 +145,7 @@ export default function Calendar() {
   const dayLabels = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
   return (
-    <div className={`bg-secondary p-6 min-h-screen`}>
+    <div className={`bg-secondary p-6 min-h-[500px]`}>
       <div className={`max-w-5xl mx-auto`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-4">
           <h2 className="sm:text-xl md:text-2xl font-semibold text-white flex items-center gap-3">
