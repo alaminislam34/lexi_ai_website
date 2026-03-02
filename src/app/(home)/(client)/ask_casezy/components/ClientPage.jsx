@@ -111,7 +111,7 @@ export default function Ask_Casezy_Simple() {
 
     setLoading(true);
     setError(null);
-    setReportText(""); 
+    setReportText("");
 
     try {
       const res = await axios.post(
@@ -147,41 +147,8 @@ export default function Ask_Casezy_Simple() {
   };
 
   return (
-    <div className="min-h-screen pt-24 lg:pt-32 max-w-4xl mx-auto w-11/12 text-white">
+    <div className="min-h-screen pt-24 lg:pt-32 max-w-[1440px] mx-auto w-11/12 text-white">
       <div className="space-y-8">
-        {/* Input Section */}
-        <div className="bg-secondary p-6 rounded-2xl shadow-xl border border-white/5">
-          <h2 className="text-xl font-bold mb-4 text-primary">
-            Describe your situation
-          </h2>
-          <form onSubmit={handleAnalyze} className="space-y-4">
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter details here..."
-              className="w-full h-40 p-4 bg-black/20 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-primary focus:outline-none resize-none transition-all"
-            />
-
-            <button
-              type="submit"
-              disabled={loading || !description.trim()}
-              className="w-full py-4 bg-primary hover:bg-opacity-90 disabled:opacity-50 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="animate-spin w-6 h-6" />
-                  Analyzing Content...
-                </>
-              ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  Analyze Content
-                </>
-              )}
-            </button>
-          </form>
-        </div>
-
         {/* Error Message */}
         {error && (
           <div className="p-4 bg-red-500/10 border border-red-500/50 text-red-400 rounded-xl text-center">
@@ -214,16 +181,28 @@ export default function Ask_Casezy_Simple() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="p-3 rounded-xl bg-black/20 border border-white/10">
-                <p className="text-[10px] uppercase tracking-widest text-gray-400">Complexity</p>
-                <p className="text-sm mt-1 text-white">{highlights.complexity}</p>
+                <p className="text-[10px] uppercase tracking-widest text-gray-400">
+                  Complexity
+                </p>
+                <p className="text-sm mt-1 text-white">
+                  {highlights.complexity}
+                </p>
               </div>
               <div className="p-3 rounded-xl bg-black/20 border border-white/10">
-                <p className="text-[10px] uppercase tracking-widest text-gray-400">Classification</p>
-                <p className="text-sm mt-1 text-white">{highlights.classification}</p>
+                <p className="text-[10px] uppercase tracking-widest text-gray-400">
+                  Classification
+                </p>
+                <p className="text-sm mt-1 text-white">
+                  {highlights.classification}
+                </p>
               </div>
               <div className="p-3 rounded-xl bg-black/20 border border-white/10">
-                <p className="text-[10px] uppercase tracking-widest text-gray-400">Recommendation</p>
-                <p className="text-sm mt-1 text-white line-clamp-3">{highlights.recommendation}</p>
+                <p className="text-[10px] uppercase tracking-widest text-gray-400">
+                  Recommendation
+                </p>
+                <p className="text-sm mt-1 text-white line-clamp-3">
+                  {highlights.recommendation}
+                </p>
               </div>
             </div>
 
@@ -239,7 +218,9 @@ export default function Ask_Casezy_Simple() {
                       {section.title}
                     </summary>
                     <div className="mt-3 text-gray-200 leading-relaxed text-sm md:text-base prose prose-invert prose-p:my-2 prose-li:my-1 max-w-none">
-                      <ReactMarkdown>{section.body || "No content."}</ReactMarkdown>
+                      <ReactMarkdown>
+                        {section.body || "No content."}
+                      </ReactMarkdown>
                     </div>
                   </details>
                 ))
@@ -251,6 +232,38 @@ export default function Ask_Casezy_Simple() {
             </div>
           </div>
         )}
+        {/* Input Section */}
+        <div className="bg-secondary/20 p-6 rounded-2xl shadow-xl border border-white/5">
+          <h2 className="text-xl font-bold mb-4 text-primary">
+            Describe your situation
+          </h2>
+          <form onSubmit={handleAnalyze} className="space-y-4">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter details here..."
+              className="w-full h-40 p-4 bg-transparent border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-primary focus:outline-none resize-none transition-all"
+            />
+
+            <button
+              type="submit"
+              disabled={loading || !description.trim()}
+              className="w-full py-4 bg-primary hover:bg-opacity-90 disabled:opacity-50 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin w-6 h-6" />
+                  Analyzing Content...
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  Analyze Content
+                </>
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

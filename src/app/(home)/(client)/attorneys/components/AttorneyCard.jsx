@@ -10,27 +10,18 @@ export default function AttorneyCard({
   openConsultModal,
   openProfileModal,
 }) {
-  const name = attorney.full_name || "Unknown Attorney";
-  const image = attorney.profile_image || "/images/default_profile.png";
-  const score = attorney.rating?.average || 0.0;
-  const legalArea = attorney.preferred_legal_area || "General Practice";
-
+  const name = attorney.full_name;
+  const image = attorney.profile_image;
+  const score = attorney.rating?.average;
+  const legalArea = attorney.preferred_legal_area;
+  console.log("attoryney data :", attorney);
   const practiceAreas = attorney.preferred_legal_area
     ? [attorney.preferred_legal_area]
     : ["Legal Services"];
 
-  // FIX: Added check to prevent charAt error if role is missing
-  const roleDisplay = attorney.role
-    ? attorney.role.charAt(0).toUpperCase() + attorney.role.slice(1)
-    : "Professional";
-
   const descriptionItems = [
-    `Role: ${roleDisplay}`,
     `Location: ${attorney.location || "Not specified"}`,
     `Member since: ${attorney.date_joined ? new Date(attorney.date_joined).getFullYear() : "2026"}`,
-    attorney.is_email_verified
-      ? "Verified Professional"
-      : "Pending Verification",
   ];
 
   return (
