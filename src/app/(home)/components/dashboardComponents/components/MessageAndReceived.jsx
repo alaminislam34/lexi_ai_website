@@ -138,8 +138,8 @@ export default function MessageAndReceived() {
   }, [quotes]);
 
   return (
-    <div className="min-h-screen text-white">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-[600px] text-white">
+      <div className="max-w-4xl mx-auto space-y-4">
         <DashboardConversationList title="Messages" limit={5} />
 
         {/* Received Quotes Section */}
@@ -281,18 +281,18 @@ export default function MessageAndReceived() {
                     placeholder="Card Number"
                     className="w-full px-4 py-3 rounded-lg bg-[#181818] border border-gray-700 text-white focus:outline-none focus:border-primary transition"
                   />
-                  <div className="flex gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input
                       type="text"
                       required
                       placeholder="MM/YY"
-                      className="flex-1 px-4 py-3 rounded-lg bg-[#181818] border border-gray-700 text-white focus:outline-none focus:border-primary transition"
+                      className=" px-4 py-3 rounded-lg bg-[#181818] border border-gray-700 text-white focus:outline-none focus:border-primary transition"
                     />
                     <input
                       type="text"
                       required
                       placeholder="CVC"
-                      className="flex-1 px-4 py-3 rounded-lg bg-[#181818] border border-gray-700 text-white focus:outline-none focus:border-primary transition"
+                      className=" px-4 py-3 rounded-lg bg-[#181818] border border-gray-700 text-white focus:outline-none focus:border-primary transition"
                     />
                   </div>
                 </div>

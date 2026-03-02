@@ -273,8 +273,8 @@ export default function DashboardConversationList({
   };
 
   return (
-    <div className="rounded-xl overflow-hidden bg-secondary p-4 shadow-lg border border-gray-700/30">
-      <div className="flex items-center py-2 border-b border-gray-700/50 mb-3">
+    <div className="rounded-xl max-h-[400px] overflow-y-auto overflow-hidden bg-secondary p-4 shadow-lg border border-gray-700/30">
+      <div className="flex items-center py-2 border-b border-gray-700/50 mb-2">
         <h2 className="text-lg font-semibold">{title}</h2>
       </div>
 
@@ -293,7 +293,7 @@ export default function DashboardConversationList({
               key={conversation.id}
               href={`/message?consultationId=${conversation.consultationId}`}
               onClick={() => clearUnreadFor(conversation.id)}
-              className="flex items-center gap-3 py-3 hover:bg-white/5 rounded-lg px-2 transition"
+              className="flex items-center gap-3 py-2 hover:bg-white/5 rounded-lg px-2 transition"
             >
               <Image
                 src={conversation.image}

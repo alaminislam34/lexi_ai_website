@@ -145,7 +145,7 @@ export default function Calendar() {
   const dayLabels = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
   return (
-    <div className={`bg-secondary p-6 min-h-[500px]`}>
+    <div className={`bg-secondary p-6 min-h-[500px] rounded-lg`}>
       <div className={`max-w-5xl mx-auto`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-4">
           <h2 className="sm:text-xl md:text-2xl font-semibold text-white flex items-center gap-3">
