@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_WS_BASE_URL: ${NEXT_PUBLIC_WS_BASE_URL}
+    image: fahad1000mir/lexi-ai-frontend:latest
+    container_name: lexi-ai-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - SKIP_ENV_VALIDATION=1
+    env_file:
+      - .env
+    restart: always

@@ -47,7 +47,10 @@ export default function Step_4() {
 
       setUserData(payload);
 
-      const res = await axios.post(`http://3.142.150.64${REGISTER}`, payload);
+      const res = await axios.post(
+        `http://3.142.150.64${REGISTER}`,
+        payload,
+      );
 
       if (res.status === 200 || res.status === 201) {
         toast.success("Account created! Please verify your email.");
@@ -67,10 +70,13 @@ export default function Step_4() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post("http://3.142.150.64/api/auth/otp/verify/", {
-        email: userData.email,
-        otp: otp,
-      });
+      const res = await axios.post(
+        "http://3.142.150.64/api/auth/otp/verify/",
+        {
+          email: userData.email,
+          otp: otp,
+        },
+      );
 
       if (res.status === 200 || res.status === 201) {
         toast.success("Email verified successfully!");

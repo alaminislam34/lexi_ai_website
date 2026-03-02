@@ -589,7 +589,7 @@ export default function ChatLayout({
             className={`
             flex-1 flex flex-col overflow-hidden 
             md:relative 
-            ${isThreadListVisible ? "hidden md:flex" : "fixed inset-0 z-50 flex "}
+            ${isThreadListVisible ? "hidden md:flex" : "flex"}
         
           `}
           >
