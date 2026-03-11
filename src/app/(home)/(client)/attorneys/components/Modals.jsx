@@ -1,6 +1,6 @@
 import { Loader2, X } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -147,7 +147,21 @@ export const RequestConsultModal = ({ attorney, closeModal }) => {
     subject: "Request for Consultation",
     message: "",
   });
-  console.log(attorney);
+
+  useEffect(() => {
+    const savedAiMessage = localStorage.getItem("casezy_consult_message");
+    if (!savedAiMessage) return;
+
+    setFormData((prev) => {
+      if (prev.message.trim()) return prev;
+
+      return {
+        ...prev,
+        message: savedAiMessage,
+      };
+    });
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 

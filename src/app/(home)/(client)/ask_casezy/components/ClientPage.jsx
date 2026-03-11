@@ -4,17 +4,13 @@ import React, { useMemo, useState } from "react";
 import { Loader2, Send, Copy, Download, AlertCircle } from "lucide-react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
+import { useRouter } from "next/navigation";
 
-/**
- * Clean up raw text, normalize line breaks, and convert
- * legacy text headers (--- HEADER ---) into Markdown headers (## HEADER).
- */
 const prettifyReport = (rawText) => {
   if (!rawText) return "";
 
   let text = `${rawText}`.trim();
 
-  // Remove surrounding quotes if the API returned a stringified JSON string
   if (
     (text.startsWith('"') && text.endsWith('"')) ||
     (text.startsWith("'") && text.endsWith("'"))
@@ -22,7 +18,6 @@ const prettifyReport = (rawText) => {
     text = text.slice(1, -1);
   }
 
-  // Normalize all variations of newlines and non-breaking spaces
   text = text
     .replace(/\u00a0/g, " ")
     .replace(/\\r\\n/g, "\n")
@@ -30,24 +25,18 @@ const prettifyReport = (rawText) => {
     .replace(/\\t/g, "\t")
     .replace(/\r\n/g, "\n");
 
-  // Transform "--- SECTION NAME ---" into "## SECTION NAME"
   text = text.replace(/^-{10,}\n?([A-Z0-9 &\/\\-]+)\n?-{10,}$/gm, "## $1");
 
-  // Clean up specific common headers
   text = text.replace(/^DISCLAIMER$/gm, "## DISCLAIMER");
   text = text.replace(/^Generated:\s*(.+)$/gm, "**Generated:** $1");
 
   return text.trim();
 };
 
-/**
- * Splits the report into logical sections based on "## " headers
- */
 const parseSections = (text) => {
   const normalized = `${text || ""}`.trim();
   if (!normalized) return [];
 
-  // Split by "## " but keep the delimiter for parsing
   const chunks = normalized.split(/\n(?=##\s+)/g);
 
   return chunks.map((chunk, index) => {
@@ -92,6 +81,7 @@ const extractHighlights = (text) => {
 };
 
 export default function Ask_Casezy_Simple() {
+  const router = useRouter();
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [reportText, setReportText] = useState("");
@@ -117,6 +107,13 @@ export default function Ask_Casezy_Simple() {
     URL.revokeObjectURL(url);
   };
 
+  const handleBrowseAttorney = () => {
+    if (!reportText) return;
+
+    localStorage.setItem("casezy_consult_message", reportText);
+    router.push("/attorneys");
+  };
+
   const handleAnalyze = async (e) => {
     e.preventDefault();
     if (!description.trim()) return;
@@ -134,7 +131,9 @@ export default function Ask_Casezy_Simple() {
       const data = res.data;
       const result =
         data?.report || data?.response || data?.result || JSON.stringify(data);
-      setReportText(prettifyReport(result));
+      const formattedReport = prettifyReport(result);
+      setReportText(formattedReport);
+      localStorage.setItem("casezy_consult_message", formattedReport);
     } catch (err) {
       setError(
         "Analysis failed. Please check your connection or try a different query.",
@@ -147,7 +146,6 @@ export default function Ask_Casezy_Simple() {
   return (
     <div className="min-h-screen bg-[#0D0F12] pt-24 pb-12 text-gray-100 font-sans">
       <div className="max-w-5xl mx-auto w-11/12 space-y-8">
-        {/* Header Section */}
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-black bg-linear-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
             CASEZY ANALYST
@@ -157,7 +155,6 @@ export default function Ask_Casezy_Simple() {
           </p>
         </div>
 
-        {/* Error State */}
         {error && (
           <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl">
             <AlertCircle className="w-5 h-5" />
@@ -165,7 +162,6 @@ export default function Ask_Casezy_Simple() {
           </div>
         )}
 
-        {/* Input Area */}
         <div className="bg-[#1B1D22] p-6 rounded-2xl border border-white/5 shadow-2xl">
           <form onSubmit={handleAnalyze} className="space-y-4">
             <textarea
@@ -192,10 +188,8 @@ export default function Ask_Casezy_Simple() {
           </form>
         </div>
 
-        {/* Results Output */}
         {reportText && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-5 duration-700">
-            {/* Quick Actions & Highlights */}
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
@@ -214,10 +208,15 @@ export default function Ask_Casezy_Simple() {
                 >
                   <Download size={14} /> PDF/Text
                 </button>
+                <button
+                  onClick={handleBrowseAttorney}
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 border border-blue-500 rounded-lg transition"
+                >
+                  Browse Attorney
+                </button>
               </div>
             </div>
 
-            {/* Metric Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 {
@@ -252,13 +251,12 @@ export default function Ask_Casezy_Simple() {
               ))}
             </div>
 
-            {/* Detailed Accordions */}
             <div className="space-y-4">
               {sections.map((section, idx) => (
                 <details
                   key={section.id}
                   className="group bg-[#1B1D22] border border-white/5 rounded-2xl overflow-hidden transition-all"
-                  open={idx < 2} // Open first two by default
+                  open={idx < 2}
                 >
                   <summary className="list-none cursor-pointer p-5 flex justify-between items-center hover:bg-white/2">
                     <span className="font-bold text-sm tracking-wide text-gray-200 uppercase">
