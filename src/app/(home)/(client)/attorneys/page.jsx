@@ -6,10 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import AttorneyCard from "./components/AttorneyCard";
 import { AttorneyProfileModal, RequestConsultModal } from "./components/Modals";
-import {
-  generateMockAttorneys,
-  getTierDescription,
-} from "../../../../lib/mockAttorneys";
+import { getTierDescription } from "../../../../lib/mockAttorneys";
 import baseApi from "../../../../api/base_url";
 
 export default function Attorneys() {
@@ -22,8 +19,8 @@ export default function Attorneys() {
   const [displayedCount, setDisplayedCount] = useState(6);
   const [searchTerm, setSearchTerm] = useState("");
   const [caseTier, setCaseTier] = useState(null);
-  const [isMockData, setIsMockData] = useState(false);
 
+  // ১. URL থেকে টিয়ার ভ্যালু বের করা
   const tierValue = useMemo(() => {
     const rawTier = searchParams.get("tier");
     const parsed = Number(rawTier);
@@ -31,11 +28,7 @@ export default function Attorneys() {
   }, [searchParams]);
 
   const tierNumberToLabel = (tier) => {
-    const map = {
-      1: "one",
-      2: "two",
-      3: "three",
-    };
+    const map = { 1: "one", 2: "two", 3: "three" };
     return map[Number(tier)] || null;
   };
 
@@ -47,14 +40,15 @@ export default function Attorneys() {
     if (["one", "two", "three"].includes(tierAsString)) {
       return tierAsString;
     }
-
     return tierNumberToLabel(tierAsString);
   };
 
   useEffect(() => {
     const fetchAttorneys = async () => {
+      setLoading(true);
       const targetTier = tierValue ? tierNumberToLabel(tierValue) : null;
       setCaseTier(tierValue);
+
       const tokenData = localStorage.getItem("token");
       let accessToken = null;
 
@@ -67,13 +61,6 @@ export default function Attorneys() {
         }
       }
 
-      const loadMockData = () => {
-        if (tierValue) {
-          setAttorneys(generateMockAttorneys(tierValue, 12));
-          setIsMockData(true);
-        }
-      };
-
       try {
         const res = await baseApi.get("/api/attorney/attorneys/", {
           headers: accessToken
@@ -82,6 +69,8 @@ export default function Attorneys() {
         });
 
         let attorneyList = res.data || [];
+
+        // Django Rest Framework pagination হ্যান্ডল করার জন্য
         if (
           !Array.isArray(attorneyList) &&
           Array.isArray(attorneyList?.results)
@@ -89,30 +78,18 @@ export default function Attorneys() {
           attorneyList = attorneyList.results;
         }
 
+        // এপিআই থেকে আসা ডাটাকে টিয়ার অনুযায়ী ফিল্টার করা
         if (targetTier) {
           const matched = attorneyList.filter(
             (atty) => normalizeAttorneyTier(atty) === targetTier,
           );
-
-          if (matched.length === 0) {
-            loadMockData();
-          } else {
-            setAttorneys(matched);
-            setIsMockData(false);
-          }
+          setAttorneys(matched);
         } else {
           setAttorneys(attorneyList);
-          setIsMockData(false);
         }
       } catch (error) {
         console.error("Fetch Error:", error);
-
-        if (targetTier) {
-          loadMockData();
-        } else {
-          setAttorneys([]);
-          setIsMockData(false);
-        }
+        setAttorneys([]); // এরর হলে খালি লিস্ট দেখাবে
       } finally {
         setLoading(false);
       }
@@ -121,20 +98,19 @@ export default function Attorneys() {
     fetchAttorneys();
   }, [tierValue]);
 
-  // ২. সার্চ এবং ফিল্টারিং
+  // সার্চ এবং ফিল্টারিং
   const filteredAttorneys = useMemo(() => {
     const lowerCaseSearch = searchTerm.toLowerCase().trim();
     if (!lowerCaseSearch) return attorneys;
 
     return attorneys.filter(
       (atty) =>
-        atty.full_name?.toLowerCase().includes(lowerCaseSearch) || // নাম দিয়ে সার্চ অ্যাড করা হয়েছে
+        atty.full_name?.toLowerCase().includes(lowerCaseSearch) ||
         atty.location?.toLowerCase().includes(lowerCaseSearch) ||
         atty.preferred_legal_area?.toLowerCase().includes(lowerCaseSearch),
     );
   }, [searchTerm, attorneys]);
 
-  // ৩. ডিসপ্লে লজিক
   const attorneysToDisplay = useMemo(
     () => filteredAttorneys.slice(0, displayedCount),
     [filteredAttorneys, displayedCount],
@@ -142,7 +118,6 @@ export default function Attorneys() {
 
   const hasMore = displayedCount < filteredAttorneys.length;
 
-  // ৪. মেমোরি লিক রোধে হ্যান্ডলার
   const openConsultModal = useCallback((attorney) => {
     setSelectedAttorney(attorney);
     setIsConsultModalOpen(true);
@@ -150,7 +125,6 @@ export default function Attorneys() {
 
   const closeConsultModal = useCallback(() => {
     setIsConsultModalOpen(false);
-    // যদি প্রোফাইল মোডাল খোলা না থাকে তবেই সিলেক্টেড অ্যাটর্নি নাল করুন
     if (!isProfileModalOpen) setSelectedAttorney(null);
   }, [isProfileModalOpen]);
 
@@ -209,11 +183,14 @@ export default function Attorneys() {
             </div>
           </div>
 
-          {/* ৫. ইম্পটি স্টেট (Empty State) হ্যান্ডলিং */}
+          {/* ইম্পটি স্টেট হ্যান্ডলিং */}
           {filteredAttorneys.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+            <div className="flex flex-col items-center justify-center py-20 text-gray-500 bg-gray-900/20 rounded-3xl border border-dashed border-gray-800">
               <Search className="w-12 h-12 mb-4 opacity-20" />
-              <p>No attorneys found matching your search.</p>
+              <p className="text-lg font-medium">No attorneys found</p>
+              <p className="text-sm">
+                We couldn't find any actual data matching your requirements.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -246,7 +223,6 @@ export default function Attorneys() {
         </section>
       </div>
 
-      {/* মোডাল গুলো */}
       {isConsultModalOpen && selectedAttorney && (
         <RequestConsultModal
           attorney={selectedAttorney}

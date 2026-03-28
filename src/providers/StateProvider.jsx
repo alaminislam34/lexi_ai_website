@@ -52,7 +52,7 @@ export default function StateProvider({ children }) {
           Authorization: `Bearer ${token.accessToken}`,
         },
       });
-
+      console.log(res);
       if (res.status === 200) {
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
