@@ -1,7 +1,5 @@
 "use client";
-
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
-import { StateContext } from "@/app/providers/StateProvider";
+import { StateContext } from "../../../../providers/StateProvider";
 import { LogOut, Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

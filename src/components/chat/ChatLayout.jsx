@@ -7,13 +7,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RiStarFill, RiStarLine } from "react-icons/ri";
 import Rating from "react-rating";
 import toast, { Toaster } from "react-hot-toast";
-import { ChatSocket } from "@/lib/chatSocket";
+import { ChatSocket } from "../../lib/chatSocket";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import ConversationList from "./ConversationList";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://3.142.150.64";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://3.142.150.64";
 const CHAT_STORAGE_KEY_PREFIX = "chat_messages_by_conversation_";
 const CHAT_UNREAD_STORAGE_KEY_PREFIX = "chat_unread_by_conversation_";
 const POLLING_INTERVAL_MS = 5000;

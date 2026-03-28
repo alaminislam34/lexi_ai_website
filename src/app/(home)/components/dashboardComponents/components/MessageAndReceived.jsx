@@ -3,9 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { BiLoaderAlt } from "react-icons/bi";
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
+import { useAuth } from "@/providers/Auth_Providers/AuthProviders";
 import Link from "next/link";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DashboardConversationList from "./DashboardConversationList";
@@ -15,6 +14,7 @@ import { Check } from "lucide-react";
 import { Eye } from "lucide-react";
 import { MapPin } from "lucide-react";
 import { MessageSquareMore } from "lucide-react";
+import baseApi from "@/api/base_url";
 
 const getStatusClasses = (status) => {
   if (status === "accepted") {
@@ -43,8 +43,8 @@ export default function MessageAndReceived() {
       const tokens = tokenData ? JSON.parse(tokenData) : null;
       if (!tokens?.accessToken) throw new Error("No Access Token");
 
-      const res = await axios.get(
-        "http://3.142.150.64/api/attorney/consultations/reply-messages/",
+      const res = await baseApi.get(
+        "/api/attorney/consultations/reply-messages/",
         {
           headers: { Authorization: `Bearer ${tokens.accessToken}` },
         },
@@ -59,8 +59,8 @@ export default function MessageAndReceived() {
       const tokenData = localStorage.getItem("token");
       const tokens = tokenData ? JSON.parse(tokenData) : null;
 
-      const res = await axios.post(
-        `http://3.142.150.64/api/attorney/consultations/${quoteId}/accept/`,
+      const res = await baseApi.post(
+        `/api/attorney/consultations/${quoteId}/accept/`,
         {},
         {
           headers: { Authorization: `Bearer ${tokens?.accessToken}` },
@@ -85,8 +85,8 @@ export default function MessageAndReceived() {
       const tokenData = localStorage.getItem("token");
       const tokens = tokenData ? JSON.parse(tokenData) : null;
 
-      const res = await axios.post(
-        `http://3.142.150.64/api/attorney/consultations/${quoteId}/reject/`,
+      const res = await baseApi.post(
+        `/api/attorney/consultations/${quoteId}/reject/`,
         {},
         {
           headers: { Authorization: `Bearer ${tokens?.accessToken}` },

@@ -1,7 +1,7 @@
 // src/components/Dashboard.jsx
 "use client";
 
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
+import { useAuth } from "@/providers/Auth_Providers/AuthProviders";
 import Calendar from "../components/dashboardComponents/components/Calendar";
 import MessageAndReceived from "../components/dashboardComponents/components/MessageAndReceived";
 import QoutesDetails from "../components/dashboardComponents/components/QoutesDetails";

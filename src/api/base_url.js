@@ -2,13 +2,19 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 // Define the API Base URL from environment variables for production
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://3.142.150.64";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!BASE_URL) {
+  throw new Error(
+    "NEXT_PUBLIC_API_URL is not defined in environment variables",
+  );
+}
+
 const REFRESH_ENDPOINT = "/api/token/refresh/";
 
 // Create an axios instance
 const baseApi = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: BASE_URL,
 });
 
 // A flag to prevent multiple concurrent refresh requests

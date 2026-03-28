@@ -5,7 +5,7 @@ import Calendar from "./components/Calendar";
 import MessageAndReceived from "./components/MessageAndReceived";
 import CasezyAssistant from "./components/CasezyAssistant";
 import QoutesDetails from "./components/QoutesDetails";
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
+import { useAuth } from "@/providers/Auth_Providers/AuthProviders";
 
 export default function ClientDashboard() {
   const { showModal } = useAuth();

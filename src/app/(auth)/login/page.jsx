@@ -1,17 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
 import SentResetLink from "./components/SentResetLink";
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
 import { toast } from "react-toastify";
-import axios from "axios";
-import baseApi from "@/api/base_url";
-import { LOGIN } from "@/api/apiEntpoint";
+import { LOGIN } from "../../../api/apiEntpoint";
 import { useRouter } from "next/navigation";
+import baseApi from "../../../api/base_url";
 
 export default function Login() {
   const [forget, setForget] = useState(false);
@@ -31,7 +29,7 @@ export default function Login() {
         return;
       }
       setLoading(true);
-      const res = await axios.post(`http://3.142.150.64${LOGIN}`, {
+      const res = await baseApi.post(`${LOGIN}`, {
         email,
         password,
         remember_me: rememberMe ? "true" : "false",

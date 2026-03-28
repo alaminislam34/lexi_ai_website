@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
+import { useAuth } from "@/providers/Auth_Providers/AuthProviders";
 import Calendar from "../../components/dashboardComponents/components/Calendar";
 import ConsultRequest from "../../components/attorney/ConsultRequest";
 import SendQuoteModal from "../../components/dashboardComponents/components/SendQuoteModal";

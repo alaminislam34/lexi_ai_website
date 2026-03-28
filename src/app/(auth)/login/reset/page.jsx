@@ -7,9 +7,9 @@ import Image from "next/image";
 import Link from "next/link";
 import SentResetLink from "../components/SentResetLink";
 import { toast } from "react-toastify";
-import axios from "axios";
-import { LOGIN } from "@/api/apiEntpoint";
+import { LOGIN } from "../../../../api/apiEntpoint";
 import { useRouter } from "next/navigation";
+import baseApi from "../../../../api/base_url";
 
 export default function Reset() {
   const [forget, setForget] = useState(false);
@@ -29,7 +29,7 @@ export default function Reset() {
         return;
       }
       setLoading(true);
-      const res = await axios.post(`http://3.142.150.64${LOGIN}`, {
+      const res = await baseApi.post(`${LOGIN}`, {
         email,
         password,
         remember_me: rememberMe ? "true" : "false",

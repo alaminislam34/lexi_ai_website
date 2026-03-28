@@ -2,9 +2,13 @@
 
 // Profile and Auth
 export const REGISTER = "/api/auth/register/";
-export const LOGIN = "/api/login/";
+export const LOGIN = "/api/auth/login/";
 export const PROFILE_DETAILS = "/api/auth/me/";
 export const PASSWORD_CHANGE = "/api/auth/password/change/";
+export const ADMIN_LOGIN = "/api/auth/login/";
+export const ALL_ATTORNEYS = "/api/admin/attorneys/";
+export const UPDATE_ATTORNEY_TIER = (id) => `/api/admin/attorneys/${id}/tier/`;
+export const ALL_USERS = "/api/admin/users/";
 
 // export const PROFILE_UPDATE = "/api/profile/update/";
 // export const TOKEN_REFRESH = "/api/token/refresh/";

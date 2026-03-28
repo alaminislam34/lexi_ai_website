@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useRef, useMemo } from "react";
 import Image from "next/image"; // Next.js Image component
-import axios from "axios";
-import { PROFILE_DETAILS } from "@/api/apiEntpoint";
+import { PROFILE_DETAILS } from "../../../../api/apiEntpoint";
 import toast from "react-hot-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import baseApi from "../../../../api/base_url";
 
 const ProfilePage = () => {
   const queryClient = useQueryClient();
@@ -17,7 +17,7 @@ const ProfilePage = () => {
     queryKey: ["profile"],
     queryFn: async () => {
       const tokenData = JSON.parse(localStorage.getItem("token"));
-      const res = await axios.get(`http://3.142.150.64${PROFILE_DETAILS}`, {
+      const res = await baseApi.get(`${PROFILE_DETAILS}`, {
         headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
       });
       return res.data;
@@ -48,16 +48,12 @@ const ProfilePage = () => {
   const mutation = useMutation({
     mutationFn: async (payload) => {
       const tokenData = JSON.parse(localStorage.getItem("token"));
-      const res = await axios.put(
-        `http://3.142.150.64${PROFILE_DETAILS}`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${tokenData?.accessToken}`,
-            "Content-Type": "multipart/form-data",
-          },
+      const res = await baseApi.put(`${PROFILE_DETAILS}`, payload, {
+        headers: {
+          Authorization: `Bearer ${tokenData?.accessToken}`,
+          "Content-Type": "multipart/form-data",
         },
-      );
+      });
       return res.data;
     },
     onSuccess: (updatedResponse) => {

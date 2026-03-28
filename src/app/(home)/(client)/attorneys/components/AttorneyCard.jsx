@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { FaStar } from "react-icons/fa";
+import { Check } from "lucide-react";
 
 const PRIMARY_COLOR_CLASSES = "bg-blue-500 hover:bg-blue-600";
 const SECONDARY_BG_COLOR = "bg-[#1D1F23]";
@@ -14,7 +15,6 @@ export default function AttorneyCard({
   const image = attorney.profile_image;
   const score = attorney.rating?.average;
   const legalArea = attorney.preferred_legal_area;
-  console.log("attoryney data :", attorney);
   const practiceAreas = attorney.preferred_legal_area
     ? [attorney.preferred_legal_area]
     : ["Legal Services"];
@@ -28,9 +28,9 @@ export default function AttorneyCard({
     <div
       className={`p-6 rounded-2xl ${SECONDARY_BG_COLOR} space-y-6 flex flex-col`}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex flex-row items-center gap-4">
-          <div className="shrink-0">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-row items-center gap-4 flex-1">
+          <div className="shrink-0 relative">
             <Image
               src={image}
               height={64}
@@ -38,12 +38,29 @@ export default function AttorneyCard({
               alt={name}
               className="w-16 h-16 rounded-full object-cover p-1 border border-gray-700/50"
             />
+            {attorney.is_mock && (
+              <div className="absolute bottom-0 right-0 flex items-center justify-center w-5 h-5 bg-blue-500 rounded-full border-2 border-[#1D1F23]">
+                <Check className="w-3 h-3 text-white" />
+              </div>
+            )}
           </div>
           <div className="text-left min-w-0">
-            <h2 className="font-semibold text-white truncate">{name}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-white truncate">{name}</h2>
+              {attorney.is_mock && (
+                <span className="px-2 py-0.5 bg-blue-500/10 border border-blue-500/30 rounded text-blue-400 text-xs font-medium whitespace-nowrap">
+                  Matched
+                </span>
+              )}
+            </div>
             <p className="text-sm text-gray-400 leading-normal truncate">
               {legalArea}
             </p>
+            {attorney.is_mock && attorney.tier_match_reason && (
+              <p className="text-xs text-blue-300/70 mt-1">
+                {attorney.tier_match_reason}
+              </p>
+            )}
           </div>
         </div>
         <div>

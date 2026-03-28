@@ -10,6 +10,7 @@ import {
   Settings,
   Menu,
   X,
+  LogOut, // Added LogOut icon
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -39,6 +40,12 @@ const Sidebar = () => {
       link: "/admin/settings",
     },
   ];
+
+  // Logout handler
+  const handleLogout = () => {
+    // If you have auth logic (clearing cookies/tokens), add it here
+    router.push("/admin-login");
+  };
 
   return (
     <>
@@ -74,7 +81,6 @@ const Sidebar = () => {
         {/* Navigation */}
         <nav className="flex-1 space-y-2">
           {menuItems.map((item, index) => {
-            // Check if the current pathname matches the link
             const isActive = pathname === item.link;
 
             return (
@@ -95,20 +101,16 @@ const Sidebar = () => {
           })}
         </nav>
 
-        {/* User Profile Section */}
-        <div
-          onClick={() => router.push("/admin/settings")}
-          className="bg-[#161618] hover:bg-[#161618]/50 p-4 rounded-xl flex items-center gap-3 mt-auto border border-gray-800 cursor-pointer"
-        >
-          <div className="w-10 h-10 min-w-10 rounded-full bg-[#00bcd4] flex items-center justify-center text-black font-bold text-sm">
-            AD
-          </div>
-          <div className="overflow-hidden">
-            <p className="text-white text-sm font-medium truncate">
-              Admin User
-            </p>
-            <p className="text-gray-500 text-xs truncate">admin@example.com</p>
-          </div>
+        {/* Footer Section: Profile + Logout */}
+        <div className="mt-auto space-y-4">
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 p-3 rounded-lg text-red-400 hover:bg-red-400/10 hover:text-red-300 transition-all duration-200"
+          >
+            <LogOut size={20} />
+            <span className="font-medium">Logout</span>
+          </button>
         </div>
       </aside>
     </>

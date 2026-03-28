@@ -1,6 +1,6 @@
 "use client";
 
-import { StateContext } from "@/app/providers/StateProvider";
+import { StateContext } from "../../../../providers/StateProvider";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

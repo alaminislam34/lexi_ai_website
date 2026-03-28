@@ -1,14 +1,14 @@
 "use client";
 
-import { REGISTER } from "@/api/apiEntpoint";
-import { StateContext } from "@/app/providers/StateProvider";
-import axios from "axios";
+import { REGISTER } from "../../../../api/apiEntpoint";
+import { StateContext } from "../../../../providers/StateProvider";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useContext } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { Loader2, ShieldCheck, ArrowLeft } from "lucide-react"; // Added for better UI
+import { Loader2, ShieldCheck, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
+import baseApi from "../../../../api/base_url";
 
 const PasswordToggleIcon = ({ onClick, className, isVisible }) => {
   const Icon = isVisible ? FaEyeSlash : FaEye;
@@ -17,7 +17,7 @@ const PasswordToggleIcon = ({ onClick, className, isVisible }) => {
 
 export default function Step_4() {
   const { setUserData, userData } = useContext(StateContext);
-  const [step, setStep] = useState("password"); // 'password' or 'otp'
+  const [step, setStep] = useState("password");
   const [loading, setLoading] = useState(false);
 
   // Form States
@@ -47,10 +47,7 @@ export default function Step_4() {
 
       setUserData(payload);
 
-      const res = await axios.post(
-        `http://3.142.150.64${REGISTER}`,
-        payload,
-      );
+      const res = await baseApi.post(`${REGISTER}`, payload);
 
       if (res.status === 200 || res.status === 201) {
         toast.success("Account created! Please verify your email.");
@@ -70,13 +67,10 @@ export default function Step_4() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post(
-        "http://3.142.150.64/api/auth/otp/verify/",
-        {
-          email: userData.email,
-          otp: otp,
-        },
-      );
+      const res = await baseApi.post("/api/auth/otp/verify/", {
+        email: userData.email,
+        otp: otp,
+      });
 
       if (res.status === 200 || res.status === 201) {
         toast.success("Email verified successfully!");

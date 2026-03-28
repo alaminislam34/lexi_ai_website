@@ -2,8 +2,8 @@ import { Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa";
-import axios from "axios";
 import { toast } from "react-toastify";
+import baseApi from "../../../../../api/base_url";
 
 // Configuration Constants
 const PRIMARY_COLOR_CLASSES = "bg-blue-500 hover:bg-blue-600";
@@ -188,8 +188,8 @@ export const RequestConsultModal = ({ attorney, closeModal }) => {
     };
 
     try {
-      const response = await axios.post(
-        "http://3.142.150.64/api/attorney/consultations/create/",
+      const response = await baseApi.post(
+        "/api/attorney/consultations/create/",
         payload,
         {
           headers: {

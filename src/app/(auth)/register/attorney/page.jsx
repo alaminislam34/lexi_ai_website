@@ -4,9 +4,9 @@ import React, { useContext, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import axios from "axios";
-import { StateContext } from "@/app/providers/StateProvider";
+import { StateContext } from "../../../../providers/StateProvider";
 import { Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
+import baseApi from "../../../../api/base_url";
 
 export default function AttorneyRegisterPage() {
   const { setUserData } = useContext(StateContext);
@@ -51,10 +51,7 @@ export default function AttorneyRegisterPage() {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://3.142.150.64/api/auth/register/",
-        formData,
-      );
+      const response = await baseApi.post("/api/auth/register/", formData);
 
       if (response.status === 201 || response.status === 200) {
         toast.success("Registration successful! Please verify your email.");
@@ -62,7 +59,7 @@ export default function AttorneyRegisterPage() {
         setStep("otp");
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       const errorMsg = error.response?.data?.detail || "Registration failed.";
       toast.error(errorMsg);
     } finally {
@@ -75,10 +72,7 @@ export default function AttorneyRegisterPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://3.142.150.64/api/auth/otp/verify/",
-        otpData,
-      );
+      const response = await baseApi.post("/api/auth/otp/verify/", otpData);
 
       if (response.status === 200 || response.status === 201) {
         toast.success("Email verified successfully! You can now log in.");
@@ -284,8 +278,8 @@ export default function AttorneyRegisterPage() {
                 <div className="bg-element p-4 rounded-xl border border-primary/20 flex items-center gap-4">
                   <ShieldCheck className="text-primary" size={32} />
                   <p className="text-xs text-gray">
-                    Please check your inbox. If you don&apos;t see the email, check
-                    your spam folder.
+                    Please check your inbox. If you don&apos;t see the email,
+                    check your spam folder.
                   </p>
                 </div>
 

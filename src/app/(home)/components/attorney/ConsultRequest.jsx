@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 import axios from "axios";
 import { BiMessageAltDetail, BiLoaderAlt } from "react-icons/bi";
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
+import { useAuth } from "@/providers/Auth_Providers/AuthProviders";
 import { useRouter } from "next/navigation";
 import { RiStarFill, RiStarLine } from "react-icons/ri";
 import { toast } from "react-toastify";

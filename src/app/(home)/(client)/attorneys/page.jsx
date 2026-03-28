@@ -2,11 +2,18 @@
 
 import { Search, Loader2 } from "lucide-react";
 import { useState, useMemo, useCallback, useEffect } from "react";
-import axios from "axios";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import AttorneyCard from "./components/AttorneyCard";
 import { AttorneyProfileModal, RequestConsultModal } from "./components/Modals";
+import {
+  generateMockAttorneys,
+  getTierDescription,
+} from "../../../../lib/mockAttorneys";
+import baseApi from "../../../../api/base_url";
 
 export default function Attorneys() {
+  const searchParams = useSearchParams();
   const [attorneys, setAttorneys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false);
@@ -14,37 +21,128 @@ export default function Attorneys() {
   const [selectedAttorney, setSelectedAttorney] = useState(null);
   const [displayedCount, setDisplayedCount] = useState(6);
   const [searchTerm, setSearchTerm] = useState("");
+  const [caseTier, setCaseTier] = useState(null);
+  const [isMockData, setIsMockData] = useState(false);
+
+  const tierValue = useMemo(() => {
+    const rawTier = searchParams.get("tier");
+    const parsed = Number(rawTier);
+    return [1, 2, 3].includes(parsed) ? parsed : null;
+  }, [searchParams]);
+
+  const tierNumberToLabel = (tier) => {
+    const map = {
+      1: "one",
+      2: "two",
+      3: "three",
+    };
+    return map[Number(tier)] || null;
+  };
+
+  const normalizeAttorneyTier = (attorney) => {
+    const rawTier = attorney?.attorney?.tier ?? attorney?.tier ?? null;
+    if (!rawTier) return null;
+
+    const tierAsString = `${rawTier}`.toLowerCase().trim();
+    if (["one", "two", "three"].includes(tierAsString)) {
+      return tierAsString;
+    }
+
+    return tierNumberToLabel(tierAsString);
+  };
 
   useEffect(() => {
     const fetchAttorneys = async () => {
+      const targetTier = tierValue ? tierNumberToLabel(tierValue) : null;
+      setCaseTier(tierValue);
       const tokenData = localStorage.getItem("token");
-      if (!tokenData) {
-        console.error("No token found in localStorage");
-        setLoading(false);
-        return;
+      let accessToken = null;
+
+      if (tokenData) {
+        try {
+          const tokens = JSON.parse(tokenData);
+          accessToken = tokens?.accessToken || null;
+        } catch (parseError) {
+          console.error("Token parse error:", parseError);
+        }
       }
 
-      const tokens = JSON.parse(tokenData);
-      try {
-        const res = await axios.get(
-          "http://3.142.150.64/api/attorney/attorneys/",
-          {
-            headers: {
-              Authorization: `Bearer ${tokens.accessToken}`,
-            },
-          },
-        );
+      const loadMockData = () => {
+        if (tierValue) {
+          setAttorneys(generateMockAttorneys(tierValue, 12));
+          setIsMockData(true);
+        }
+      };
 
-        setAttorneys(res.data);
+      try {
+        const res = await baseApi.get("/api/attorney/attorneys/", {
+          headers: accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : undefined,
+        });
+
+        let attorneyList = res.data || [];
+        if (
+          !Array.isArray(attorneyList) &&
+          Array.isArray(attorneyList?.results)
+        ) {
+          attorneyList = attorneyList.results;
+        }
+
+        if (targetTier) {
+          const matched = attorneyList.filter(
+            (atty) => normalizeAttorneyTier(atty) === targetTier,
+          );
+
+          if (matched.length === 0) {
+            loadMockData();
+          } else {
+            setAttorneys(matched);
+            setIsMockData(false);
+          }
+        } else {
+          setAttorneys(attorneyList);
+          setIsMockData(false);
+        }
       } catch (error) {
-        console.error("Error fetching attorneys:", error);
+        console.error("Fetch Error:", error);
+
+        if (targetTier) {
+          loadMockData();
+        } else {
+          setAttorneys([]);
+          setIsMockData(false);
+        }
       } finally {
         setLoading(false);
       }
     };
-    fetchAttorneys();
-  }, []);
 
+    fetchAttorneys();
+  }, [tierValue]);
+
+  // ২. সার্চ এবং ফিল্টারিং
+  const filteredAttorneys = useMemo(() => {
+    const lowerCaseSearch = searchTerm.toLowerCase().trim();
+    if (!lowerCaseSearch) return attorneys;
+
+    return attorneys.filter(
+      (atty) =>
+        atty.full_name?.toLowerCase().includes(lowerCaseSearch) || // নাম দিয়ে সার্চ অ্যাড করা হয়েছে
+        atty.location?.toLowerCase().includes(lowerCaseSearch) ||
+        atty.preferred_legal_area?.toLowerCase().includes(lowerCaseSearch),
+    );
+  }, [searchTerm, attorneys]);
+
+  // ৩. ডিসপ্লে লজিক
+  const attorneysToDisplay = useMemo(
+    () => filteredAttorneys.slice(0, displayedCount),
+    [filteredAttorneys, displayedCount],
+  );
+
+  const hasMore = displayedCount < filteredAttorneys.length;
+
+  // ৪. মেমোরি লিক রোধে হ্যান্ডলার
   const openConsultModal = useCallback((attorney) => {
     setSelectedAttorney(attorney);
     setIsConsultModalOpen(true);
@@ -52,39 +150,9 @@ export default function Attorneys() {
 
   const closeConsultModal = useCallback(() => {
     setIsConsultModalOpen(false);
+    // যদি প্রোফাইল মোডাল খোলা না থাকে তবেই সিলেক্টেড অ্যাটর্নি নাল করুন
     if (!isProfileModalOpen) setSelectedAttorney(null);
   }, [isProfileModalOpen]);
-
-  const openProfileModal = useCallback((attorney) => {
-    setSelectedAttorney(attorney);
-    setIsProfileModalOpen(true);
-  }, []);
-
-  const closeProfileModal = useCallback(() => {
-    setIsProfileModalOpen(false);
-    setSelectedAttorney(null);
-  }, []);
-
-  const filteredAttorneys = useMemo(() => {
-    if (!searchTerm) return attorneys;
-    const lowerCaseSearch = searchTerm.toLowerCase();
-    return attorneys.filter(
-      (attorney) =>
-        attorney.location?.toLowerCase().includes(lowerCaseSearch) ||
-        attorney.preferred_legal_area?.toLowerCase().includes(lowerCaseSearch),
-    );
-  }, [searchTerm, attorneys]);
-
-  const handleShowMore = useCallback(() => {
-    if (displayedCount < filteredAttorneys.length) {
-      setDisplayedCount((prev) => prev + 6);
-    } else {
-      setDisplayedCount(6);
-    }
-  }, [displayedCount, filteredAttorneys]);
-
-  const attorneysToDisplay = filteredAttorneys.slice(0, displayedCount);
-  const hasMore = displayedCount < filteredAttorneys.length;
 
   if (loading) {
     return (
@@ -98,51 +166,87 @@ export default function Attorneys() {
     <>
       <div className="max-w-[1440px] mx-auto w-11/12 min-h-screen flex flex-col pt-28 pb-12">
         <section className="w-full">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
-            <header className="mb-6 md:mb-0 space-y-1">
-              <h1 className="text-xl md:text-2xl lg:text-4xl font-semibold text-white leading-tight">
-                Attorneys
-              </h1>
-              <p className="text-sm md:text-base text-gray-400">
-                Found {filteredAttorneys.length} professionals
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+            <header className="space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-xl md:text-2xl lg:text-4xl font-semibold text-white">
+                  Recommended Attorneys
+                </h1>
+                {caseTier && (
+                  <span className="px-3 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 text-xs font-bold rounded-full">
+                    Tier {caseTier} Match
+                  </span>
+                )}
+                {caseTier && (
+                  <Link
+                    href="/attorneys"
+                    className="px-3 py-1 bg-gray-700/60 text-gray-200 border border-gray-600 text-xs font-semibold rounded-full hover:bg-gray-600/70 transition-colors"
+                  >
+                    Show All Attorneys
+                  </Link>
+                )}
+              </div>
+              {caseTier && (
+                <p className="text-sm text-blue-400/80 font-medium">
+                  {getTierDescription(caseTier)}
+                </p>
+              )}
+              <p className="text-sm text-gray-400">
+                Found {filteredAttorneys.length} specialists matched to your
+                case
               </p>
             </header>
-            <div className="relative w-full md:w-auto">
+
+            <div className="relative">
               <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-500 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search Attorneys"
+                placeholder="Search by name, location or area..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="py-2.5 pl-12 pr-6 border w-full md:w-[300px] border-gray-700 rounded-2xl bg-[#12151B] text-white focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="py-2.5 pl-12 pr-6 border w-full md:w-[350px] border-gray-700 rounded-2xl bg-[#12151B] text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {attorneysToDisplay.map((attorney) => (
-              <AttorneyCard
-                key={attorney.id}
-                attorney={attorney}
-                openConsultModal={() => openConsultModal(attorney)}
-                openProfileModal={() => openProfileModal(attorney)}
-              />
-            ))}
-          </div>
+          {/* ৫. ইম্পটি স্টেট (Empty State) হ্যান্ডলিং */}
+          {filteredAttorneys.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+              <Search className="w-12 h-12 mb-4 opacity-20" />
+              <p>No attorneys found matching your search.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {attorneysToDisplay.map((attorney) => (
+                <AttorneyCard
+                  key={attorney.id || attorney.full_name}
+                  attorney={attorney}
+                  openConsultModal={() => openConsultModal(attorney)}
+                  openProfileModal={() => {
+                    setSelectedAttorney(attorney);
+                    setIsProfileModalOpen(true);
+                  }}
+                />
+              ))}
+            </div>
+          )}
 
-          <div className="text-center mt-10">
+          <div className="text-center mt-12">
             {filteredAttorneys.length > 6 && (
               <button
-                onClick={handleShowMore}
-                className="px-8 py-3 rounded-lg text-white font-medium border border-gray-700 transition duration-300 hover:bg-gray-700"
+                onClick={() =>
+                  setDisplayedCount((prev) => (hasMore ? prev + 6 : 6))
+                }
+                className="px-10 py-3 rounded-xl text-white font-medium border border-gray-700 hover:bg-white hover:text-black transition-all duration-300"
               >
-                {!hasMore ? "Show Less" : "Show More Attorneys"}
+                {hasMore ? "Show More Attorneys" : "Show Less"}
               </button>
             )}
           </div>
         </section>
       </div>
 
+      {/* মোডাল গুলো */}
       {isConsultModalOpen && selectedAttorney && (
         <RequestConsultModal
           attorney={selectedAttorney}
@@ -153,7 +257,7 @@ export default function Attorneys() {
       {isProfileModalOpen && selectedAttorney && (
         <AttorneyProfileModal
           attorney={selectedAttorney}
-          closeModal={closeProfileModal}
+          closeModal={() => setIsProfileModalOpen(false)}
           openConsultModal={openConsultModal}
         />
       )}

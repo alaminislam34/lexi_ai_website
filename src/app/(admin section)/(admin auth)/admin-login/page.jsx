@@ -5,7 +5,54 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import SentResetLink from "@/app/(auth)/login/components/SentResetLink";
+import SentResetLink from "../../../(auth)/login/components/SentResetLink";
+
+import { ADMIN_LOGIN } from "../../../../api/apiEntpoint";
+import baseApi from "../../../../api/base_url";
+
+const getLoginErrorMessage = (error) => {
+  if (error?.code === "ECONNABORTED") {
+    return "Request timed out. Please check your connection and try again.";
+  }
+
+  if (!error?.response) {
+    return "Unable to reach the server. Please check your internet or VPN and try again.";
+  }
+
+  const status = error.response.status;
+  const data = error.response.data;
+  const apiMessage =
+    data?.detail ||
+    data?.message ||
+    data?.error ||
+    (Array.isArray(data?.non_field_errors) ? data.non_field_errors[0] : "") ||
+    (Array.isArray(data?.email) ? data.email[0] : "") ||
+    (Array.isArray(data?.password) ? data.password[0] : "");
+
+  if (status === 400) {
+    return apiMessage || "Please enter a valid email and password.";
+  }
+
+  if (status === 401) {
+    return apiMessage || "Incorrect email or password.";
+  }
+
+  if (status === 403) {
+    return apiMessage || "You are not authorized to access the admin panel.";
+  }
+
+  if (status === 429) {
+    return (
+      apiMessage || "Too many attempts. Please wait a moment and try again."
+    );
+  }
+
+  if (status >= 500) {
+    return "Server error. Please try again in a few minutes.";
+  }
+
+  return apiMessage || "Login failed. Please try again.";
+};
 
 export default function Login() {
   const [forget, setForget] = useState(false);
@@ -14,24 +61,60 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const PasswordToggleIcon = showPassword ? EyeOff : Eye;
   const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoginError("");
+
     try {
       if (!email || !password) {
-        toast.error("Please enter both email and password.");
+        const message = "Please enter both email and password.";
+        setLoginError(message);
+        toast.error(message);
         return;
       }
+
       setLoading(true);
+      const response = await baseApi.post(
+        `${ADMIN_LOGIN}`,
+        {
+          email: email.trim(),
+          password,
+          remember_me: rememberMe ? "true" : "false",
+        },
+        {
+          timeout: 15000,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const accessToken = response?.data?.access;
+      const refreshToken = response?.data?.refresh;
+
+      if (!accessToken || !refreshToken) {
+        throw new Error("Invalid login response: missing auth tokens.");
+      }
+
+      localStorage.setItem(
+        "token",
+        JSON.stringify({
+          accessToken,
+          refreshToken,
+        }),
+      );
 
       router.push("/admin");
+      toast.success("Logged in successfully!");
     } catch (error) {
-      console.log(error);
-      toast.error(
-        "An error occurred while logging in. Please check your credentials and try again.",
-      );
+      console.error("Admin login failed:", error);
+      const message = getLoginErrorMessage(error);
+      setLoginError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -66,6 +149,15 @@ export default function Login() {
               </header>
 
               <form onSubmit={handleLogin} className="space-y-4">
+                {loginError ? (
+                  <div
+                    role="alert"
+                    className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
+                  >
+                    {loginError}
+                  </div>
+                ) : null}
+
                 <div>
                   <label
                     htmlFor="email"
@@ -78,8 +170,12 @@ export default function Login() {
                     id="email"
                     placeholder="Enter your email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (loginError) setLoginError("");
+                    }}
                     className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
+                    disabled={loading}
                     required
                   />
                 </div>
@@ -96,8 +192,12 @@ export default function Login() {
                     id="password"
                     placeholder="***********"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (loginError) setLoginError("");
+                    }}
                     className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
+                    disabled={loading}
                     required
                   />
                   <PasswordToggleIcon
@@ -115,6 +215,7 @@ export default function Login() {
                       className="h-4 w-4 rounded cursor-pointer bg-element border-gray accent-primary hover:ring-primary"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
+                      disabled={loading}
                     />
                     <label
                       htmlFor="remember-me"
@@ -127,6 +228,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setForget(true)}
+                    disabled={loading}
                     className="text-sm font-medium hover:underline text-primary"
                   >
                     Forgot password

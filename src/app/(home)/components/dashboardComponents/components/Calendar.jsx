@@ -17,6 +17,7 @@ import {
   isToday,
   parseISO,
 } from "date-fns";
+import baseApi from "@/api/base_url";
 
 // logic to generate days (Removed dependency on MOCK_EVENTS here to keep it pure)
 const generateCalendarDays = (date, events) => {
@@ -45,7 +46,7 @@ const DayCell = ({ dayData, selectedDate, onSelectDay }) => {
   const isSelected = isSameDay(date, selectedDate);
   const isTodayDay = isToday(date);
 
- let cellClasses = `p-2.5 text-xs sm:text-sm md:text-base rounded-md transition duration-150 cursor-pointer h-full flex items-center justify-between
+  let cellClasses = `p-2.5 text-xs sm:text-sm md:text-base rounded-md transition duration-150 cursor-pointer h-full flex items-center justify-between
  ${hasEvent ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/40" : "bg-[#212121] hover:bg-gray-500"}`;
 
   if (isSelected) {
@@ -108,12 +109,9 @@ export default function Calendar() {
   const fetchEvents = async () => {
     try {
       const tokenData = JSON.parse(localStorage.getItem("token"));
-      const res = await axios.get(
-        "http://3.142.150.64/api/attorney/events/",
-        {
-          headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
-        },
-      );
+      const res = await baseApi.get("/api/attorney/events/", {
+        headers: { Authorization: `Bearer ${tokenData?.accessToken}` },
+      });
       console.log(res.data);
       setEvents(res.data);
     } catch (error) {

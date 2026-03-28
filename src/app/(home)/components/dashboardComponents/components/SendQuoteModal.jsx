@@ -1,12 +1,12 @@
 "use client";
 
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
+import { useAuth } from "@/providers/Auth_Providers/AuthProviders";
 import { MapPin, X, Loader2, DollarSign } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect, useContext } from "react";
 import { toast } from "react-toastify";
-import axios from "axios";
-import { StateContext } from "@/app/providers/StateProvider";
+import { StateContext } from "@/providers/StateProvider";
+import baseApi from "@/api/base_url";
 
 export default function SendQuoteModal() {
   const { setShowModal, selectedRequest } = useAuth();
@@ -45,8 +45,8 @@ export default function SendQuoteModal() {
     const tokens = tokenData ? JSON.parse(tokenData) : null;
 
     try {
-      const res = await axios.post(
-        `http://3.142.150.64/api/attorney/consultations/${selectedRequest.id}/reply/`,
+      const res = await baseApi.post(
+        `/api/attorney/consultations/${selectedRequest.id}/reply/`,
         {
           subject: formData.subject,
           case_details: formData.case_details,

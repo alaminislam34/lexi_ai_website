@@ -73,8 +73,12 @@ const extractHighlights = (text) => {
     .match(/Recommendation:\s*([\s\S]*?)(?=\n\n|\n##|$)/i)?.[1]
     ?.trim();
 
+  // Extract tier number from complexity (e.g., "Complexity Tier: 3" -> "3")
+  const tierNumber = complexity?.match(/\d+/)?.[0] || null;
+
   return {
     complexity: complexity || "N/A",
+    tierNumber: tierNumber,
     classification: classification || "Pending Review",
     recommendation: recommendation || "Review the full report sections below.",
   };
@@ -111,7 +115,14 @@ export default function Ask_Casezy_Simple() {
     if (!reportText) return;
 
     localStorage.setItem("casezy_consult_message", reportText);
-    router.push("/attorneys");
+    if (!highlights.tierNumber) {
+      setError(
+        "Could not detect a case tier from the AI report. Please run analysis again.",
+      );
+      return;
+    }
+
+    router.push(`/attorneys?tier=${highlights.tierNumber}`);
   };
 
   const handleAnalyze = async (e) => {
@@ -212,7 +223,7 @@ export default function Ask_Casezy_Simple() {
                   onClick={handleBrowseAttorney}
                   className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 border border-blue-500 rounded-lg transition"
                 >
-                  Browse Attorney
+                  Find Matched Attorneys
                 </button>
               </div>
             </div>
@@ -220,7 +231,7 @@ export default function Ask_Casezy_Simple() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 {
-                  label: "Complexity",
+                  label: "Attorney Type",
                   val: highlights.complexity,
                   color: "text-orange-400",
                 },

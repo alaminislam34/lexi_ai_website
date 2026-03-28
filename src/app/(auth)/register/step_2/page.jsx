@@ -3,7 +3,7 @@
 import { useContext } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { StateContext } from "@/app/providers/StateProvider";
+import { StateContext } from "../../../../providers/StateProvider";
 import { toast } from "react-toastify";
 import { useState } from "react";
 import { useRouter } from "next/navigation";

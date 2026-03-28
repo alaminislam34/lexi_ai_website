@@ -1,6 +1,6 @@
 "use client";
 import { CreditCard } from "lucide-react";
-import { ChevronDown, Loader2, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 

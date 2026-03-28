@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import { CalendarIcon, Loader2, X } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import axios from "axios";
 import { toast } from "react-toastify";
+import baseApi from "../../../../../api/base_url";
 
 // Standard class string for all inputs/selects (modern dark design)
 const inputClasses =
@@ -56,16 +56,12 @@ export default function AddEventModal({ setShowModal }) {
       };
 
       // 5. API Call
-      const res = await axios.post(
-        "http://3.142.150.64/api/attorney/events/",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
+      const res = await baseApi.post("/api/attorney/events/", payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
-      );
+      });
 
       if (res.status === 201 || res.status === 200) {
         toast.success("Event added successfully!");

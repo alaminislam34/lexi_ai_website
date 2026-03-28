@@ -2,7 +2,7 @@
 
 import React, { useContext } from "react";
 import Image from "next/image";
-import { StateContext } from "@/app/providers/StateProvider";
+import { StateContext } from "../../../providers/StateProvider";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 

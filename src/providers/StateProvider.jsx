@@ -7,10 +7,10 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import axios from "axios";
-import { PROFILE_DETAILS } from "@/api/apiEntpoint";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import baseApi from "../api/base_url";
+import { PROFILE_DETAILS } from "../api/apiEntpoint";
 
 // Create the Context
 export const StateContext = createContext(undefined);
@@ -32,9 +32,6 @@ export default function StateProvider({ children }) {
   });
   const router = useRouter();
 
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://3.142.150.64";
-
   const fetchUser = useCallback(async () => {
     // 1. SSR Check: Ensure localStorage is available
     if (typeof window === "undefined") return;
@@ -50,7 +47,7 @@ export default function StateProvider({ children }) {
 
       if (!token?.accessToken) throw new Error("No access token");
 
-      const res = await axios.get(`${API_BASE_URL}${PROFILE_DETAILS}`, {
+      const res = await baseApi.get(`${PROFILE_DETAILS}`, {
         headers: {
           Authorization: `Bearer ${token.accessToken}`,
         },
@@ -65,7 +62,7 @@ export default function StateProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL]);
+  }, []);
 
   const logout = useCallback(async () => {
     const tokens = JSON.parse(localStorage.getItem("token"));
@@ -75,7 +72,7 @@ export default function StateProvider({ children }) {
       router.push("/login");
       return;
     }
-    const res = await axios.post(`${API_BASE_URL}/api/auth/logout/`, null, {
+    const res = await baseApi.post(`/api/auth/logout/`, null, {
       headers: { Authorization: `Bearer ${tokens.accessToken}` },
     });
     if (res.status === 200) {
@@ -86,7 +83,7 @@ export default function StateProvider({ children }) {
     } else {
       toast.error("An error occurred while logging out. Please try again.");
     }
-  }, [API_BASE_URL, router]);
+  }, [router]);
 
   useEffect(() => {
     fetchUser();

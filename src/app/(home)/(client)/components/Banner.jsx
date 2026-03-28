@@ -1,5 +1,4 @@
-import { useAuth } from "@/app/providers/Auth_Providers/AuthProviders";
-import { StateContext } from "@/app/providers/StateProvider";
+import { StateContext } from "../../../../providers/StateProvider";
 import { TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import React, { useContext } from "react";

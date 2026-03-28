@@ -3,12 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import axios from "axios";
 import { Loader2, ArrowLeft } from "lucide-react";
+import baseApi from "../../../../api/base_url";
 
 export default function SentResetLink({ setForget }) {
   const router = useRouter();
-  const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: New Password
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
   // States for data
@@ -21,14 +21,12 @@ export default function SentResetLink({ setForget }) {
   });
   const [showPassword, setShowPassword] = useState(false);
 
-  const BASE_URL = "http://3.142.150.64";
-
   // Step 1: Send OTP to Email
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/password/forgot/`, {
+      const res = await baseApi.post(`/api/auth/password/forgot/`, {
         email,
       });
       if (res.status === 200 || res.status === 201) {
@@ -46,7 +44,7 @@ export default function SentResetLink({ setForget }) {
 
   const handleResendOTP = async () => {
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/password/forgot/`, {
+      const res = await baseApi.post(`/api/auth/password/forgot/`, {
         email,
       });
       if (res.status === 200 || res.status === 201) {
@@ -64,13 +62,10 @@ export default function SentResetLink({ setForget }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/auth/password/reset/verify/`,
-        {
-          email,
-          otp,
-        },
-      );
+      const res = await baseApi.post(`/api/auth/password/reset/verify/`, {
+        email,
+        otp,
+      });
 
       if (res.data.reset_token) {
         setResetToken(res.data.reset_token);
@@ -93,14 +88,11 @@ export default function SentResetLink({ setForget }) {
 
     setLoading(true);
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/auth/password/reset/confirm/`,
-        {
-          reset_token: resetToken,
-          new_password: passwords.new_password,
-          new_password_confirm: passwords.confirm_password,
-        },
-      );
+      const res = await baseApi.post(`/api/auth/password/reset/confirm/`, {
+        reset_token: resetToken,
+        new_password: passwords.new_password,
+        new_password_confirm: passwords.confirm_password,
+      });
       console.log(res);
 
       toast.success("Password changed successfully!");
