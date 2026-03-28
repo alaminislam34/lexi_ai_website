@@ -20,28 +20,31 @@ export default function Attorneys() {
   const [searchTerm, setSearchTerm] = useState("");
   const [caseTier, setCaseTier] = useState(null);
 
-  // ১. URL থেকে টিয়ার ভ্যালু বের করা
   const tierValue = useMemo(() => {
     const rawTier = searchParams.get("tier");
     const parsed = Number(rawTier);
     return [1, 2, 3].includes(parsed) ? parsed : null;
   }, [searchParams]);
 
-  const tierNumberToLabel = (tier) => {
+  const tierNumberToLabel = useCallback((tier) => {
     const map = { 1: "one", 2: "two", 3: "three" };
     return map[Number(tier)] || null;
-  };
+  }, []);
 
-  const normalizeAttorneyTier = (attorney) => {
-    const rawTier = attorney?.attorney?.tier ?? attorney?.tier ?? null;
-    if (!rawTier) return null;
+  // ১. normalizeAttorneyTier-কে useCallback দিয়ে র‍্যাপ করা হয়েছে (Fixes Warning)
+  const normalizeAttorneyTier = useCallback(
+    (attorney) => {
+      const rawTier = attorney?.attorney?.tier ?? attorney?.tier ?? null;
+      if (!rawTier) return null;
 
-    const tierAsString = `${rawTier}`.toLowerCase().trim();
-    if (["one", "two", "three"].includes(tierAsString)) {
-      return tierAsString;
-    }
-    return tierNumberToLabel(tierAsString);
-  };
+      const tierAsString = `${rawTier}`.toLowerCase().trim();
+      if (["one", "two", "three"].includes(tierAsString)) {
+        return tierAsString;
+      }
+      return tierNumberToLabel(tierAsString);
+    },
+    [tierNumberToLabel],
+  );
 
   useEffect(() => {
     const fetchAttorneys = async () => {
@@ -70,7 +73,6 @@ export default function Attorneys() {
 
         let attorneyList = res.data || [];
 
-        // Django Rest Framework pagination হ্যান্ডল করার জন্য
         if (
           !Array.isArray(attorneyList) &&
           Array.isArray(attorneyList?.results)
@@ -78,7 +80,6 @@ export default function Attorneys() {
           attorneyList = attorneyList.results;
         }
 
-        // এপিআই থেকে আসা ডাটাকে টিয়ার অনুযায়ী ফিল্টার করা
         if (targetTier) {
           const matched = attorneyList.filter(
             (atty) => normalizeAttorneyTier(atty) === targetTier,
@@ -89,16 +90,15 @@ export default function Attorneys() {
         }
       } catch (error) {
         console.error("Fetch Error:", error);
-        setAttorneys([]); // এরর হলে খালি লিস্ট দেখাবে
+        setAttorneys([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchAttorneys();
-  }, [tierValue]);
+  }, [tierValue, tierNumberToLabel, normalizeAttorneyTier]); // ডিপেন্ডেন্সিগুলো অ্যাড করা হয়েছে
 
-  // সার্চ এবং ফিল্টারিং
   const filteredAttorneys = useMemo(() => {
     const lowerCaseSearch = searchTerm.toLowerCase().trim();
     if (!lowerCaseSearch) return attorneys;
@@ -183,13 +183,14 @@ export default function Attorneys() {
             </div>
           </div>
 
-          {/* ইম্পটি স্টেট হ্যান্ডলিং */}
           {filteredAttorneys.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-500 bg-gray-900/20 rounded-3xl border border-dashed border-gray-800">
               <Search className="w-12 h-12 mb-4 opacity-20" />
               <p className="text-lg font-medium">No attorneys found</p>
-              <p className="text-sm">
-                We couldn't find any actual data matching your requirements.
+              {/* ২. অ্যাপোস্ট্রফি এরর ফিক্স করা হয়েছে: "case's" -> "case&apos;s" (Fixes Build Error) */}
+              <p className="text-sm text-center px-4">
+                We couldn&apos;t find any actual data matching your case&apos;s
+                requirements.
               </p>
             </div>
           ) : (
