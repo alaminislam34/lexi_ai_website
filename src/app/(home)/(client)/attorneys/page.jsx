@@ -31,7 +31,6 @@ export default function Attorneys() {
     return map[Number(tier)] || null;
   }, []);
 
-  // ১. normalizeAttorneyTier-কে useCallback দিয়ে র‍্যাপ করা হয়েছে (Fixes Warning)
   const normalizeAttorneyTier = useCallback(
     (attorney) => {
       const rawTier = attorney?.attorney?.tier ?? attorney?.tier ?? null;
@@ -97,7 +96,7 @@ export default function Attorneys() {
     };
 
     fetchAttorneys();
-  }, [tierValue, tierNumberToLabel, normalizeAttorneyTier]); // ডিপেন্ডেন্সিগুলো অ্যাড করা হয়েছে
+  }, [tierValue, tierNumberToLabel, normalizeAttorneyTier]);
 
   const filteredAttorneys = useMemo(() => {
     const lowerCaseSearch = searchTerm.toLowerCase().trim();
@@ -187,7 +186,6 @@ export default function Attorneys() {
             <div className="flex flex-col items-center justify-center py-20 text-gray-500 bg-gray-900/20 rounded-3xl border border-dashed border-gray-800">
               <Search className="w-12 h-12 mb-4 opacity-20" />
               <p className="text-lg font-medium">No attorneys found</p>
-              {/* ২. অ্যাপোস্ট্রফি এরর ফিক্স করা হয়েছে: "case's" -> "case&apos;s" (Fixes Build Error) */}
               <p className="text-sm text-center px-4">
                 We couldn&apos;t find any actual data matching your case&apos;s
                 requirements.
