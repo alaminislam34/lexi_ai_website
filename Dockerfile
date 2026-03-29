@@ -1,30 +1,38 @@
-# Use official Node.js LTS
-FROM node:20-alpine
-
-# Set working directory
+FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy package files first (better cache)
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install --include=dev
+FROM node:20-alpine AS builder
+WORKDIR /app
 
-# Copy source code
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# ===== Build-time environment variables =====
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_WS_BASE_URL
 
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_WS_BASE_URL=$NEXT_PUBLIC_WS_BASE_URL
 
-# Build Next.js app
-RUN npm run build
+RUN npm run build && npm prune --omit=dev
 
-# Expose port
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
+
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/next.config.mjs ./next.config.mjs
+
+USER nextjs
+
 EXPOSE 3000
 
-# Start Next.js
 CMD ["npm", "start"]
