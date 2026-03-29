@@ -1,28 +1,25 @@
 "use client";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { Camera, Lock, User, Phone, Mail } from "lucide-react";
 import Image from "next/image";
 import { StateContext } from "../../../../providers/StateProvider";
 
 const SettingPage = () => {
   const { user, loading } = useContext(StateContext);
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    image: null,
+  const [draft, setDraft] = useState({
+    name: null,
+    phone: null,
   });
 
-  useEffect(() => {
-    if (!user) return;
-
-    setProfile({
-      name: user?.full_name || user?.username || "",
-      email: user?.email || "",
-      phone: user?.phone || "",
-      image: user?.profile_image || null,
-    });
-  }, [user]);
+  const profile = useMemo(
+    () => ({
+      name: draft.name ?? user?.full_name ?? user?.username ?? "",
+      email: user?.email ?? "",
+      phone: draft.phone ?? user?.phone ?? "",
+      image: user?.profile_image ?? null,
+    }),
+    [user, draft],
+  );
 
   const initials = useMemo(() => {
     const source = (profile.name || profile.email || "AD").trim();
@@ -90,7 +87,7 @@ const SettingPage = () => {
                     type="text"
                     value={profile.name}
                     onChange={(e) =>
-                      setProfile((prev) => ({ ...prev, name: e.target.value }))
+                      setDraft((prev) => ({ ...prev, name: e.target.value }))
                     }
                     className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg py-2.5 px-4 text-white focus:ring-1 focus:ring-[#00bcd4] outline-none"
                   />
@@ -106,7 +103,7 @@ const SettingPage = () => {
                       type="text"
                       value={profile.phone}
                       onChange={(e) =>
-                        setProfile((prev) => ({ ...prev, phone: e.target.value }))
+                        setDraft((prev) => ({ ...prev, phone: e.target.value }))
                       }
                       className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg py-2.5 pl-10 pr-4 text-white focus:ring-1 focus:ring-[#00bcd4] outline-none"
                     />
