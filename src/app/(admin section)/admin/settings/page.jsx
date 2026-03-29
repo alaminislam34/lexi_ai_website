@@ -1,15 +1,36 @@
 "use client";
-import { useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Camera, Lock, User, Phone, Mail } from "lucide-react";
 import Image from "next/image";
+import { StateContext } from "../../../../providers/StateProvider";
 
 const SettingPage = () => {
+  const { user, loading } = useContext(StateContext);
   const [profile, setProfile] = useState({
-    name: "Admin User",
-    email: "admin@example.com",
-    phone: "+1 (555) 000-1234",
+    name: "",
+    email: "",
+    phone: "",
     image: null,
   });
+
+  useEffect(() => {
+    if (!user) return;
+
+    setProfile({
+      name: user?.full_name || user?.username || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+      image: user?.profile_image || null,
+    });
+  }, [user]);
+
+  const initials = useMemo(() => {
+    const source = (profile.name || profile.email || "AD").trim();
+    if (!source) return "AD";
+    const parts = source.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+  }, [profile.name, profile.email]);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl">
@@ -34,7 +55,9 @@ const SettingPage = () => {
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-gray-800">
                 <div className="relative group">
                   <div className="w-24 h-24 rounded-full bg-[#1c1c1e] border-2 border-dashed border-gray-700 flex items-center justify-center overflow-hidden">
-                    {profile.image ? (
+                    {loading ? (
+                      <span className="text-sm text-gray-500">...</span>
+                    ) : profile.image ? (
                       <Image
                         width={400}
                         height={400}
@@ -43,9 +66,7 @@ const SettingPage = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-2xl font-bold text-gray-500">
-                        AD
-                      </span>
+                      <span className="text-2xl font-bold text-gray-500">{initials}</span>
                     )}
                   </div>
                   <label className="absolute bottom-0 right-0 bg-[#00bcd4] p-2 rounded-full cursor-pointer hover:scale-110 transition-transform">
@@ -67,7 +88,10 @@ const SettingPage = () => {
                   <label className="text-sm text-gray-400">Full Name</label>
                   <input
                     type="text"
-                    defaultValue={profile.name}
+                    value={profile.name}
+                    onChange={(e) =>
+                      setProfile((prev) => ({ ...prev, name: e.target.value }))
+                    }
                     className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg py-2.5 px-4 text-white focus:ring-1 focus:ring-[#00bcd4] outline-none"
                   />
                 </div>
@@ -80,7 +104,10 @@ const SettingPage = () => {
                     />
                     <input
                       type="text"
-                      defaultValue={profile.phone}
+                      value={profile.phone}
+                      onChange={(e) =>
+                        setProfile((prev) => ({ ...prev, phone: e.target.value }))
+                      }
                       className="w-full bg-[#1c1c1e] border border-gray-800 rounded-lg py-2.5 pl-10 pr-4 text-white focus:ring-1 focus:ring-[#00bcd4] outline-none"
                     />
                   </div>

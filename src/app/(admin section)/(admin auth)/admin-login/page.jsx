@@ -7,8 +7,19 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import SentResetLink from "../../../(auth)/login/components/SentResetLink";
 
-import { ADMIN_LOGIN } from "../../../../api/apiEntpoint";
+import { ADMIN_LOGIN, PROFILE_DETAILS } from "../../../../api/apiEntpoint";
 import baseApi from "../../../../api/base_url";
+import Cookies from "js-cookie";
+
+const clearAllAuthTokens = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("adminToken");
+  localStorage.removeItem("user");
+  Cookies.remove("accessToken");
+  Cookies.remove("refreshToken");
+  Cookies.remove("adminAccessToken");
+  Cookies.remove("adminRefreshToken");
+};
 
 const getLoginErrorMessage = (error) => {
   if (error?.code === "ECONNABORTED") {
@@ -100,6 +111,22 @@ export default function Login() {
         throw new Error("Invalid login response: missing auth tokens.");
       }
 
+      const profileResponse = await baseApi.get(`${PROFILE_DETAILS}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const loggedInUser = profileResponse?.data;
+
+      if (loggedInUser?.role !== "admin") {
+        clearAllAuthTokens();
+        const message = "Only admin users can access the admin panel.";
+        setLoginError(message);
+        toast.error(message);
+        return;
+      }
+
       localStorage.setItem(
         "token",
         JSON.stringify({
@@ -107,6 +134,18 @@ export default function Login() {
           refreshToken,
         }),
       );
+      localStorage.setItem(
+        "adminToken",
+        JSON.stringify({
+          accessToken,
+          refreshToken,
+        }),
+      );
+      Cookies.set("accessToken", accessToken);
+      Cookies.set("refreshToken", refreshToken);
+      Cookies.set("adminAccessToken", accessToken);
+      Cookies.set("adminRefreshToken", refreshToken);
+      localStorage.setItem("user", JSON.stringify(loggedInUser));
 
       router.push("/admin");
       toast.success("Logged in successfully!");

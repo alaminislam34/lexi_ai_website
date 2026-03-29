@@ -72,7 +72,7 @@ export default function SentResetLink({ setForget }) {
       toast.success("Password changed successfully!");
       setTimeout(() => {
         setForget(false);
-        router.push("/admin/login");
+        router.push("/admin-login");
       }, 2000);
     } catch (error) {
       console.log(error);

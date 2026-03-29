@@ -11,18 +11,23 @@ import { useRouter } from "next/navigation";
 export default function Step_2() {
   // 3. Use useContext to access state and handler
   const { setUserData } = useContext(StateContext);
-  const [name, setName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
   const router = useRouter();
   const handleSubmit = (e) => {
     e.preventDefault();
     try {
-      if (!name || !email || !gender) {
+      if (!fullName || !email || !gender) {
         toast.error("Please fill in all required fields.");
         return;
       }
-      setUserData({ name, email, gender });
+      setUserData((prev) => ({
+        ...prev,
+        full_name: fullName,
+        email,
+        gender,
+      }));
       router.push("/register/step_3");
     } catch (error) {
       toast.error(
@@ -75,8 +80,8 @@ export default function Step_2() {
                   id="name"
                   placeholder="Enter your name"
                   className="w-full p-3 pr-10 rounded-xl border text-base focus:ring-2 focus:ring-opacity-50 transition duration-150 bg-element border-element text-text_color hover:ring-primary"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   required
                 />
               </div>
@@ -123,7 +128,7 @@ export default function Step_2() {
               {/* Login Button */}
               <button
                 type="submit"
-                disabled={!email || !name || !gender}
+                disabled={!email || !fullName || !gender}
                 className="w-full flex items-center justify-center p-4 rounded-xl bg-primary text-text_color text-base font-semibold transition duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
               >
                 Continue

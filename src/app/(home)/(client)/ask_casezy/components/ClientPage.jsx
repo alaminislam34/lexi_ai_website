@@ -97,7 +97,7 @@ export default function Ask_Casezy_Simple() {
   const handleCopy = async () => {
     if (!reportText) return;
     await navigator.clipboard.writeText(reportText);
-    alert("Report copied to clipboard!");
+    toast.success("Report copied to clipboard!");
   };
 
   const handleDownload = () => {
@@ -138,7 +138,6 @@ export default function Ask_Casezy_Simple() {
         query: description,
         top_k: 5,
       });
-
       const data = res.data;
       const result =
         data?.report || data?.response || data?.result || JSON.stringify(data);
@@ -155,36 +154,44 @@ export default function Ask_Casezy_Simple() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D0F12] pt-24 pb-12 text-gray-100 font-sans">
-      <div className="max-w-5xl mx-auto w-11/12 space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-black bg-linear-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-            CASEZY ANALYST
+    <div className="min-h-screen flex items-center justify-center bg-BG pt-24 pb-12 text-text_color">
+      <div className="max-w-6xl mx-auto w-11/12 space-y-8">
+        <div className="text-center space-y-3">
+          <h1 className="text-3xl md:text-4xl text-primary font-bold">
+            Casezy Analyst
           </h1>
-          <p className="text-gray-400 text-sm uppercase tracking-widest">
+          <p className="text-gray text-xs md:text-sm">
             Michigan Legal Intelligence Engine
           </p>
         </div>
 
         {error && (
-          <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl">
+          <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl">
             <AlertCircle className="w-5 h-5" />
             <p className="text-sm font-medium">{error}</p>
           </div>
         )}
 
-        <div className="bg-[#1B1D22] p-6 rounded-2xl border border-white/5 shadow-2xl">
+        <div className="bg-element/80 p-6 md:p-7 rounded-2xl border border-element shadow-xl">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-text_color">
+              Case Summary
+            </h2>
+            <p className="text-sm text-gray mt-1">
+              Describe your situation clearly to generate an AI legal report.
+            </p>
+          </div>
           <form onSubmit={handleAnalyze} className="space-y-4">
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe your legal situation in detail..."
-              className="w-full h-44 p-5 bg-black/30 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none transition-all placeholder:text-gray-600"
+              className="w-full h-44 p-5 bg-BG/70 border border-element rounded-xl text-text_color focus:ring-2 focus:ring-primary focus:outline-none resize-none transition-all placeholder:text-gray"
             />
             <button
               type="submit"
               disabled={loading || !description.trim()}
-              className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all transform active:scale-[0.98]"
+              className="w-full py-3.5 bg-primary hover:bg-dark-primary disabled:bg-secondary disabled:cursor-not-allowed rounded-xl font-semibold text-text_color flex items-center justify-center gap-3 transition-all"
             >
               {loading ? (
                 <>
@@ -202,26 +209,26 @@ export default function Ask_Casezy_Simple() {
         {reportText && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-5 duration-700">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+              <h2 className="text-lg font-bold flex items-center gap-2 text-text_color">
+                <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                 Intelligence Report
               </h2>
               <div className="flex gap-2">
                 <button
                   onClick={handleCopy}
-                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition"
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-element hover:bg-secondary border border-element rounded-lg transition"
                 >
                   <Copy size={14} /> Copy
                 </button>
                 <button
                   onClick={handleDownload}
-                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition"
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-element hover:bg-secondary border border-element rounded-lg transition"
                 >
                   <Download size={14} /> PDF/Text
                 </button>
                 <button
                   onClick={handleBrowseAttorney}
-                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 border border-blue-500 rounded-lg transition"
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-primary hover:bg-dark-primary border border-primary rounded-lg transition"
                 >
                   Find Matched Attorneys
                 </button>
@@ -248,9 +255,9 @@ export default function Ask_Casezy_Simple() {
               ].map((card, i) => (
                 <div
                   key={i}
-                  className="p-4 rounded-2xl bg-[#1B1D22] border border-white/5 shadow-inner"
+                  className="p-4 rounded-2xl bg-element/70 border border-element"
                 >
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">
+                  <p className="text-[10px] uppercase font-bold tracking-widest text-gray mb-1">
                     {card.label}
                   </p>
                   <p
@@ -266,19 +273,19 @@ export default function Ask_Casezy_Simple() {
               {sections.map((section, idx) => (
                 <details
                   key={section.id}
-                  className="group bg-[#1B1D22] border border-white/5 rounded-2xl overflow-hidden transition-all"
+                  className="group bg-element/70 border border-element rounded-2xl overflow-hidden transition-all"
                   open={idx < 2}
                 >
-                  <summary className="list-none cursor-pointer p-5 flex justify-between items-center hover:bg-white/2">
-                    <span className="font-bold text-sm tracking-wide text-gray-200 uppercase">
+                  <summary className="list-none cursor-pointer p-5 flex justify-between items-center hover:bg-secondary/30">
+                    <span className="font-bold text-sm tracking-wide text-text_color uppercase">
                       {section.title}
                     </span>
-                    <span className="text-gray-500 group-open:rotate-180 transition-transform">
+                    <span className="text-gray group-open:rotate-180 transition-transform">
                       ↓
                     </span>
                   </summary>
-                  <div className="px-5 pb-6 text-gray-300 border-t border-white/5 pt-4">
-                    <article className="prose prose-invert prose-sm max-w-none leading-relaxed prose-headings:text-blue-400 prose-strong:text-white prose-p:text-gray-400">
+                  <div className="px-5 pb-6 text-gray border-t border-element pt-4">
+                    <article className="prose prose-invert prose-sm max-w-none leading-relaxed prose-headings:text-primary prose-strong:text-text_color prose-p:text-gray">
                       <ReactMarkdown>{section.body}</ReactMarkdown>
                     </article>
                   </div>

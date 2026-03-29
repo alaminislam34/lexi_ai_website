@@ -20,7 +20,7 @@ export const AttorneysTable = ({ pageSize = 10 }) => {
   const [selectedAttorney, setSelectedAttorney] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data, isLoading, error, isError } = useAttorneys({
+  const { data, error, isError } = useAttorneys({
     page: currentPage,
     pageSize,
   });
@@ -41,18 +41,6 @@ export const AttorneysTable = ({ pageSize = 10 }) => {
       setCurrentPage((prev) => Math.max(1, prev - 1));
     }
   };
-
-  // Loading State
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
-          <p className="text-gray-400">Loading attorneys...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Error State
   if (isError) {
@@ -100,14 +88,17 @@ export const AttorneysTable = ({ pageSize = 10 }) => {
                 All Attorneys
               </h3>
               <p className="text-sm text-gray-400">
-                Showing {startIndex} to {endIndex} of {pagination.total} attorneys
+                Showing {startIndex} to {endIndex} of {pagination.total}{" "}
+                attorneys
               </p>
             </div>
             <div className="text-right">
               <p className="text-xs uppercase tracking-wide text-gray-500">
                 Total Attorneys
               </p>
-              <p className="text-2xl font-bold text-white">{pagination.total}</p>
+              <p className="text-2xl font-bold text-white">
+                {pagination.total}
+              </p>
             </div>
           </div>
         </div>
@@ -167,7 +158,9 @@ export const AttorneysTable = ({ pageSize = 10 }) => {
 
             <div className="flex items-center gap-2 px-4">
               <span className="text-sm text-gray-400">
-                Page <span className="font-semibold text-white">{currentPage}</span> of{" "}
+                Page{" "}
+                <span className="font-semibold text-white">{currentPage}</span>{" "}
+                of{" "}
                 <span className="font-semibold text-white">
                   {pagination.total_pages}
                 </span>
@@ -186,7 +179,9 @@ export const AttorneysTable = ({ pageSize = 10 }) => {
           </div>
 
           <div className="text-sm text-gray-400">
-            Total: <span className="font-semibold text-white">{pagination.total}</span> items
+            Total:{" "}
+            <span className="font-semibold text-white">{pagination.total}</span>{" "}
+            items
           </div>
         </div>
       )}

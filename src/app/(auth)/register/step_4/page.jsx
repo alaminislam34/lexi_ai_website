@@ -4,7 +4,7 @@ import { REGISTER } from "../../../../api/apiEntpoint";
 import { StateContext } from "../../../../providers/StateProvider";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Loader2, ShieldCheck, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
@@ -28,9 +28,22 @@ export default function Step_4() {
 
   const router = useRouter();
 
+  useEffect(() => {
+    if (!userData?.email || !userData?.full_name) {
+      toast.error("Please complete previous registration steps first.");
+      router.push("/register/step_2");
+    }
+  }, [userData, router]);
+
   // Step 1: Handle Registration
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (!userData?.email || !userData?.full_name) {
+      toast.error("Please complete previous registration steps first.");
+      router.push("/register/step_2");
+      return;
+    }
 
     if (password !== confirmPassword) {
       toast.error("Passwords do not match.");
@@ -41,6 +54,7 @@ export default function Step_4() {
     try {
       const payload = {
         ...userData,
+        role: userData?.role || "user",
         password: password,
         password_confirm: confirmPassword,
       };

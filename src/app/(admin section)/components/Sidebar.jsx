@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import Cookies from "js-cookie";
 import {
   LayoutDashboard,
   Users,
@@ -43,7 +44,13 @@ const Sidebar = () => {
 
   // Logout handler
   const handleLogout = () => {
-    // If you have auth logic (clearing cookies/tokens), add it here
+    localStorage.removeItem("token");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("user");
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+    Cookies.remove("adminAccessToken");
+    Cookies.remove("adminRefreshToken");
     router.push("/admin-login");
   };
 

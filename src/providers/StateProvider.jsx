@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import baseApi from "../api/base_url";
 import { PROFILE_DETAILS } from "../api/apiEntpoint";
+import Cookies from "js-cookie";
 
 // Create the Context
 export const StateContext = createContext(undefined);
@@ -32,24 +33,41 @@ export default function StateProvider({ children }) {
   });
   const router = useRouter();
 
+  const getStoredTokens = useCallback(() => {
+    const accessTokenFromCookie = Cookies.get("accessToken");
+    const refreshTokenFromCookie = Cookies.get("refreshToken");
+
+    if (accessTokenFromCookie) {
+      return {
+        accessToken: accessTokenFromCookie,
+        refreshToken: refreshTokenFromCookie,
+      };
+    }
+
+    const storedToken = localStorage.getItem("token");
+    if (!storedToken) return null;
+
+    try {
+      return JSON.parse(storedToken);
+    } catch (error) {
+      return null;
+    }
+  }, []);
+
   const fetchUser = useCallback(async () => {
     // 1. SSR Check: Ensure localStorage is available
     if (typeof window === "undefined") return;
 
-    const storedToken = localStorage.getItem("token");
-    if (!storedToken) {
+    const tokens = getStoredTokens();
+    if (!tokens?.accessToken) {
       setLoading(false);
       return;
     }
 
     try {
-      const token = JSON.parse(storedToken);
-
-      if (!token?.accessToken) throw new Error("No access token");
-
       const res = await baseApi.get(`${PROFILE_DETAILS}`, {
         headers: {
-          Authorization: `Bearer ${token.accessToken}`,
+          Authorization: `Bearer ${tokens.accessToken}`,
         },
       });
       console.log(res);
@@ -62,28 +80,31 @@ export default function StateProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getStoredTokens]);
 
   const logout = useCallback(async () => {
-    const tokens = JSON.parse(localStorage.getItem("token"));
-    if (!tokens?.accessToken) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      router.push("/login");
-      return;
-    }
-    const res = await baseApi.post(`/api/auth/logout/`, null, {
-      headers: { Authorization: `Bearer ${tokens.accessToken}` },
-    });
-    if (res.status === 200) {
-      toast.success("Logged out successfully!");
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      router.push("/login");
-    } else {
+    const tokens = getStoredTokens();
+
+    try {
+      if (tokens?.accessToken) {
+        const res = await baseApi.post(`/api/auth/logout/`, null, {
+          headers: { Authorization: `Bearer ${tokens.accessToken}` },
+        });
+
+        if (res.status === 200) {
+          toast.success("Logged out successfully!");
+        }
+      }
+    } catch (error) {
       toast.error("An error occurred while logging out. Please try again.");
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      Cookies.remove("accessToken");
+      Cookies.remove("refreshToken");
+      router.push("/login");
     }
-  }, [router]);
+  }, [router, getStoredTokens]);
 
   useEffect(() => {
     fetchUser();

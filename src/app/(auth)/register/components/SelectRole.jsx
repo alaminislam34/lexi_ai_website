@@ -17,7 +17,7 @@ export default function SelectRole({ setRole, setStep }) {
           <button
             onClick={() => {
               setStep(2);
-              setRole("client");
+              setRole("user");
             }}
             className="w-full flex items-center justify-center p-4 rounded-xl bg-primary text-text_color text-base font-semibold transition duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
           >

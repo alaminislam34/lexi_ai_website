@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
@@ -10,8 +10,11 @@ import { toast } from "react-toastify";
 import { LOGIN } from "../../../api/apiEntpoint";
 import { useRouter } from "next/navigation";
 import baseApi from "../../../api/base_url";
+import Cookies from "js-cookie";
+import { StateContext } from "../../../providers/StateProvider";
 
 export default function Login() {
+  const { refreshUser } = useContext(StateContext);
   const [forget, setForget] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -37,6 +40,7 @@ export default function Login() {
       if (res.status === 200) {
         toast.success("Logged in successfully!");
       }
+      console.log(res);
       localStorage.setItem(
         "token",
         JSON.stringify({
@@ -44,7 +48,11 @@ export default function Login() {
           refreshToken: res.data.refresh,
         }),
       );
-      
+      Cookies.set("accessToken", res.data.access);
+      Cookies.set("refreshToken", res.data.refresh);
+
+      await refreshUser();
+
       router.push("/");
     } catch (error) {
       console.log(error);

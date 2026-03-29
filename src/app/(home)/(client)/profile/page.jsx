@@ -83,14 +83,63 @@ const ProfilePage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-black">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+      <div className="w-full py-10 text-gray-100 pt-20 xl:pt-24 pb-20 min-h-screen">
+        <div className="max-w-[1440px] mx-auto w-11/12 animate-pulse">
+          <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between border-b border-zinc-800 pb-8 gap-4">
+            <div className="space-y-3">
+              <div className="h-10 w-64 rounded-lg bg-zinc-800" />
+              <div className="h-4 w-80 max-w-full rounded bg-zinc-800" />
+            </div>
+            <div className="h-10 w-32 rounded-xl bg-zinc-800" />
+          </header>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div className="lg:col-span-4">
+              <div className="border border-zinc-800 rounded-3xl p-8 backdrop-blur-sm sticky top-24">
+                <div className="flex flex-col items-center">
+                  <div className="w-40 h-40 rounded-3xl bg-zinc-800" />
+                  <div className="mt-6 flex flex-col items-center gap-3 w-full">
+                    <div className="h-7 w-44 rounded bg-zinc-800" />
+                    <div className="h-6 w-24 rounded-full bg-zinc-800" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-8">
+              <div className="border border-zinc-800 rounded-3xl overflow-hidden">
+                <div className="p-8 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                    {Array.from({ length: 2 }).map((_, i) => (
+                      <div key={`top-${i}`} className="space-y-2">
+                        <div className="h-3 w-28 rounded bg-zinc-800" />
+                        <div className="h-12 w-full rounded-xl bg-zinc-800" />
+                      </div>
+                    ))}
+
+                    {Array.from({ length: 2 }).map((_, i) => (
+                      <div key={`full-${i}`} className="md:col-span-2 space-y-2">
+                        <div className="h-3 w-40 rounded bg-zinc-800" />
+                        <div className="h-12 w-full rounded-xl bg-zinc-800" />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-end space-x-4 pt-10 border-t border-zinc-800">
+                    <div className="h-5 w-16 rounded bg-zinc-800" />
+                    <div className="h-12 w-36 rounded-xl bg-zinc-800" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full py-10 text-gray-100 pt-20 xl:pt-24 pb-20 bg-black min-h-screen">
+    <div className="w-full py-10 text-gray-100 pt-20 xl:pt-24 pb-20  min-h-screen">
       <div className="max-w-[1440px] mx-auto w-11/12">
         <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between border-b border-zinc-800 pb-8 gap-4">
           <div>
@@ -114,7 +163,7 @@ const ProfilePage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Left Sidebar */}
           <div className="lg:col-span-4">
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 backdrop-blur-sm sticky top-24 shadow-2xl">
+            <div className="border border-zinc-800 rounded-3xl p-8 backdrop-blur-sm sticky top-24 ">
               <div className="flex flex-col items-center">
                 <div
                   className={`relative w-40 h-40 group ${isEditing ? "cursor-pointer" : ""}`}
@@ -156,7 +205,7 @@ const ProfilePage = () => {
 
           {/* Right Area: Form */}
           <div className="lg:col-span-8">
-            <div className="bg-zinc-900/40 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
+            <div className=" border border-zinc-800 rounded-3xl overflow-hidden ">
               <form onSubmit={handleUpdate} className="p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
                   {/* Fields */}
@@ -169,7 +218,7 @@ const ProfilePage = () => {
                         name="full_name"
                         value={formData.full_name}
                         onChange={handleChange}
-                        className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-gray-200 outline-none focus:border-blue-500"
+                        className="w-full border border-zinc-700 rounded-xl px-4 py-3 text-gray-200 outline-none focus:border-blue-500"
                       />
                     ) : (
                       <p className="text-lg text-gray-200 font-medium py-1">
@@ -187,7 +236,7 @@ const ProfilePage = () => {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-gray-200 outline-none focus:border-blue-500"
+                        className="w-full border border-zinc-700 rounded-xl px-4 py-3 text-gray-200 outline-none focus:border-blue-500"
                       />
                     ) : (
                       <p className="text-lg text-gray-200 font-medium py-1">
@@ -205,7 +254,7 @@ const ProfilePage = () => {
                         name="location"
                         value={formData.location}
                         onChange={handleChange}
-                        className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-gray-200 outline-none focus:border-blue-500"
+                        className="w-full border border-zinc-700 rounded-xl px-4 py-3 text-gray-200 outline-none focus:border-blue-500"
                       />
                     ) : (
                       <p className="text-lg text-gray-200 font-medium py-1">
@@ -223,7 +272,7 @@ const ProfilePage = () => {
                         name="preferred_legal_area"
                         value={formData.preferred_legal_area}
                         onChange={handleChange}
-                        className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-gray-200 outline-none"
+                        className="w-full border border-zinc-700 rounded-xl px-4 py-3 text-gray-200 outline-none"
                       >
                         <option value="Criminal">Criminal Law</option>
                         <option value="Civil">Civil Law</option>
