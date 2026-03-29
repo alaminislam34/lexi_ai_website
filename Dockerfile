@@ -1,38 +1,92 @@
-FROM node:20-alpine AS deps
+# -----------------------
+# Base Image
+# -----------------------
+FROM node:20-alpine AS base
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# -----------------------
+# Dependencies
+# -----------------------
+FROM base AS deps
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+# Required for some native modules
+RUN apk add --no-cache libc6-compat
 
-FROM node:20-alpine AS builder
+# Enable pnpm
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml ./
+
+# Install only production dependencies
+RUN pnpm install --frozen-lockfile --prod
+
+# -----------------------
+# Development
+# -----------------------
+FROM base AS dev
 WORKDIR /app
 
-COPY --from=deps /app/node_modules ./node_modules
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml ./
+
+# Install all dependencies for development
+RUN pnpm install --frozen-lockfile
+
+# Default command for dev stage when used directly
+CMD ["corepack", "pnpm", "dev", "--hostname", "0.0.0.0"]
+
+# -----------------------
+# Builder
+# -----------------------
+FROM base AS builder
+WORKDIR /app
+
+RUN corepack enable
+
 COPY . .
 
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_WS_BASE_URL
+# Install all dependencies (including dev)
+RUN pnpm install --frozen-lockfile
 
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_WS_BASE_URL=$NEXT_PUBLIC_WS_BASE_URL
+# Build Next.js app
+RUN pnpm exec next build
 
-RUN npm run build && npm prune --omit=dev
-
-FROM node:20-alpine AS runner
+# -----------------------
+# Runner (Production)
+# -----------------------
+FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
+ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
+# Non-root user (SECURITY)
+RUN addgroup -S nodejs -g 1001 && adduser -S nextjs -u 1001
 
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
+# Install curl for healthcheck
+RUN apk add --no-cache curl libc6-compat
+
+# Copy standalone output
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/next.config.mjs ./next.config.mjs
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# Fix permissions
+RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Healthcheck (PROPER)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s \
+  CMD curl -f http://localhost:3000 || exit 1
+
+# Start app
+CMD ["node", "server.js"]
