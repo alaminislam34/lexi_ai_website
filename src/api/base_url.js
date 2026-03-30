@@ -1,14 +1,18 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-// Define the API Base URL from environment variables for production
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const resolveBaseUrl = () => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (envUrl) return envUrl;
 
-if (!BASE_URL) {
-  throw new Error(
-    "NEXT_PUBLIC_API_URL is not defined in environment variables",
-  );
-}
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  return "http://3.142.150.64";
+};
+
+const BASE_URL = resolveBaseUrl();
 
 const REFRESH_ENDPOINT = "/api/token/refresh/";
 
