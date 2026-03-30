@@ -16,16 +16,13 @@ const BASE_URL = resolveBaseUrl();
 
 const REFRESH_ENDPOINT = "/api/token/refresh/";
 
-// Create an axios instance
 const baseApi = axios.create({
   baseURL: BASE_URL,
 });
 
-// A flag to prevent multiple concurrent refresh requests
 let isRefreshing = false;
 let failedQueue = [];
 
-// Helper function to process the queue of failed requests
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
