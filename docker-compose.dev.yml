@@ -8,8 +8,8 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         NEXT_PUBLIC_WS_BASE_URL: ${NEXT_PUBLIC_WS_BASE_URL}
-    image: fahad1000mir/lexi-ai-frontend:latest
-    container_name: lexi-ai-frontend
+    image: alaminislam34/casezy:latest
+    container_name: casezy
     ports:
       - "3000:3000"
     environment:
