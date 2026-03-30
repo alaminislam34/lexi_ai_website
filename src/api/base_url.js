@@ -38,8 +38,10 @@ const processQueue = (error, token = null) => {
 baseApi.interceptors.request.use(
   (config) => {
     const token = Cookies.get("accessToken");
+    const hasAuthHeader =
+      config.headers?.Authorization || config.headers?.authorization;
 
-    if (token) {
+    if (token && !hasAuthHeader) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
 
@@ -47,7 +49,6 @@ baseApi.interceptors.request.use(
   },
   (error) => Promise.reject(error),
 );
-
 // --- 2. Response Interceptor: Handle Token Expiration and Refresh ---
 baseApi.interceptors.response.use(
   (response) => response,
