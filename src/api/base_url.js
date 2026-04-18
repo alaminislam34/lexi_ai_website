@@ -1,27 +1,28 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-// Define the API Base URL from environment variables for production
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const resolveBaseUrl = () => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (envUrl) return envUrl;
 
-if (!BASE_URL) {
-  throw new Error(
-    "NEXT_PUBLIC_API_URL is not defined in environment variables",
-  );
-}
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  return "http://3.142.150.64";
+};
+
+const BASE_URL = resolveBaseUrl();
 
 const REFRESH_ENDPOINT = "/api/token/refresh/";
 
-// Create an axios instance
 const baseApi = axios.create({
   baseURL: BASE_URL,
 });
 
-// A flag to prevent multiple concurrent refresh requests
 let isRefreshing = false;
 let failedQueue = [];
 
-// Helper function to process the queue of failed requests
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -37,8 +38,10 @@ const processQueue = (error, token = null) => {
 baseApi.interceptors.request.use(
   (config) => {
     const token = Cookies.get("accessToken");
+    const hasAuthHeader =
+      config.headers?.Authorization || config.headers?.authorization;
 
-    if (token) {
+    if (token && !hasAuthHeader) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
 
@@ -46,7 +49,6 @@ baseApi.interceptors.request.use(
   },
   (error) => Promise.reject(error),
 );
-
 // --- 2. Response Interceptor: Handle Token Expiration and Refresh ---
 baseApi.interceptors.response.use(
   (response) => response,
